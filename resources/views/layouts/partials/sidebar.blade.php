@@ -19,6 +19,13 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('companies.index') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
+                    <i data-feather="briefcase" class="w-5 h-5"></i>
+                    <span class="font-medium">Company</span>
+                </a>
+            </li>
+            <li>
                 <a href="/settings"
                     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
                     <i data-feather="settings" class="w-5 h-5"></i>
