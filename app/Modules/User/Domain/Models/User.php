@@ -71,4 +71,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(\App\Modules\Company\Domain\Models\Company::class);
     }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
+    }
 }
