@@ -2,16 +2,17 @@
 
 namespace App\Modules\User\Domain\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, Notifiable, HasUuids, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -45,5 +46,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Modules\Auth\Application\Notifications\QueuedVerifyEmail);
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Modules\Auth\Application\Notifications\QueuedResetPassword($token));
     }
 }

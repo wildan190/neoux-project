@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Mail;
+namespace App\Modules\Auth\Application\Mail;
 
 use App\Modules\User\Domain\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class WelcomeEmail extends Mailable
+class WelcomeEmail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

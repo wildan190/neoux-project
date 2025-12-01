@@ -26,7 +26,7 @@ class SendWelcomeEmail implements ShouldQueue
     public function handle(): void
     {
         \Illuminate\Support\Facades\Mail::to($this->user->email)
-            ->send(new \App\Mail\WelcomeEmail($this->user));
+            ->send(new \App\Modules\Auth\Application\Mail\WelcomeEmail($this->user));
     }
 
 }
