@@ -3,12 +3,15 @@
 namespace App\Modules\Company\Domain\Models;
 
 use App\Modules\User\Domain\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -37,8 +40,16 @@ class Company extends Model
         return $this->hasMany(CompanyDocument::class);
     }
 
-    public function locations(): HasMany
+    public function locations()
     {
         return $this->hasMany(CompanyLocation::class);
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\CompanyFactory::new();
     }
 }
