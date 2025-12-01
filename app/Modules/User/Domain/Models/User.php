@@ -63,4 +63,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new \App\Modules\Auth\Application\Notifications\QueuedResetPassword($token));
     }
+
+    /**
+     * Get the companies owned by the user.
+     */
+    public function companies()
+    {
+        return $this->hasMany(\App\Modules\Company\Domain\Models\Company::class);
+    }
 }

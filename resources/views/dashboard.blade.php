@@ -8,105 +8,83 @@
 
 @section('content')
 
-{{-- WIDGET TOP --}}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-
-    <div class="p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Total Penjualan</p>
-                <h2 class="text-2xl font-bold mt-1">Rp 125.400.000</h2>
+@if($companies->isEmpty())
+    {{-- No Companies - Show Create Button --}}
+    <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="text-center">
+            <div class="mb-6">
+                <i data-feather="building" class="w-24 h-24 mx-auto text-gray-400"></i>
             </div>
-            <i data-feather="shopping-cart" class="w-10 h-10 text-indigo-500"></i>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Companies Yet</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Create your first company to get started</p>
+            <a href="{{ route('companies.create') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+                <i data-feather="plus" class="w-5 h-5 mr-2"></i>
+                Create Company
+            </a>
         </div>
     </div>
+@else
+    {{-- Company Selection Cards --}}
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Select a Company</h2>
+        <p class="text-gray-600 dark:text-gray-400">Choose a company to continue working</p>
+    </div>
 
-    <div class="p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Pembelian</p>
-                <h2 class="text-2xl font-bold mt-1">Rp 82.900.000</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach($companies as $company)
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                {{-- Company Header --}}
+                <div class="h-32 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
+                    @if($company->logo)
+                        <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}" class="absolute bottom-0 left-6 w-20 h-20 rounded-xl border-4 border-white dark:border-gray-800 object-cover">
+                    @else
+                        <div class="absolute bottom-0 left-6 w-20 h-20 rounded-xl border-4 border-white dark:border-gray-800 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                            <i data-feather="building" class="w-10 h-10 text-gray-500"></i>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Company Info --}}
+                <div class="p-6 pt-8">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $company->name }}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{{ $company->business_category }}</p>
+
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full
+                            @if($company->category === 'buyer') bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300
+                            @elseif($company->category === 'supplier') bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
+                            @else bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300
+                            @endif">
+                            {{ ucfirst($company->category) }}
+                        </span>
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full
+                            @if($company->status === 'active') bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
+                            @elseif($company->status === 'pending') bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300
+                            @else bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300
+                            @endif">
+                            {{ ucfirst($company->status) }}
+                        </span>
+                    </div>
+
+                    <form action="{{ route('dashboard.select-company', $company->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center">
+                            <i data-feather="log-in" class="w-5 h-5 mr-2"></i>
+                            Login as {{ $company->name }}
+                        </button>
+                    </form>
+                </div>
             </div>
-            <i data-feather="package" class="w-10 h-10 text-pink-500"></i>
-        </div>
-    </div>
+        @endforeach
 
-    <div class="p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Customer</p>
-                <h2 class="text-2xl font-bold mt-1">1.254</h2>
+        {{-- Add New Company Card --}}
+        <a href="{{ route('companies.create') }}" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-indigo-500 flex items-center justify-center min-h-[300px] group">
+            <div class="text-center">
+                <i data-feather="plus-circle" class="w-16 h-16 mx-auto text-gray-400 group-hover:text-indigo-500 transition-colors mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400 group-hover:text-indigo-500 font-semibold transition-colors">Add New Company</p>
             </div>
-            <i data-feather="users" class="w-10 h-10 text-green-500"></i>
-        </div>
+        </a>
     </div>
-
-    <div class="p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Produk Aktif</p>
-                <h2 class="text-2xl font-bold mt-1">842</h2>
-            </div>
-            <i data-feather="box" class="w-10 h-10 text-yellow-500"></i>
-        </div>
-    </div>
-
-</div>
-
-
-{{-- CHART --}}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    {{-- Sales Chart --}}
-    <div class="lg:col-span-2 p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <h3 class="font-bold text-lg mb-4">Grafik Penjualan</h3>
-        <canvas id="salesChart" height="120"></canvas>
-    </div>
-
-    {{-- Stock Chart --}}
-    <div class="p-6 bg-white dark:bg-gray-800 shadow rounded-xl">
-        <h3 class="font-bold text-lg mb-4">Stok Gudang</h3>
-        <canvas id="stockChart" height="120"></canvas>
-    </div>
-
-</div>
+@endif
 
 @endsection
-
-
-{{-- PASTE SCRIPT CHART.js DI SINI --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    // SALES LINE CHART
-    new Chart(document.getElementById('salesChart').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-            datasets: [{
-                label: 'Penjualan (juta)',
-                data: [20, 35, 40, 38, 50, 60],
-                borderWidth: 3,
-                borderColor: '#6366f1',
-                pointBackgroundColor: '#6366f1',
-                tension: 0.4
-            }]
-        }
-    });
-
-    // STOCK DOUGHNUT CHART
-    new Chart(document.getElementById('stockChart').getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Bahan Baku', 'Barang Jadi', 'Dalam Proses'],
-            datasets: [{
-                data: [40, 35, 25],
-                backgroundColor: ['#34d399', '#60a5fa', '#f87171']
-            }]
-        }
-    });
-
-});
-</script>
