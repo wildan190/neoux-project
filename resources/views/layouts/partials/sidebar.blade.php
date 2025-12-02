@@ -1,12 +1,12 @@
 <aside id="sidebar"
     class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300">
 
-    {{-- Navigation (tanpa header) --}}
-    <nav class="mt-6 px-3">
+    {{-- Navigation (with top padding to avoid navbar overlap) --}}
+    <nav class="mt-20 px-3">
         <ul class="space-y-2">
             <li>
                 <a href="/dashboard"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('dashboard') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
                     <i data-feather="home" class="w-5 h-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
@@ -20,11 +20,35 @@
             </li>
             <li>
                 <a href="{{ route('companies.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('companies.*') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
                     <i data-feather="briefcase" class="w-5 h-5"></i>
-                    <span class="font-medium">Company</span>
+                    <span class="font-medium">Companies</span>
                 </a>
             </li>
+
+            {{-- Catalogue Menu - Only show if logged in as approved/active company --}}
+            @php
+                $selectedCompanyId = session('selected_company_id');
+                $showCatalogue = false;
+                $selectedCompany = null;
+                if ($selectedCompanyId) {
+                    $selectedCompany = \App\Modules\Company\Domain\Models\Company::find($selectedCompanyId);
+                    // Accept both 'approved' and 'active' status
+                    $showCatalogue = $selectedCompany && in_array($selectedCompany->status, ['approved', 'active']);
+                }
+            @endphp
+
+
+            @if($showCatalogue)
+                <li>
+                    <a href="{{ route('catalogue.index') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('catalogue.*') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                        <i data-feather="package" class="w-5 h-5"></i>
+                        <span class="font-medium">Catalogue</span>
+                    </a>
+                </li>
+            @endif
+
             <li>
                 <a href="{{ route('profile.show') }}"
                     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">

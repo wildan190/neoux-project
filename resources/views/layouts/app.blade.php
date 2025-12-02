@@ -32,13 +32,31 @@
                     <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">MyApp</span>
                 </div>
 
-                {{-- Right: User Menu & Dark Mode Toggle --}}
+                {{-- Right: Active Company Info + Dark Mode Toggle --}}
                 <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-4">
-                        {{-- User name is now in sidebar, but we can keep it here or remove it. User asked to remove
-                        duplication. --}}
-                        {{-- <span class="text-gray-700 dark:text-gray-300">{{ Auth::user()->name }}</span> --}}
-                    </div>
+                    {{-- Active Company Indicator --}}
+                    @php
+                        $selectedCompanyId = session('selected_company_id');
+                        $selectedCompany = null;
+                        if ($selectedCompanyId) {
+                            $selectedCompany = \App\Modules\Company\Domain\Models\Company::find($selectedCompanyId);
+                        }
+                    @endphp
+                    
+                    @if($selectedCompany)
+                        <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+                            <i data-feather="briefcase" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
+                            <div class="text-sm">
+                                <p class="font-semibold text-gray-900 dark:text-white">{{ $selectedCompany->name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="inline-flex items-center">
+                                        <span class="w-2 h-2 rounded-full mr-1 {{ in_array($selectedCompany->status, ['approved', 'active']) ? 'bg-green-500' : ($selectedCompany->status === 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}"></span>
+                                        {{ ucfirst($selectedCompany->status) }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    @endif
 
                     <button id="darkModeToggle"
                         class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition relative z-50">

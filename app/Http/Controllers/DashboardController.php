@@ -19,6 +19,8 @@ class DashboardController extends Controller
 
         session(['selected_company_id' => $company->id]);
 
-        return redirect()->route('company.dashboard');
+        // Debug: Tambahkan flash message untuk memastikan session ter-set
+        return redirect()->route('company.dashboard')
+            ->with('success', 'Logged in as: ' . $company->name . ' (Status: ' . $company->status . ')');
     }
 }
