@@ -26,7 +26,7 @@ class StoreCatalogueItemRequest extends FormRequest
         return [
             'category_id' => 'nullable|exists:catalogue_categories,id',
             'sku' => $itemId
-                ? 'required|string|max:255|unique:catalogue_items,sku,' . $itemId
+                ? 'required|string|max:255|unique:catalogue_items,sku,'.$itemId
                 : 'required|string|max:255|unique:catalogue_items,sku',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',

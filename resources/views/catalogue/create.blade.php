@@ -98,6 +98,9 @@
     </div>
 </div>
 
+{{-- SweetAlert2 CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 let attributeIndex = 1;
 let imageFiles = new DataTransfer();
@@ -173,11 +176,21 @@ fileInput.addEventListener('change', function() {
 function handleFiles(files) {
     Array.from(files).forEach(file => {
         if (file.size > 1024 * 1024) {
-            alert(`${file.name} exceeds 1MB`);
+            Swal.fire({
+                icon: 'error',
+                title: 'File Too Large',
+                text: `${file.name} exceeds 1MB`,
+                confirmButtonColor: '#4F46E5'
+            });
             return;
         }
         if (!file.type.startsWith('image/')) {
-            alert(`${file.name} is not an image`);
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid File Type',
+                text: `${file.name} is not an image`,
+                confirmButtonColor: '#4F46E5'
+            });
             return;
         }
         imageFiles.items.add(file);

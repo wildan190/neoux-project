@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -23,6 +21,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/companies/{company}', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'update'])->name('companies.update');
 
     Route::prefix('catalogue')->name('catalogue.')->group(function () {
+        Route::get('/import/template', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'downloadTemplate'])->name('import.template');
+        Route::post('/import/preview', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'previewImport'])->name('import.preview');
+        Route::post('/import', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'import'])->name('import');
+        Route::get('/import/status', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'checkImportStatus'])->name('import.status');
+
+        Route::post('/bulk-delete', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'bulkDelete'])->name('bulk-delete');
+
         Route::get('/', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'index'])->name('index');
         Route::get('/create', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'create'])->name('create');
         Route::post('/', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'store'])->name('store');

@@ -11,6 +11,7 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = CatalogueCategory::withCount('items')->get();
+
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -29,6 +30,7 @@ class CategoryController extends Controller
     public function destroy(CatalogueCategory $category)
     {
         $category->delete();
+
         return back()->with('success', 'Category deleted successfully.');
     }
 }

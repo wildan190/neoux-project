@@ -1,11 +1,11 @@
 <?php
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-
-use App\Modules\Company\Domain\Models\CompanyLocation;
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Company\Domain\Models\CompanyLocation;
 use App\Modules\User\Domain\Models\User;
 
 test('company location belongs to a company', function () {

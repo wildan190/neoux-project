@@ -2,6 +2,7 @@
     class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300">
 
     {{-- Navigation (with top padding to avoid navbar overlap) --}}
+    <br />
     <nav class="mt-20 px-3">
         <ul class="space-y-2">
             <li>
@@ -9,13 +10,6 @@
                     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('dashboard') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
                     <i data-feather="home" class="w-5 h-5"></i>
                     <span class="font-medium">Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="/users"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
-                    <i data-feather="users" class="w-5 h-5"></i>
-                    <span class="font-medium">Users</span>
                 </a>
             </li>
             <li>
@@ -49,13 +43,6 @@
                 </li>
             @endif
 
-            <li>
-                <a href="{{ route('profile.show') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
-                    <i data-feather="user" class="w-5 h-5"></i>
-                    <span class="font-medium">Profile</span>
-                </a>
-            </li>
             <li>
                 <a href="/settings"
                     class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">

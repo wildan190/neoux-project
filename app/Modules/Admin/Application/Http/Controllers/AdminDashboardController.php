@@ -4,7 +4,6 @@ namespace App\Modules\Admin\Application\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Company\Domain\Models\Company;
-use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {

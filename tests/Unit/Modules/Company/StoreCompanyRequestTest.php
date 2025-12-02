@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
@@ -43,7 +44,7 @@ test('store company request requires valid category', function () {
 })->throws(\Illuminate\Validation\ValidationException::class);
 
 test('store company request accepts valid category values', function ($category) {
-    $rules = (new StoreCompanyRequest())->rules();
+    $rules = (new StoreCompanyRequest)->rules();
 
     $data = [
         'name' => 'Test Company',
@@ -57,7 +58,7 @@ test('store company request accepts valid category values', function ($category)
 })->with(['buyer', 'supplier', 'vendor']);
 
 test('store company request passes with valid data', function () {
-    $rules = (new StoreCompanyRequest())->rules();
+    $rules = (new StoreCompanyRequest)->rules();
 
     $data = [
         'name' => 'Test Company',

@@ -1,11 +1,11 @@
 <?php
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-
-use App\Modules\User\Domain\Models\User;
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\User\Domain\Models\User;
 
 test('user can be created with valid data', function () {
     $user = User::factory()->create([
@@ -23,7 +23,7 @@ test('user can be created with valid data', function () {
 test('user email must be unique', function () {
     User::factory()->create(['email' => 'test@example.com']);
 
-    expect(fn() => User::factory()->create(['email' => 'test@example.com']))
+    expect(fn () => User::factory()->create(['email' => 'test@example.com']))
         ->toThrow(\Illuminate\Database\QueryException::class);
 });
 

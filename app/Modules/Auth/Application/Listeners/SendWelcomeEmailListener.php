@@ -2,10 +2,9 @@
 
 namespace App\Modules\Auth\Application\Listeners;
 
+use App\Modules\Auth\Application\Jobs\SendWelcomeEmail;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use App\Modules\Auth\Application\Jobs\SendWelcomeEmail;
 
 class SendWelcomeEmailListener implements ShouldQueue
 {

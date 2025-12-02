@@ -29,7 +29,11 @@
                         class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition relative z-50">
                         <i data-feather="menu" class="w-6 h-6 pointer-events-none"></i>
                     </button>
-                    <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">MyApp</span>
+                
+                    {{-- Logo --}}
+                    <img src="{{ asset('assets/img/logo.png') }}" 
+                         alt="MyApp Logo" 
+                         class="h-8 w-auto">
                 </div>
 
                 {{-- Right: Active Company Info + Dark Mode Toggle --}}
@@ -83,108 +87,90 @@
     {{-- Overlay untuk mobile --}}
     <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40 md:hidden"></div>
 
-    <script>
+<script>
+    feather.replace();
+
+    // DARK MODE
+    const darkToggle = document.getElementById('darkModeToggle');
+    const htmlEl = document.documentElement;
+    const darkIcon = document.getElementById('darkIcon');
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        htmlEl.classList.add('dark');
+        darkIcon.dataset.feather = 'sun';
+    } else if (savedTheme === 'light') {
+        htmlEl.classList.remove('dark');
+        darkIcon.dataset.feather = 'moon';
+    }
+    feather.replace();
+
+    darkToggle.addEventListener('click', () => {
+        htmlEl.classList.toggle('dark');
+        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        darkIcon.dataset.feather = htmlEl.classList.contains('dark') ? 'sun' : 'moon';
         feather.replace();
+    });
 
-        // -----------------------------
-        // Dark/Light Mode Toggle
-        // -----------------------------
-        const darkToggle = document.getElementById('darkModeToggle');
-        const htmlEl = document.documentElement;
-        const darkIcon = document.getElementById('darkIcon');
+    // SIDEBAR TOGGLE
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const contentWrapper = document.querySelector('.flex-1');
 
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            htmlEl.classList.add('dark');
-            darkIcon.dataset.feather = 'sun';
-        } else if (savedTheme === 'light') {
-            htmlEl.classList.remove('dark');
-            darkIcon.dataset.feather = 'moon';
-        } else {
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                htmlEl.classList.add('dark');
-                darkIcon.dataset.feather = 'sun';
-            } else {
-                htmlEl.classList.remove('dark');
-                darkIcon.dataset.feather = 'moon';
-            }
-        }
-        feather.replace();
+    const openDesktopSidebar = () => {
+        contentWrapper.classList.add('md:pl-64');
+        sidebar.classList.remove('-translate-x-full');
+    };
 
-        darkToggle.addEventListener('click', () => {
-            htmlEl.classList.toggle('dark');
-            if (htmlEl.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
-                darkIcon.dataset.feather = 'sun';
-            } else {
-                localStorage.setItem('theme', 'light');
-                darkIcon.dataset.feather = 'moon';
-            }
-            feather.replace();
-        });
+    const closeDesktopSidebar = () => {
+        contentWrapper.classList.remove('md:pl-64');
+        sidebar.classList.add('-translate-x-full');
+    };
 
-        // -----------------------------
-        // Sidebar toggle
-        // -----------------------------
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const toggleBtn = document.getElementById('toggleSidebar');
-        const closeBtn = document.getElementById('closeSidebar');
-        const contentWrapper = document.querySelector('.flex-1');
+    toggleBtn.addEventListener('click', () => {
+        const isMobile = window.innerWidth < 768;
 
-        const openDesktopSidebar = () => {
-            contentWrapper.classList.add('md:pl-64');
-            contentWrapper.classList.remove('md:pl-0');
-            sidebar.classList.remove('-translate-x-full');
-        };
+        if (isMobile) {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
 
-        const closeDesktopSidebar = () => {
-            contentWrapper.classList.add('md:pl-0');
-            contentWrapper.classList.remove('md:pl-64');
-            sidebar.classList.add('-translate-x-full');
-        };
-
-        toggleBtn.addEventListener('click', () => {
-            const isMobile = window.innerWidth < 768;
-
-            if (isMobile) {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-            } else {
-                if (contentWrapper.classList.contains('md:pl-64')) {
-                    closeDesktopSidebar();
-                } else {
-                    openDesktopSidebar();
-                }
-            }
-        });
-
-        closeBtn.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                openDesktopSidebar();
+            // ensure overlay hides when sidebar closed
+            if (sidebar.classList.contains('-translate-x-full')) {
                 overlay.classList.add('hidden');
+            }
+        } else {
+            if (sidebar.classList.contains('-translate-x-full')) {
+                openDesktopSidebar();
             } else {
                 closeDesktopSidebar();
             }
-        });
-
-        // Initial state
-        if (window.innerWidth < 768) {
-            closeDesktopSidebar();
-        } else {
-            openDesktopSidebar();
         }
-    </script>
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.add('hidden');
+            contentWrapper.classList.add('md:pl-64');
+        } else {
+            sidebar.classList.add('-translate-x-full');
+        }
+    });
+
+    // initial state
+    if (window.innerWidth < 768) {
+        sidebar.classList.add('-translate-x-full');
+    } else {
+        sidebar.classList.remove('-translate-x-full');
+    }
+</script>
+
 
 </body>
 

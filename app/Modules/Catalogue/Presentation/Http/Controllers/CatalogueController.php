@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Modules\Catalogue\Domain\Models\CatalogueCategory;
 use App\Modules\Catalogue\Domain\Models\CatalogueItem;
 use App\Modules\Catalogue\Presentation\Http\Requests\StoreCatalogueItemRequest;
+use App\Modules\Company\Domain\Models\Company;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Modules\Company\Domain\Models\Company; // Added this import
+use Maatwebsite\Excel\Facades\Excel; // Added this import
 
 class CatalogueController extends Controller
 {
@@ -17,15 +17,15 @@ class CatalogueController extends Controller
     {
         $companyId = session('selected_company_id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         // Check if company is approved
         $company = Company::find($companyId);
-        if (!$company || !in_array($company->status, ['approved', 'active'])) {
+        if (! $company || ! in_array($company->status, ['approved', 'active'])) {
             return redirect()->route('dashboard')
-                ->with('error', 'Catalogue access is only available for approved companies. Current status: ' . ($company->status ?? 'unknown'));
+                ->with('error', 'Catalogue access is only available for approved companies. Current status: '.($company->status ?? 'unknown'));
         }
 
         $query = CatalogueItem::where('company_id', $companyId)
@@ -39,8 +39,8 @@ class CatalogueController extends Controller
         // Search by name or SKU
         if ($request->has('search') && $request->search) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('sku', 'like', '%' . $request->search . '%');
+                $q->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('sku', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -54,15 +54,15 @@ class CatalogueController extends Controller
     {
         $companyId = session('selected_company_id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         // Check if company is approved
         $company = Company::find($companyId);
-        if (!$company || !in_array($company->status, ['approved', 'active'])) {
+        if (! $company || ! in_array($company->status, ['approved', 'active'])) {
             return redirect()->route('dashboard')
-                ->with('error', 'Catalogue access is only available for approved companies. Current status: ' . ($company->status ?? 'unknown'));
+                ->with('error', 'Catalogue access is only available for approved companies. Current status: '.($company->status ?? 'unknown'));
         }
 
         $categories = CatalogueCategory::all();
@@ -75,13 +75,13 @@ class CatalogueController extends Controller
     {
         $companyId = session('selected_company_id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         // Check if company is approved/active
         $company = Company::find($companyId);
-        if (!$company || !in_array($company->status, ['approved', 'active'])) {
+        if (! $company || ! in_array($company->status, ['approved', 'active'])) {
             return redirect()->route('dashboard')
                 ->with('error', 'Catalogue access is only available for approved companies.');
         }
@@ -95,7 +95,7 @@ class CatalogueController extends Controller
         // Handle attributes
         if ($request->has('attributes') && is_array($request->input('attributes'))) {
             foreach ($request->input('attributes') as $attribute) {
-                if (!empty($attribute['key']) && !empty($attribute['value'])) {
+                if (! empty($attribute['key']) && ! empty($attribute['value'])) {
                     $item->attributes()->create([
                         'attribute_key' => $attribute['key'],
                         'attribute_value' => $attribute['value'],
@@ -161,7 +161,7 @@ class CatalogueController extends Controller
         $item->attributes()->delete();
         if ($request->has('attributes') && is_array($request->input('attributes'))) {
             foreach ($request->input('attributes') as $attribute) {
-                if (!empty($attribute['key']) && !empty($attribute['value'])) {
+                if (! empty($attribute['key']) && ! empty($attribute['value'])) {
                     $item->attributes()->create([
                         'attribute_key' => $attribute['key'],
                         'attribute_value' => $attribute['value'],
@@ -229,5 +229,178 @@ class CatalogueController extends Controller
         $sku = CatalogueItem::generateSKU($companyId, $categoryId);
 
         return response()->json(['sku' => $sku]);
+    }
+
+    /**
+     * Handle Mass Import
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240', // 10MB max
+        ]);
+
+        $companyId = session('selected_company_id');
+        $file = $request->file('file');
+
+        // Store file temporarily
+        $path = $file->store('temp_imports');
+
+        // Create import job record
+        $importJob = \App\Modules\Catalogue\Domain\Models\ImportJob::create([
+            'user_id' => auth()->id(),
+            'company_id' => $companyId,
+            'type' => 'catalogue',
+            'status' => 'pending',
+            'file_name' => $file->getClientOriginalName(),
+            'total_rows' => 0, // Will be updated during import
+        ]);
+
+        // Dispatch Job
+        \App\Modules\Catalogue\Application\Jobs\ImportCatalogueItemsJob::dispatch($path, $companyId, $importJob->id);
+
+        return redirect()->back()->with([
+            'success' => 'Import process started in background. You will be notified when completed.',
+            'import_job_id' => $importJob->id,
+        ]);
+    }
+
+    /**
+     * Download Import Template
+     */
+    public function downloadTemplate()
+    {
+        // Create a simple CSV/Excel template
+        $headers = ['sku', 'name', 'description', 'category', 'tags', 'attributes'];
+        $example = ['SKU-001', 'Example Product', 'Description here', 'Electronics', 'tag1,tag2', 'Color:Red,Size:XL'];
+
+        $callback = function () use ($headers, $example) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            fputcsv($file, $example);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=catalogue_import_template.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ]);
+    }
+
+    /**
+     * Preview Import Data (AJAX)
+     */
+    public function previewImport(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            ]);
+
+            $file = $request->file('file');
+            $path = $file->store('temp_previews');
+
+            // Create a simple importer to extract headers and data
+            $previewData = [];
+            $headers = [];
+
+            $collection = Excel::toCollection(new class implements \Maatwebsite\Excel\Concerns\ToCollection, \Maatwebsite\Excel\Concerns\WithHeadingRow
+            {
+                public function collection(\Illuminate\Support\Collection $rows)
+                {
+                    // This method is required but we won't use it here
+                }
+            }, $path)->first(); // Get first sheet
+
+            if ($collection->isNotEmpty()) {
+                // Get headers from first row keys (convert to array first)
+                $firstRow = $collection->first();
+                $headers = is_array($firstRow) ? array_keys($firstRow) : array_keys($firstRow->toArray());
+                // Get preview data (first 20 rows)
+                $previewData = $collection->take(20)->toArray();
+            }
+
+            // Clean up temp file
+            \Storage::delete($path);
+
+            return response()->json([
+                'success' => true,
+                'headers' => $headers,
+                'data' => $previewData,
+                'total_rows' => count($previewData),
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid file. Please upload Excel or CSV file (max 10MB).',
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Preview import error: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to read file: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Check Import Status (for AJAX polling)
+     */
+    public function checkImportStatus(Request $request)
+    {
+        $importJobId = $request->input('import_job_id');
+        $importJob = \App\Modules\Catalogue\Domain\Models\ImportJob::find($importJobId);
+
+        if (! $importJob) {
+            return response()->json([
+                'status' => 'not_found',
+                'message' => 'Import job not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => $importJob->status,
+            'progress' => $importJob->progress_percentage,
+            'processed_rows' => $importJob->processed_rows,
+            'total_rows' => $importJob->total_rows,
+            'file_name' => $importJob->file_name,
+            'error_message' => $importJob->error_message,
+        ]);
+    }
+
+    /**
+     * Bulk Delete Catalogue Items
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:catalogue_items,id',
+        ]);
+
+        $companyId = session('selected_company_id');
+
+        try {
+            $deleted = CatalogueItem::where('company_id', $companyId)
+                ->whereIn('id', $request->ids)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully deleted {$deleted} item".($deleted > 1 ? 's' : ''),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete items: '.$e->getMessage(),
+            ], 500);
+        }
     }
 }

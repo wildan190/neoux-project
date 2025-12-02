@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 class DashboardController extends Controller
 {
     public function index()
@@ -21,6 +19,6 @@ class DashboardController extends Controller
 
         // Debug: Tambahkan flash message untuk memastikan session ter-set
         return redirect()->route('company.dashboard')
-            ->with('success', 'Logged in as: ' . $company->name . ' (Status: ' . $company->status . ')');
+            ->with('success', 'Logged in as: '.$company->name.' (Status: '.$company->status.')');
     }
 }

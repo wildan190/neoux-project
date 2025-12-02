@@ -3,8 +3,8 @@
 namespace App\Modules\Auth\Application\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
@@ -28,5 +28,4 @@ class SendWelcomeEmail implements ShouldQueue
         \Illuminate\Support\Facades\Mail::to($this->user->email)
             ->send(new \App\Modules\Auth\Application\Mail\WelcomeEmail($this->user));
     }
-
 }

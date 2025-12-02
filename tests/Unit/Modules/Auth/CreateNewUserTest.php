@@ -1,14 +1,14 @@
 <?php
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
-
 
 use App\Modules\Auth\Domain\Actions\CreateNewUser;
 use App\Modules\User\Domain\Models\User;
 
 test('create new user action creates user successfully', function () {
-    $action = new CreateNewUser();
+    $action = new CreateNewUser;
 
     $userData = [
         'name' => 'Jane Doe',
@@ -27,7 +27,7 @@ test('create new user action creates user successfully', function () {
 });
 
 test('create new user action hashes password', function () {
-    $action = new CreateNewUser();
+    $action = new CreateNewUser;
 
     $user = $action->create([
         'name' => 'Test User',
