@@ -1,4 +1,10 @@
-@extends('admin.layouts.app', ['title' => 'Create Admin'])
+@extends('admin.layouts.app', [
+    'title' => 'Create Admin',
+    'breadcrumbs' => [
+        ['label' => 'Admins', 'url' => route('admin.admins.index')],
+        ['label' => 'Create Admin']
+    ]
+])
 
 @section('content')
     <div class="mb-6">

@@ -1,4 +1,9 @@
-@extends('admin.layouts.app', ['title' => 'Company Management'])
+@extends('admin.layouts.app', [
+    'title' => 'Company Management',
+    'breadcrumbs' => [
+        ['label' => 'Companies']
+    ]
+])
 
 @section('content')
     <div class="flex justify-between items-center mb-6">

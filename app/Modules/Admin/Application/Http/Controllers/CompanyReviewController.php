@@ -24,21 +24,45 @@ class CompanyReviewController extends Controller
 
     public function show(Company $company)
     {
-        $company->load(['user', 'documents', 'locations']);
+        $company->load(['user', 'documents', 'locations', 'approvedBy', 'declinedBy', 'activities.admin']);
 
         return view('admin.companies.show', compact('company'));
     }
 
     public function approve(Company $company)
     {
-        $company->update(['status' => 'active']);
+        $company->update([
+            'status' => 'active',
+            'approved_by' => auth('admin')->id(),
+            'approved_at' => now(),
+        ]);
+
+        // Log activity
+        \App\Modules\Admin\Domain\Models\CompanyActivity::create([
+            'company_id' => $company->id,
+            'admin_id' => auth('admin')->id(),
+            'action' => 'approved',
+            'description' => 'Company application approved by ' . auth('admin')->user()->name,
+        ]);
 
         return back()->with('success', 'Company has been approved successfully.');
     }
 
     public function decline(Company $company)
     {
-        $company->update(['status' => 'declined']);
+        $company->update([
+            'status' => 'declined',
+            'declined_by' => auth('admin')->id(),
+            'declined_at' => now(),
+        ]);
+
+        // Log activity
+        \App\Modules\Admin\Domain\Models\CompanyActivity::create([
+            'company_id' => $company->id,
+            'admin_id' => auth('admin')->id(),
+            'action' => 'declined',
+            'description' => 'Company application declined by ' . auth('admin')->user()->name,
+        ]);
 
         return back()->with('success', 'Company has been declined.');
     }

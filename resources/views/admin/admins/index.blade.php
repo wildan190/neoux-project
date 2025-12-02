@@ -1,4 +1,9 @@
-@extends('admin.layouts.app', ['title' => 'Admins'])
+@extends('admin.layouts.app', [
+    'title' => 'Admins',
+    'breadcrumbs' => [
+        ['label' => 'Admins']
+    ]
+])
 
 @section('content')
     <div class="flex justify-between items-center mb-6">
