@@ -6,6 +6,9 @@ uses(Tests\TestCase::class, RefreshDatabase::class);
 
 use App\Modules\Company\Domain\Models\Company;
 use App\Modules\User\Domain\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Hash;
 
 test('user can be created with valid data', function () {
     $user = User::factory()->create([
@@ -34,7 +37,7 @@ test('user password is hashed', function () {
 
     expect($user->password)
         ->not->toBe('password123')
-        ->and(\Hash::check('password123', $user->password))->toBeTrue();
+        ->and(Hash::check('password123', $user->password))->toBeTrue();
 });
 
 test('user has many companies', function () {
@@ -50,25 +53,32 @@ test('user has many companies', function () {
 });
 
 test('user can send email verification notification', function () {
-    $user = User::factory()->create();
+    $user = new User();
 
-    expect($user)->toHaveMethod('sendEmailVerificationNotification');
+    // The sendEmailVerificationNotification method comes from the MustVerifyEmail contract/trait.
+    // We check if the User model implements the contract.
+    expect($user)->toBeInstanceOf(\Illuminate\Contracts\Auth\MustVerifyEmail::class);
+
+    // Also, let's check if it can actually send the notification.
+    \Illuminate\Support\Facades\Notification::fake();
+    $user = User::factory()->create();
+    $user->sendEmailVerificationNotification();
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, VerifyEmail::class);
 });
 
 test('user can send password reset notification', function () {
+    \Illuminate\Support\Facades\Notification::fake();
     $user = User::factory()->create();
-
-    expect($user)->toHaveMethod('sendPasswordResetNotification');
+    $user->sendPasswordResetNotification('fake-token');
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, ResetPassword::class);
 });
 
 test('user implements must verify email contract', function () {
-    $user = User::factory()->create();
-
-    expect($user)->toBeInstanceOf(\Illuminate\Contracts\Auth\MustVerifyEmail::class);
+    expect(new User())->toBeInstanceOf(\Illuminate\Contracts\Auth\MustVerifyEmail::class);
 });
 
 test('user has two factor authentication trait', function () {
-    $user = User::factory()->create();
+    $uses = class_uses_recursive(User::class);
 
-    expect($user)->toHaveMethod('twoFactorQrCodeSvg');
+    expect($uses)->toContain(\Laravel\Fortify\TwoFactorAuthenticatable::class);
 });
