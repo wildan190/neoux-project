@@ -12,6 +12,7 @@ class Company extends Model
 {
     use HasFactory;
 
+
     protected $fillable = [
         'user_id',
         'name',
@@ -28,6 +29,15 @@ class Company extends Model
         'registered_date',
         'address',
         'description',
+        'approved_by',
+        'approved_at',
+        'declined_by',
+        'declined_at',
+    ];
+
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'declined_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -43,6 +53,21 @@ class Company extends Model
     public function locations()
     {
         return $this->hasMany(CompanyLocation::class);
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(\App\Modules\Admin\Domain\Models\Admin::class, 'approved_by');
+    }
+
+    public function declinedBy()
+    {
+        return $this->belongsTo(\App\Modules\Admin\Domain\Models\Admin::class, 'declined_by');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(\App\Modules\Admin\Domain\Models\CompanyActivity::class)->latest();
     }
 
     /**

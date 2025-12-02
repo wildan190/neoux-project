@@ -42,7 +42,17 @@
                 <a href="{{ route('companies.index') }}" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                     Back
                 </a>
-                {{-- Add Edit Button Here if needed --}}
+                @if($company->status !== 'pending')
+                    <a href="{{ route('companies.edit', $company) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                        <i data-feather="edit-2" class="w-4 h-4"></i>
+                        Edit Company
+                    </a>
+                @else
+                    <div class="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed flex items-center gap-2" title="Cannot edit while status is pending">
+                        <i data-feather="lock" class="w-4 h-4"></i>
+                        Edit Locked
+                    </div>
+                @endif
             </div>
         </div>
     </div>
