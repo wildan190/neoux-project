@@ -58,7 +58,7 @@
                             {{ ucfirst($company->category) }}
                         </span>
                         <span class="px-3 py-1 text-xs font-semibold rounded-full
-                            @if($company->status === 'active') bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
+                            @if(in_array($company->status, ['approved', 'active'])) bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300
                             @elseif($company->status === 'pending') bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300
                             @else bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300
                             @endif">

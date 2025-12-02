@@ -5,6 +5,7 @@ use App\Modules\Admin\Application\Http\Controllers\AdminManagementController;
 use App\Modules\Admin\Application\Http\Controllers\Auth\AdminLoginController;
 use App\Modules\Admin\Application\Http\Controllers\CompanyReviewController;
 use App\Modules\Admin\Application\Http\Controllers\UserManagementController;
+use App\Modules\Catalogue\Presentation\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 // Admin Authentication Routes
@@ -37,11 +38,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // Admin Management
-        Route::prefix('admins')->name('admins.')->group(function () {
-            Route::get('/', [AdminManagementController::class, 'index'])->name('index');
-            Route::get('/create', [AdminManagementController::class, 'create'])->name('create');
-            Route::post('/', [AdminManagementController::class, 'store'])->name('store');
-            Route::delete('/{admin}', [AdminManagementController::class, 'destroy'])->name('destroy');
-        });
+        Route::get('/admins', [AdminManagementController::class, 'index'])->name('admins.index');
+        Route::get('/admins/create', [AdminManagementController::class, 'create'])->name('admins.create');
+        Route::post('/admins', [AdminManagementController::class, 'store'])->name('admins.store');
+        Route::delete('/admins/{admin}', [AdminManagementController::class, 'destroy'])->name('admins.destroy');
+
+        // Category Management
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     });
 });

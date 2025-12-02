@@ -13,6 +13,7 @@ class CompanyController extends Controller
     public function index()
     {
         $companies = Company::where('user_id', Auth::id())->get();
+
         return view('company.index', compact('companies'));
     }
 
@@ -36,7 +37,7 @@ class CompanyController extends Controller
 
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (!empty($location)) {
+                if (! empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }
@@ -58,6 +59,7 @@ class CompanyController extends Controller
     public function show(Company $company)
     {
         $company->load(['documents', 'locations']);
+
         return view('company.show', compact('company'));
     }
 
@@ -113,7 +115,7 @@ class CompanyController extends Controller
         $company->locations()->delete();
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (!empty($location)) {
+                if (! empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }

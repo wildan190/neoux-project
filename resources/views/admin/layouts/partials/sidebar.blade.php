@@ -22,6 +22,12 @@
             <span>Users</span>
         </a>
 
+        <a href="{{ route('admin.categories.index') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.categories.*') ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-200' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }} transition-colors">
+            <i data-feather="tag" class="w-5 h-5"></i>
+            <span class="font-medium">Categories</span>
+        </a>
+
         <a href="{{ route('admin.admins.index') }}"
             class="flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 {{ request()->routeIs('admin.admins.*') ? 'bg-gray-100 dark:bg-gray-700 border-r-4 border-indigo-500' : '' }}">
             <i data-feather="shield" class="w-5 h-5 mr-3"></i>

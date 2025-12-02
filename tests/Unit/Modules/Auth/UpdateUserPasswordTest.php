@@ -1,8 +1,8 @@
 <?php
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
-
 
 use App\Modules\Auth\Domain\Actions\UpdateUserPassword;
 use App\Modules\User\Domain\Models\User;
@@ -13,7 +13,7 @@ test('update user password action updates password successfully', function () {
         'password' => Hash::make('old-password'),
     ]);
 
-    $action = new UpdateUserPassword();
+    $action = new UpdateUserPassword;
 
     $action->update($user, [
         'current_password' => 'old-password',
