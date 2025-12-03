@@ -7,7 +7,6 @@
 ])
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 md:px-0">
     {{-- Header Section --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
         <div>
@@ -116,5 +115,4 @@
         </a>
     </div>
     @endif
-</div>
 @endsection

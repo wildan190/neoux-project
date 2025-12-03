@@ -24,10 +24,9 @@
         </div>
     </div>
 @else
-    <div class="max-w-7xl mx-auto px-4 md:px-0">
-        {{-- Header --}}
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
                 <h2 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Select Company</h2>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">Choose a company workspace to continue working.</p>
             </div>

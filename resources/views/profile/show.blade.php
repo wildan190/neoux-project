@@ -437,17 +437,54 @@
         });
         
         // Show selected tab content
-        document.getElementById(tabName + '-content').classList.remove('hidden');
-        
-        // Add active state to selected tab button
-        const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
-        activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400');
-        activeButton.classList.add('border-primary-600', 'text-primary-600', 'dark:border-primary-400', 'dark:text-primary-400');
+        const selectedContent = document.getElementById(tabName + '-content');
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+            
+            // Add active state to selected tab button
+            const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeButton) {
+                activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400');
+                activeButton.classList.add('border-primary-600', 'text-primary-600', 'dark:border-primary-400', 'dark:text-primary-400');
+            }
+
+            // Update URL hash without scrolling
+            if(history.pushState) {
+                history.pushState(null, null, '#' + tabName);
+            } else {
+                location.hash = tabName;
+            }
+        }
     }
     
-    // Initialize: Show Profile Settings tab by default
+    // Initialize: Check URL hash or default to Profile Settings
     document.addEventListener('DOMContentLoaded', function() {
-        switchTab('profile-settings');
+        const hash = window.location.hash.replace('#', '');
+        const validTabs = ['profile-settings', 'account-settings'];
+        
+        // Check if we should show account settings based on session status or errors
+        const showAccountSettings = @json(
+            session('status') == 'two-factor-authentication-enabled' || 
+            session('status') == 'recovery-codes-generated' ||
+            session('status') == 'two-factor-authentication-disabled' ||
+            session('status') == 'password-updated' || 
+            session('status') == 'profile-information-updated' ||
+            session('status') == 'verification-link-sent' ||
+            $errors->hasBag('updatePassword') || 
+            $errors->hasBag('updateProfileInformation')
+        );
+
+        if (showAccountSettings) {
+            switchTab('account-settings');
+            // Update hash to match
+            if(history.pushState) {
+                history.pushState(null, null, '#account-settings');
+            }
+        } else if (hash && validTabs.includes(hash)) {
+            switchTab(hash);
+        } else {
+            switchTab('profile-settings');
+        }
     });
 
     // Profile photo preview and auto-upload
