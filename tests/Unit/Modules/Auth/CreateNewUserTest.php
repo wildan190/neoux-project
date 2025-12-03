@@ -33,6 +33,7 @@ test('create new user action hashes password', function () {
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
+        'password_confirmation' => 'password',
     ]);
 
     expect($user->password)->not->toBe('password');

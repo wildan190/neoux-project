@@ -26,7 +26,7 @@ test('user can be created with valid data', function () {
 test('user email must be unique', function () {
     User::factory()->create(['email' => 'test@example.com']);
 
-    expect(fn () => User::factory()->create(['email' => 'test@example.com']))
+    expect(fn() => User::factory()->create(['email' => 'test@example.com']))
         ->toThrow(\Illuminate\Database\QueryException::class);
 });
 
@@ -63,14 +63,14 @@ test('user can send email verification notification', function () {
     \Illuminate\Support\Facades\Notification::fake();
     $user = User::factory()->create();
     $user->sendEmailVerificationNotification();
-    \Illuminate\Support\Facades\Notification::assertSentTo($user, VerifyEmail::class);
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Modules\Auth\Application\Notifications\QueuedVerifyEmail::class);
 });
 
 test('user can send password reset notification', function () {
     \Illuminate\Support\Facades\Notification::fake();
     $user = User::factory()->create();
     $user->sendPasswordResetNotification('fake-token');
-    \Illuminate\Support\Facades\Notification::assertSentTo($user, ResetPassword::class);
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Modules\Auth\Application\Notifications\QueuedResetPassword::class);
 });
 
 test('user implements must verify email contract', function () {

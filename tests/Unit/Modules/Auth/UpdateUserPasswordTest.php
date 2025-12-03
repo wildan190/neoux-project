@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Hash;
 
 test('update user password action updates password successfully', function () {
     $user = User::factory()->create([
-        'password' => Hash::make('old-password'),
+        'password' => 'old-password',
     ]);
+
+    $this->actingAs($user);
 
     $action = new UpdateUserPassword;
 
