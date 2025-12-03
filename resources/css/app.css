@@ -1,8 +1,4 @@
 @import 'tailwindcss';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -10,8 +6,35 @@
 @source '../**/*.js';
 
 @theme {
+    /* Font Family */
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Primary Orange - RGB(236, 106, 45) */
+    --color-primary-50: #fef4f1;
+    --color-primary-100: #fde8e1;
+    --color-primary-200: #fbd4c7;
+    --color-primary-300: #f7b5a0;
+    --color-primary-400: #f18b68;
+    --color-primary-500: #ec6a2d;
+    --color-primary-600: #d65724;
+    --color-primary-700: #b3451d;
+    --color-primary-800: #90391c;
+    --color-primary-900: #75311b;
+    --color-primary-950: #3f170b;
+    
+    /* Secondary Yellow - RGB(245, 195, 67) */
+    --color-secondary-50: #fefbe8;
+    --color-secondary-100: #fef7c3;
+    --color-secondary-200: #feec8a;
+    --color-secondary-300: #fddb47;
+    --color-secondary-400: #f5c343;
+    --color-secondary-500: #efa724;
+    --color-secondary-600: #d07e19;
+    --color-secondary-700: #a95a17;
+    --color-secondary-800: #8b4619;
+    --color-secondary-900: #743a1a;
+    --color-secondary-950: #441d0c;
 }
 
 /* Trigger rebuild for new partials */

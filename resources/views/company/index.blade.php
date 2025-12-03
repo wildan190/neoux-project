@@ -10,7 +10,7 @@
 <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">My Companies</h2>
-        <a href="{{ route('companies.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 shadow-md transition-all flex items-center gap-2">
+        <a href="{{ route('companies.create') }}" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 shadow-md transition-all flex items-center gap-2">
             <i data-feather="plus" class="w-4 h-4"></i>
             <span>Add Company</span>
         </a>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
 
-                <a href="{{ route('companies.show', $company) }}" class="block w-full text-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-indigo-600 dark:text-indigo-400 font-medium py-2 rounded-lg transition-colors">
+                <a href="{{ route('companies.show', $company) }}" class="block w-full text-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-primary-600 dark:text-primary-400 font-medium py-2 rounded-lg transition-colors">
                     View Details
                 </a>
             </div>

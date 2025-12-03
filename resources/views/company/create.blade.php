@@ -25,7 +25,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Logo</label>
                         <div class="mt-1 flex items-center gap-3">
-                            <label for="logo" class="cursor-pointer bg-white dark:bg-gray-700 py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <label for="logo" class="cursor-pointer bg-white dark:bg-gray-700 py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                                 <span>Change</span>
                                 <input id="logo" name="logo" type="file" class="sr-only" accept="image/*" onchange="previewLogo(this)">
                             </label>
@@ -38,17 +38,17 @@
                     {{-- Basic Info --}}
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
-                        <input type="text" name="name" id="name" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <input type="text" name="name" id="name" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                     </div>
 
                     <div>
                         <label for="business_category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Business Category</label>
-                        <input type="text" name="business_category" id="business_category" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <input type="text" name="business_category" id="business_category" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                     </div>
 
                     <div>
                         <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                        <select name="category" id="category" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <select name="category" id="category" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             <option value="buyer">Buyer</option>
                             <option value="supplier">Supplier</option>
                             <option value="vendor">Vendor</option>
@@ -57,42 +57,42 @@
 
                     <div>
                         <label for="npwp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NPWP</label>
-                        <input type="text" name="npwp" id="npwp" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="text" name="npwp" id="npwp" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                        <input type="email" name="email" id="email" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="email" name="email" id="email" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
 
                     <div>
                         <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
-                        <input type="text" name="phone" id="phone" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="text" name="phone" id="phone" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
 
                     <div>
                         <label for="website" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Website</label>
-                        <input type="url" name="website" id="website" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="url" name="website" id="website" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
 
                     <div>
                         <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
-                        <input type="text" name="country" id="country" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="text" name="country" id="country" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
                     
                     <div class="md:col-span-2">
                         <label for="tag" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
-                        <input type="text" name="tag" id="tag" placeholder="e.g. Technology, Retail" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="text" name="tag" id="tag" placeholder="e.g. Technology, Retail" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
-                        <textarea name="address" id="address" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
+                        <textarea name="address" id="address" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                        <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
+                        <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
                     </div>
                 </div>
 
@@ -100,11 +100,11 @@
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Operation Locations</label>
-                        <button type="button" onclick="addLocation()" class="text-sm text-indigo-600 hover:text-indigo-500 font-medium">+ Add Location</button>
+                        <button type="button" onclick="addLocation()" class="text-sm text-primary-600 hover:text-primary-500 font-medium">+ Add Location</button>
                     </div>
                     <div id="locations-container" class="space-y-3">
                         <div class="flex gap-2">
-                            <input type="text" name="locations[]" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter location address">
+                            <input type="text" name="locations[]" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter location address">
                         </div>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                 {{-- Drag & Drop Documents --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Documents</label>
-                    <div id="drop-zone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-700/50">
+                    <div id="drop-zone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-primary-500 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-700/50">
                         <input type="file" name="documents[]" id="documents" multiple class="hidden">
                         <i data-feather="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
                         <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Click to upload or drag and drop</p>
@@ -122,7 +122,7 @@
                 </div>
 
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium shadow-lg shadow-indigo-500/30 transition-all">
+                    <button type="submit" class="bg-primary-600 text-white px-6 py-2.5 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 font-medium shadow-lg shadow-primary-500/30 transition-all">
                         Create Company
                     </button>
                 </div>
@@ -152,7 +152,7 @@
         const div = document.createElement('div');
         div.className = 'flex gap-2';
         div.innerHTML = `
-            <input type="text" name="locations[]" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter location address">
+            <input type="text" name="locations[]" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Enter location address">
             <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 p-2">
                 <i data-feather="trash-2" class="w-5 h-5"></i>
             </button>
@@ -165,16 +165,16 @@
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropZone.classList.add('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
     });
 
     dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
         handleFiles(e.dataTransfer.files);
     });
 

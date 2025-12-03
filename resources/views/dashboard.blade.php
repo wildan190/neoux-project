@@ -17,7 +17,7 @@
             </div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Companies Yet</h2>
             <p class="text-gray-600 dark:text-gray-400 mb-6">Create your first company to get started</p>
-            <a href="{{ route('companies.create') }}" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+            <a href="{{ route('companies.create') }}" class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors">
                 <i data-feather="plus" class="w-5 h-5 mr-2"></i>
                 Create Company
             </a>
@@ -34,7 +34,7 @@
         @foreach($companies as $company)
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
                 {{-- Company Header --}}
-                <div class="h-32 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
+                <div class="h-32 bg-gradient-to-br from-primary-500 to-purple-600 relative">
                     @if($company->logo)
                         <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}" class="absolute bottom-0 left-6 w-20 h-20 rounded-xl border-4 border-white dark:border-gray-800 object-cover">
                     @else
@@ -68,7 +68,7 @@
 
                     <form action="{{ route('dashboard.select-company', $company->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center">
+                        <button type="submit" class="w-full bg-primary-600 text-white font-semibold py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center">
                             <i data-feather="log-in" class="w-5 h-5 mr-2"></i>
                             Login as {{ $company->name }}
                         </button>
@@ -78,10 +78,10 @@
         @endforeach
 
         {{-- Add New Company Card --}}
-        <a href="{{ route('companies.create') }}" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-indigo-500 flex items-center justify-center min-h-[300px] group">
+        <a href="{{ route('companies.create') }}" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-500 flex items-center justify-center min-h-[300px] group">
             <div class="text-center">
-                <i data-feather="plus-circle" class="w-16 h-16 mx-auto text-gray-400 group-hover:text-indigo-500 transition-colors mb-4"></i>
-                <p class="text-gray-600 dark:text-gray-400 group-hover:text-indigo-500 font-semibold transition-colors">Add New Company</p>
+                <i data-feather="plus-circle" class="w-16 h-16 mx-auto text-gray-400 group-hover:text-primary-500 transition-colors mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400 group-hover:text-primary-500 font-semibold transition-colors">Add New Company</p>
             </div>
         </a>
     </div>

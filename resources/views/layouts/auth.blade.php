@@ -11,7 +11,7 @@
 
 <div class="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden max-w-4xl w-full">
     {{-- Left side: Illustration --}}
-    <div class="hidden md:flex md:w-1/2 bg-indigo-500 dark:bg-indigo-600 items-center justify-center relative">
+    <div class="hidden md:flex md:w-1/2 bg-primary-500 dark:bg-primary-600 items-center justify-center relative">
         <div class="text-white text-center p-8">
             <h2 class="text-4xl font-bold mb-4">Welcome Back!</h2>
             <p class="text-lg">Enter your credentials to access your account and enjoy the amazing features!</p>

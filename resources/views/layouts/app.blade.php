@@ -48,8 +48,8 @@
                     @endphp
                     
                     @if($selectedCompany)
-                        <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
-                            <i data-feather="briefcase" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
+                        <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
+                            <i data-feather="briefcase" class="w-4 h-4 text-primary-600 dark:text-primary-400"></i>
                             <div class="text-sm">
                                 <p class="font-semibold text-gray-900 dark:text-white">{{ $selectedCompany->name }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">

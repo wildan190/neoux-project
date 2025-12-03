@@ -7,14 +7,14 @@
         <ul class="space-y-2">
             <li>
                 <a href="/dashboard"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('dashboard') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition cursor-pointer {{ request()->routeIs('dashboard') ? 'bg-primary-50 dark:bg-primary-900/30' : '' }}">
                     <i data-feather="home" class="w-5 h-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('companies.index') }}"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('companies.*') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition cursor-pointer {{ request()->routeIs('companies.*') ? 'bg-primary-50 dark:bg-primary-900/30' : '' }}">
                     <i data-feather="briefcase" class="w-5 h-5"></i>
                     <span class="font-medium">Companies</span>
                 </a>
@@ -36,7 +36,7 @@
             @if($showCatalogue)
                 <li>
                     <a href="{{ route('catalogue.index') }}"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer {{ request()->routeIs('catalogue.*') ? 'bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition cursor-pointer {{ request()->routeIs('catalogue.*') ? 'bg-primary-50 dark:bg-primary-900/30' : '' }}">
                         <i data-feather="package" class="w-5 h-5"></i>
                         <span class="font-medium">Catalogue</span>
                     </a>
@@ -45,7 +45,7 @@
 
             <li>
                 <a href="/settings"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition cursor-pointer">
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition cursor-pointer">
                     <i data-feather="settings" class="w-5 h-5"></i>
                     <span class="font-medium">Settings</span>
                 </a>
@@ -59,7 +59,7 @@
         <div class="flex items-center justify-between">
             <a href="{{ route('profile.show') }}" class="flex items-center gap-2 hover:opacity-80 transition">
                 <div
-                    class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                    class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold">
                     {{ substr(Auth::user()->name, 0, 1) }}
                 </div>
                 <div class="text-sm">

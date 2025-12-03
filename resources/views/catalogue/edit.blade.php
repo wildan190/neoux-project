@@ -20,7 +20,7 @@
                 {{-- Category --}}
                 <div>
                     <label for="category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                    <select name="category_id" id="category_id" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <select name="category_id" id="category_id" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <option value="">-- Select Category --</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ old('category_id', $item->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
@@ -31,26 +31,26 @@
                 {{-- SKU --}}
                 <div>
                     <label for="sku" class="block text-sm font-medium text-gray-700 dark:text-gray-300">SKU</label>
-                    <input type="text" name="sku" id="sku" value="{{ old('sku', $item->sku) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    <input type="text" name="sku" id="sku" value="{{ old('sku', $item->sku) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Unique product identifier</p>
                 </div>
 
                 {{-- Name --}}
                 <div class="md:col-span-2">
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Name</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $item->name) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    <input type="text" name="name" id="name" value="{{ old('name', $item->name) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                 </div>
 
                 {{-- Description --}}
                 <div class="md:col-span-2">
                     <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea name="description" id="description" rows="4" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">{{ old('description', $item->description) }}</textarea>
+                    <textarea name="description" id="description" rows="4" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">{{ old('description', $item->description) }}</textarea>
                 </div>
 
                 {{-- Tags --}}
                 <div class="md:col-span-2">
                     <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
-                    <input type="text" name="tags" id="tags" value="{{ old('tags', $item->tags) }}" placeholder="e.g. electronics, smartphone, 5G" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <input type="text" name="tags" id="tags" value="{{ old('tags', $item->tags) }}" placeholder="e.g. electronics, smartphone, 5G" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Comma-separated tags</p>
                 </div>
             </div>
@@ -59,15 +59,15 @@
             <div>
                 <div class="flex justify-between items-center mb-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Attributes</label>
-                    <button type="button" onclick="addAttribute()" class="text-sm text-indigo-600 hover:text-indigo-500 font-medium">+ Add Attribute</button>
+                    <button type="button" onclick="addAttribute()" class="text-sm text-primary-600 hover:text-primary-500 font-medium">+ Add Attribute</button>
                 </div>
                 <div id="attributes-container" class="space-y-3">
                     @if($item->attributes && $item->attributes->count() > 0)
                         @foreach($item->attributes as $index => $attribute)
                             <div class="grid grid-cols-2 gap-3 items-center">
-                                <input type="text" name="attributes[{{ $index }}][key]" value="{{ old('attributes.'.$index.'.key', $attribute->attribute_key) }}" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <input type="text" name="attributes[{{ $index }}][key]" value="{{ old('attributes.'.$index.'.key', $attribute->attribute_key) }}" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                 <div class="flex gap-2">
-                                    <input type="text" name="attributes[{{ $index }}][value]" value="{{ old('attributes.'.$index.'.value', $attribute->attribute_value) }}" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <input type="text" name="attributes[{{ $index }}][value]" value="{{ old('attributes.'.$index.'.value', $attribute->attribute_value) }}" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                     <button type="button" onclick="this.closest('.grid').remove()" class="text-red-500 hover:text-red-700 p-2">
                                         <i data-feather="trash-2" class="w-5 h-5"></i>
                                     </button>
@@ -76,8 +76,8 @@
                         @endforeach
                     @else
                         <div class="grid grid-cols-2 gap-3">
-                            <input type="text" name="attributes[0][key]" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <input type="text" name="attributes[0][value]" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <input type="text" name="attributes[0][key]" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <input type="text" name="attributes[0][value]" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         </div>
                     @endif
                 </div>
@@ -90,12 +90,12 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="existing-images">
                     @foreach($item->images as $image)
                         <div class="relative group" data-image-id="{{ $image->id }}">
-                            <img src="{{ asset('storage/' . $image->image_path) }}" class="w-full h-32 object-cover rounded-lg border-2 {{ $image->is_primary ? 'border-indigo-500' : 'border-gray-200' }}">
+                            <img src="{{ asset('storage/' . $image->image_path) }}" class="w-full h-32 object-cover rounded-lg border-2 {{ $image->is_primary ? 'border-primary-500' : 'border-gray-200' }}">
                             <button type="button" onclick="deleteExistingImage({{ $image->id }})" class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition">
                                 <i data-feather="trash-2" class="w-4 h-4"></i>
                             </button>
                             @if($image->is_primary)
-                                <span class="absolute bottom-2 left-2 bg-indigo-500 text-white text-xs px-2 py-1 rounded">★ Primary</span>
+                                <span class="absolute bottom-2 left-2 bg-primary-500 text-white text-xs px-2 py-1 rounded">★ Primary</span>
                             @endif
                         </div>
                     @endforeach
@@ -107,7 +107,7 @@
             {{-- Add New Images --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add New Images (Max 1MB each)</label>
-                <div id="drop-zone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-700/50">
+                <div id="drop-zone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-primary-500 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-700/50">
                     <input type="file" name="images[]" id="images" multiple accept="image/*" class="hidden">
                     <i data-feather="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
                     <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Click to upload or drag and drop</p>
@@ -121,7 +121,7 @@
                 <a href="{{ route('catalogue.show', $item) }}" class="px-6 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                     Cancel
                 </a>
-                <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium shadow-lg shadow-indigo-500/30 transition-all">
+                <button type="submit" class="bg-primary-600 text-white px-6 py-2.5 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 font-medium shadow-lg shadow-primary-500/30 transition-all">
                     Update Item
                 </button>
             </div>
@@ -149,9 +149,9 @@ function addAttribute() {
     const div = document.createElement('div');
     div.className = 'grid grid-cols-2 gap-3 items-center';
     div.innerHTML = `
-        <input type="text" name="attributes[${attributeIndex}][key]" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        <input type="text" name="attributes[${attributeIndex}][key]" placeholder="e.g. Size, Color, Material" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         <div class="flex gap-2">
-            <input type="text" name="attributes[${attributeIndex}][value]" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <input type="text" name="attributes[${attributeIndex}][value]" placeholder="e.g. XL, Red, Cotton" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <button type="button" onclick="this.closest('.grid').remove()" class="text-red-500 hover:text-red-700 p-2">
                 <i data-feather="trash-2" class="w-5 h-5"></i>
             </button>
@@ -188,16 +188,16 @@ dropZone.addEventListener('click', () => fileInput.click());
 
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    dropZone.classList.add('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
 });
 
 dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
 });
 
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    dropZone.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
     handleFiles(e.dataTransfer.files);
 });
 

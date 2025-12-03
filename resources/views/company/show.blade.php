@@ -43,7 +43,7 @@
                     Back
                 </a>
                 @if($company->status !== 'pending')
-                    <a href="{{ route('companies.edit', $company) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                    <a href="{{ route('companies.edit', $company) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
                         <i data-feather="edit-2" class="w-4 h-4"></i>
                         Edit Company
                     </a>
@@ -65,7 +65,7 @@
             {{-- Description --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i data-feather="info" class="w-5 h-5 text-indigo-500"></i>
+                    <i data-feather="info" class="w-5 h-5 text-primary-500"></i>
                     Description
                 </h3>
                 <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -76,7 +76,7 @@
             {{-- Locations --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i data-feather="map" class="w-5 h-5 text-indigo-500"></i>
+                    <i data-feather="map" class="w-5 h-5 text-primary-500"></i>
                     Operation Locations
                 </h3>
                 @if($company->locations->count() > 0)
@@ -96,21 +96,21 @@
             {{-- Documents --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i data-feather="file-text" class="w-5 h-5 text-indigo-500"></i>
+                    <i data-feather="file-text" class="w-5 h-5 text-primary-500"></i>
                     Documents
                 </h3>
                 @if($company->documents->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach($company->documents as $doc)
-                        <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-gray-700 transition-colors group">
+                        <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 border border-gray-100 dark:border-gray-700 transition-colors group">
                             <div class="w-10 h-10 rounded-lg bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                <i data-feather="file" class="w-5 h-5 text-indigo-500"></i>
+                                <i data-feather="file" class="w-5 h-5 text-primary-500"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">Document #{{ $loop->iteration }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">{{ $doc->file_type ?? 'FILE' }}</p>
                             </div>
-                            <i data-feather="external-link" class="w-4 h-4 text-gray-400 group-hover:text-indigo-500"></i>
+                            <i data-feather="external-link" class="w-4 h-4 text-gray-400 group-hover:text-primary-500"></i>
                         </a>
                         @endforeach
                     </div>
@@ -130,7 +130,7 @@
                 <div class="space-y-4">
                     @if($company->email)
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <div class="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
                             <i data-feather="mail" class="w-4 h-4"></i>
                         </div>
                         <div>
@@ -142,7 +142,7 @@
 
                     @if($company->phone)
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <div class="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
                             <i data-feather="phone" class="w-4 h-4"></i>
                         </div>
                         <div>
@@ -154,19 +154,19 @@
 
                     @if($company->website)
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <div class="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
                             <i data-feather="globe" class="w-4 h-4"></i>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Website</p>
-                            <a href="{{ $company->website }}" target="_blank" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 truncate block max-w-[200px]">{{ $company->website }}</a>
+                            <a href="{{ $company->website }}" target="_blank" class="text-sm font-medium text-primary-600 hover:text-primary-500 truncate block max-w-[200px]">{{ $company->website }}</a>
                         </div>
                     </div>
                     @endif
 
                     @if($company->address)
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                        <div class="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 shrink-0">
                             <i data-feather="map-pin" class="w-4 h-4"></i>
                         </div>
                         <div>

@@ -78,7 +78,7 @@
                             @csrf
                             <input type="file" name="profile_photo" id="profile_photo" accept="image/*" class="hidden" onchange="previewAndUploadPhoto(event)">
                             <div class="flex gap-2">
-                                <button type="button" onclick="document.getElementById('profile_photo').click()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                <button type="button" onclick="document.getElementById('profile_photo').click()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm">
                                     Upload Photo
                                 </button>
                                 @if($user->userDetail?->profile_photo)
@@ -114,7 +114,7 @@
                             name="id_number" 
                             id="id_number" 
                             value="{{ old('id_number', $user->userDetail?->id_number) }}" 
-                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                         @error('id_number')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -129,7 +129,7 @@
                             name="tax_id" 
                             id="tax_id" 
                             value="{{ old('tax_id', $user->userDetail?->tax_id) }}" 
-                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                         @error('tax_id')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -144,7 +144,7 @@
                             name="phone" 
                             id="phone" 
                             value="{{ old('phone', $user->userDetail?->phone) }}" 
-                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                         @error('phone')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -157,7 +157,7 @@
                         <select 
                             name="gender" 
                             id="gender" 
-                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Select Gender</option>  
                             <option value="male" {{ old('gender', $user->userDetail?->gender) === 'male' ? 'selected' : '' }}>Male</option>
@@ -177,7 +177,7 @@
                             name="date_of_birth" 
                             id="date_of_birth" 
                             value="{{ old('date_of_birth', $user->userDetail?->date_of_birth?->format('Y-m-d')) }}" 
-                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                         @error('date_of_birth')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -203,7 +203,7 @@
                         name="address" 
                         id="address" 
                         rows="3" 
-                        class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >{{ old('address', $user->userDetail?->address) }}</textarea>
                     @error('address')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -218,7 +218,7 @@
                         id="bio" 
                         rows="4" 
                         maxlength="500"
-                        class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         placeholder="Tell us about yourself..."
                     >{{ old('bio', $user->userDetail?->bio) }}</textarea>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 500 characters</p>
@@ -228,7 +228,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                    <button type="submit" class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
                         Save Profile Details
                     </button>
                 </div>
@@ -248,7 +248,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                            <input type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <input type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             @error('name', 'updateProfileInformation')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -267,7 +267,7 @@
                                     </span>
                                 @endif
                             </div>
-                            <input type="email" name="email" id="email" value="{{ old('email', auth()->user()->email) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <input type="email" name="email" id="email" value="{{ old('email', auth()->user()->email) }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             @error('email', 'updateProfileInformation')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -277,7 +277,7 @@
                     <div class="mt-6 flex justify-between items-center">
                         @if(! auth()->user()->hasVerifiedEmail())
                             <div class="flex items-center gap-4">
-                                <button form="send-verification" class="text-sm text-indigo-600 hover:text-indigo-900 underline">
+                                <button form="send-verification" class="text-sm text-primary-600 hover:text-primary-900 underline">
                                     Click here to re-send the verification email.
                                 </button>
                                 @if (session('status') === 'verification-link-sent')
@@ -290,7 +290,7 @@
                             <div></div>
                         @endif
 
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
                             Save Changes
                         </button>
                     </div>
@@ -311,7 +311,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
-                            <input type="password" name="current_password" id="current_password" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <input type="password" name="current_password" id="current_password" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             @error('current_password', 'updatePassword')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -319,7 +319,7 @@
 
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
-                            <input type="password" name="password" id="password" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <input type="password" name="password" id="password" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             @error('password', 'updatePassword')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -327,12 +327,12 @@
 
                         <div>
                             <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <input type="password" name="password_confirmation" id="password_confirmation" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                         </div>
                     </div>
 
                     <div class="mt-6 flex justify-end">
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
                             Update Password
                         </button>
                     </div>
@@ -350,7 +350,7 @@
                     </p>
                     <form action="{{ route('two-factor.enable') }}" method="POST">
                         @csrf
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
                             Enable Two-Factor Authentication
                         </button>
                     </form>
@@ -377,8 +377,8 @@
                                 </p>
                                 <form action="{{ route('two-factor.confirm') }}" method="POST" class="flex gap-2">
                                     @csrf
-                                    <input type="text" name="code" class="rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Code" required>
-                                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                    <input type="text" name="code" class="rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Code" required>
+                                    <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
                                         Confirm
                                     </button>
                                 </form>
@@ -432,7 +432,7 @@
         
         // Remove active state from all tab buttons
         document.querySelectorAll('.tab-button').forEach(button => {
-            button.classList.remove('border-indigo-600', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400');
+            button.classList.remove('border-primary-600', 'text-primary-600', 'dark:border-primary-400', 'dark:text-primary-400');
             button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400');
         });
         
@@ -442,7 +442,7 @@
         // Add active state to selected tab button
         const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
         activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300', 'dark:text-gray-400');
-        activeButton.classList.add('border-indigo-600', 'text-indigo-600', 'dark:border-indigo-400', 'dark:text-indigo-400');
+        activeButton.classList.add('border-primary-600', 'text-primary-600', 'dark:border-primary-400', 'dark:text-primary-400');
     }
     
     // Initialize: Show Profile Settings tab by default

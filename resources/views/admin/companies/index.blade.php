@@ -11,7 +11,7 @@
 
         <div class="flex space-x-2">
             <a href="{{ route('admin.companies.index', ['status' => 'all']) }}"
-                class="px-4 py-2 rounded-lg {{ $status === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
+                class="px-4 py-2 rounded-lg {{ $status === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
                 All
             </a>
             <a href="{{ route('admin.companies.index', ['status' => 'pending']) }}"
@@ -83,7 +83,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                             <a href="{{ route('admin.companies.show', $company) }}"
-                                class="text-indigo-600 hover:text-indigo-900">View</a>
+                                class="text-primary-600 hover:text-primary-900">View</a>
                             @if($company->status === 'pending')
                                 <form action="{{ route('admin.companies.approve', $company) }}" method="POST" class="inline">
                                     @csrf

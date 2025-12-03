@@ -16,7 +16,7 @@
                             class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">{{ $breadcrumb['name'] }}</span>
                     @else
                         <a href="{{ $breadcrumb['url'] }}"
-                            class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-white">
+                            class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-400 dark:hover:text-white">
                             @if($loop->first)
                                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path

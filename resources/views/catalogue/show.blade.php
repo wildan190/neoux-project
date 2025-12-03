@@ -10,11 +10,11 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
     <div class="mb-6 flex justify-between items-center">
-        <a href="{{ route('catalogue.index') }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 flex items-center gap-2">
+        <a href="{{ route('catalogue.index') }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 flex items-center gap-2">
             <i data-feather="arrow-left" class="w-4 h-4"></i> Back to Catalogue
         </a>
         <div class="flex gap-2">
-            <a href="{{ route('catalogue.edit', $item) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+            <a href="{{ route('catalogue.edit', $item) }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
                 <i data-feather="edit-2" class="w-4 h-4"></i>
                 Edit
             </a>
@@ -40,7 +40,7 @@
                     @if($item->images->count() > 1)
                         <div class="grid grid-cols-4 gap-2">
                             @foreach($item->images as $image)
-                                <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $item->name }}" onclick="changeMainImage('{{ asset('storage/' . $image->image_path) }}')" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75 transition {{ $image->is_primary ? 'ring-2 ring-indigo-500' : '' }}">
+                                <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $item->name }}" onclick="changeMainImage('{{ asset('storage/' . $image->image_path) }}')" class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75 transition {{ $image->is_primary ? 'ring-2 ring-primary-500' : '' }}">
                             @endforeach
                         </div>
                     @endif
@@ -54,7 +54,7 @@
             {{-- Description --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i data-feather="info" class="w-5 h-5 text-indigo-500"></i>
+                    <i data-feather="info" class="w-5 h-5 text-primary-500"></i>
                     Description
                 </h3>
                 <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -66,7 +66,7 @@
             @if($item->attributes->count() > 0)
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i data-feather="list" class="w-5 h-5 text-indigo-500"></i>
+                    <i data-feather="list" class="w-5 h-5 text-primary-500"></i>
                     Attributes
                 </h3>
                 <div class="space-y-3">
@@ -87,7 +87,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $item->name }}</h1>
                 
                 @if($item->category)
-                    <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 rounded-full text-sm font-semibold mb-4">
+                    <span class="inline-block px-3 py-1 bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 rounded-full text-sm font-semibold mb-4">
                         {{ $item->category->name }}
                     </span>
                 @endif

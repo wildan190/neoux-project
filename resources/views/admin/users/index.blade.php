@@ -9,7 +9,7 @@
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Users</h2>
         <a href="{{ route('admin.users.create') }}"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
             <i data-feather="plus" class="w-4 h-4 inline"></i> Create User
         </a>
     </div>

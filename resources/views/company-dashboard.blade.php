@@ -17,7 +17,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Total Penjualan</p>
                 <h2 class="text-2xl font-bold mt-1">Rp 125.400.000</h2>
             </div>
-            <i data-feather="shopping-cart" class="w-10 h-10 text-indigo-500"></i>
+            <i data-feather="shopping-cart" class="w-10 h-10 text-primary-500"></i>
         </div>
     </div>
 

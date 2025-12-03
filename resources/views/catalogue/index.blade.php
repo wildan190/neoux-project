@@ -17,7 +17,7 @@
             <i data-feather="upload" class="w-4 h-4"></i>
             Import
         </button>
-        <a href="{{ route('catalogue.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+        <a href="{{ route('catalogue.create') }}" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
             <i data-feather="plus" class="w-4 h-4"></i>
             Add Product
         </a>
@@ -47,16 +47,16 @@
         <span id="import-progress-text" class="text-sm text-gray-600 dark:text-gray-400">Processing...</span>
     </div>
     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-        <div id="import-progress-bar" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+        <div id="import-progress-bar" class="bg-primary-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
     </div>
 </div>
 
 {{-- Data Table View --}}
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
     {{-- Bulk Actions Bar --}}
-    <div id="bulk-actions-bar" class="hidden px-6 py-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-200 dark:border-indigo-800">
+    <div id="bulk-actions-bar" class="hidden px-6 py-3 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-200 dark:border-primary-800">
         <div class="flex items-center justify-between">
-            <span id="selected-count" class="text-sm font-medium text-indigo-900 dark:text-indigo-100"></span>
+            <span id="selected-count" class="text-sm font-medium text-primary-900 dark:text-primary-100"></span>
             <button onclick="bulkDelete()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition">
                 <i data-feather="trash-2" class="w-4 h-4 inline mr-1"></i>
                 Delete Selected
@@ -70,7 +70,7 @@
                 <tr>
                     <th scope="col" class="px-6 py-3 text-left">
                         <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" 
-                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                               class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
@@ -85,7 +85,7 @@
                 @forelse($items as $item)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                         <td class="px-6 py-4">
-                            <input type="checkbox" class="item-checkbox w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+                            <input type="checkbox" class="item-checkbox w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
                                    value="{{ $item->id }}" onchange="updateBulkActions()">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -111,7 +111,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($item->category)
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
                                     {{ $item->category->name }}
                                 </span>
                             @else
@@ -134,7 +134,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end gap-2">
-                                <a href="{{ route('catalogue.show', $item) }}" class="text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400" title="View">
+                                <a href="{{ route('catalogue.show', $item) }}" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400" title="View">
                                     <i data-feather="eye" class="w-5 h-5"></i>
                                 </a>
                                 <a href="{{ route('catalogue.edit', $item) }}" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" title="Edit">
@@ -155,7 +155,7 @@
                         <td colspan="7" class="px-6 py-12 text-center">
                             <i data-feather="inbox" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
                             <p class="text-gray-500 dark:text-gray-400">No products found.</p>
-                            <a href="{{ route('catalogue.create') }}" class="mt-2 inline-block text-indigo-600 hover:text-indigo-500 font-medium">
+                            <a href="{{ route('catalogue.create') }}" class="mt-2 inline-block text-primary-600 hover:text-primary-500 font-medium">
                                 Add your first product
                             </a>
                         </td>
