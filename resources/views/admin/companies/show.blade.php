@@ -8,7 +8,7 @@
 
 @section('content')
     <div class="mb-6">
-        <a href="{{ route('admin.companies.index') }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400">
+        <a href="{{ route('admin.companies.index') }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400">
             <i data-feather="arrow-left" class="w-4 h-4 inline"></i> Back to Companies
         </a>
     </div>
@@ -21,8 +21,8 @@
                     <img src="{{ asset('storage/' . $company->logo) }}" alt="{{ $company->name }}"
                         class="w-20 h-20 rounded-lg object-cover">
                 @else
-                    <div class="w-20 h-20 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-                        <i data-feather="briefcase" class="w-10 h-10 text-indigo-600 dark:text-indigo-400"></i>
+                    <div class="w-20 h-20 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
+                        <i data-feather="briefcase" class="w-10 h-10 text-primary-600 dark:text-primary-400"></i>
                     </div>
                 @endif
                 <div>
@@ -100,7 +100,7 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">Website</p>
                     <p class="font-medium text-gray-900 dark:text-white">
                         @if($company->website)
-                            <a href="{{ $company->website }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                            <a href="{{ $company->website }}" target="_blank" class="text-primary-600 hover:text-primary-900">
                                 {{ $company->website }}
                             </a>
                         @else
@@ -161,7 +161,7 @@
                         <div class="flex items-start justify-between">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
-                                    <i data-feather="file" class="w-8 h-8 text-indigo-600 dark:text-indigo-400"></i>
+                                    <i data-feather="file" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -175,7 +175,7 @@
                         </div>
                         <div class="mt-3">
                             <a href="{{ asset('storage/' . $document->file_path) }}" target="_blank"
-                                class="inline-flex items-center px-3 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800 transition text-sm">
+                                class="inline-flex items-center px-3 py-2 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200 rounded-lg hover:bg-primary-200 dark:hover:bg-primary-800 transition text-sm">
                                 <i data-feather="eye" class="w-4 h-4 mr-1"></i>
                                 View Document
                             </a>

@@ -20,8 +20,8 @@
                 <div class="px-6 pt-6 pb-4">
                     <div class="flex items-start space-x-4">
                         <div
-                            class="flex items-center justify-center w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 rounded-full">
-                            <i data-feather="upload-cloud" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+                            class="flex items-center justify-center w-12 h-12 bg-primary-100 dark:bg-primary-900/40 rounded-full">
+                            <i data-feather="upload-cloud" class="w-6 h-6 text-primary-600 dark:text-primary-400"></i>
                         </div>
 
                         <div class="flex-1">
@@ -59,8 +59,8 @@
                     <!-- File Upload -->
                     <div id="upload-section" class="mt-6">
                         <div id="dropzone" class="px-6 py-8 text-center border-2 border-dashed border-gray-300 
-                                    dark:border-gray-600 rounded-xl hover:border-indigo-500 
-                                    dark:hover:border-indigo-400 transition cursor-pointer 
+                                    dark:border-gray-600 rounded-xl hover:border-primary-500 
+                                    dark:hover:border-primary-400 transition cursor-pointer 
                                     bg-gray-50 dark:bg-gray-700/40">
 
                             <div class="mx-auto w-12 h-12 text-gray-400">
@@ -68,7 +68,7 @@
                             </div>
 
                             <label for="file-upload"
-                                class="block mt-3 text-sm font-medium text-indigo-600 cursor-pointer">
+                                class="block mt-3 text-sm font-medium text-primary-600 cursor-pointer">
                                 Upload a file
                             </label>
                             <input id="file-upload" name="file" type="file" class="sr-only" accept=".xlsx,.xls,.csv">
@@ -98,14 +98,14 @@
                         </div>
 
                         <button type="button" onclick="resetUpload()"
-                            class="mt-4 text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                            class="mt-4 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">
                             ← Upload Different File
                         </button>
                     </div>
 
                     <!-- Loading -->
                     <div id="preview-loading" class="hidden mt-6 text-center py-8">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading preview...</p>
                     </div>
                 </div>
@@ -119,8 +119,8 @@
                         Cancel
                     </button>
 
-                    <button id="btn-start-import" type="submit" class="hidden px-4 py-2 text-sm font-semibold text-white bg-indigo-600 
-                                   rounded-lg hover:bg-indigo-700 transition">
+                    <button id="btn-start-import" type="submit" class="hidden px-4 py-2 text-sm font-semibold text-white bg-primary-600 
+                                   rounded-lg hover:bg-primary-700 transition">
                         Confirm & Start Import
                     </button>
                 </div>
@@ -267,19 +267,19 @@
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        dropzone.classList.add('border-indigo-500', 'dark:border-indigo-400', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropzone.classList.add('border-primary-500', 'dark:border-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
     });
 
     dropzone.addEventListener('dragleave', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        dropzone.classList.remove('border-indigo-500', 'dark:border-indigo-400', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropzone.classList.remove('border-primary-500', 'dark:border-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
     });
 
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        dropzone.classList.remove('border-indigo-500', 'dark:border-indigo-400', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        dropzone.classList.remove('border-primary-500', 'dark:border-primary-400', 'bg-primary-50', 'dark:bg-primary-900/20');
 
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {

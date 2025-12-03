@@ -20,17 +20,17 @@
     {{-- NAVBAR --}}
     <nav class="fixed top-0 left-0 right-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">MyApp ERP</div>
+            <div class="text-2xl font-extrabold text-primary-600 dark:text-primary-400">MyApp ERP</div>
 
             <div class="hidden md:flex items-center gap-8 font-medium">
-                <a href="#features" class="hover:text-indigo-500">Fitur</a>
-                <a href="#benefits" class="hover:text-indigo-500">Kelebihan</a>
-                <a href="#compare" class="hover:text-indigo-500">Perbandingan</a>
-                <a href="#pricing" class="hover:text-indigo-500">Harga</a>
+                <a href="#features" class="hover:text-primary-500">Fitur</a>
+                <a href="#benefits" class="hover:text-primary-500">Kelebihan</a>
+                <a href="#compare" class="hover:text-primary-500">Perbandingan</a>
+                <a href="#pricing" class="hover:text-primary-500">Harga</a>
             </div>
 
             <div>
-                <a href="/login" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">
+                <a href="/login" class="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow">
                     Login
                 </a>
             </div>
@@ -45,7 +45,7 @@
             <div data-aos="fade-right">
                 <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-6">
                     ERP Modern untuk Bisnis
-                    <span class="text-indigo-600 dark:text-indigo-400">Lebih Efisien & Terukur</span>
+                    <span class="text-primary-600 dark:text-primary-400">Lebih Efisien & Terukur</span>
                 </h1>
 
                 <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">
@@ -56,12 +56,12 @@
 
                 <div class="flex gap-4">
                     <a href="/register"
-                        class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow">
+                        class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow">
                         Coba Gratis
                     </a>
 
                     <a href="#features"
-                        class="px-6 py-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl font-semibold">
+                        class="px-6 py-3 border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-gray-800 rounded-xl font-semibold">
                         Jelajahi Fitur
                     </a>
                 </div>
@@ -84,7 +84,7 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 
                 <div data-aos="zoom-in" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
-                    <i data-feather="layout" class="w-10 h-10 text-indigo-500 mb-4"></i>
+                    <i data-feather="layout" class="w-10 h-10 text-primary-500 mb-4"></i>
                     <h3 class="font-bold text-xl mb-2">Dashboard Real-Time</h3>
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
                         Grafik KPI, penjualan, pembelian, dan inventory terpusat dalam satu tampilan.
@@ -92,7 +92,7 @@
                 </div>
 
                 <div data-aos="zoom-in" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
-                    <i data-feather="shopping-cart" class="w-10 h-10 text-indigo-500 mb-4"></i>
+                    <i data-feather="shopping-cart" class="w-10 h-10 text-primary-500 mb-4"></i>
                     <h3 class="font-bold text-xl mb-2">Penjualan & Invoice</h3>
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
                         Kelola order, pelanggan, invoice, delivery, dan laporan otomatis.
@@ -100,7 +100,7 @@
                 </div>
 
                 <div data-aos="zoom-in" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
-                    <i data-feather="box" class="w-10 h-10 text-indigo-500 mb-4"></i>
+                    <i data-feather="box" class="w-10 h-10 text-primary-500 mb-4"></i>
                     <h3 class="font-bold text-xl mb-2">Inventori & Stok</h3>
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
                         Pantau stok akurat, tracking barang, multi-gudang, hingga auto reorder.
@@ -108,7 +108,7 @@
                 </div>
 
                 <div data-aos="zoom-in" class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow">
-                    <i data-feather="file-text" class="w-10 h-10 text-indigo-500 mb-4"></i>
+                    <i data-feather="file-text" class="w-10 h-10 text-primary-500 mb-4"></i>
                     <h3 class="font-bold text-xl mb-2">Laporan Keuangan</h3>
                     <p class="text-gray-600 dark:text-gray-300 text-sm">
                         Jurnal otomatis, neraca, arus kas, profit-loss, dan laporan pajak.
@@ -129,7 +129,7 @@
             </div>
 
             <div class="md:order-1">
-                <h2 class="text-3xl font-bold text-indigo-500 dark:text-indigo-300 mb-4">
+                <h2 class="text-3xl font-bold text-primary-500 dark:text-primary-300 mb-4">
                     e-Catalogue Digital untuk Manajemen Produk yang Lebih Efisien
                 </h2>
                 <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
@@ -153,7 +153,7 @@
             </div>
 
             <div class="md:order-2">
-                <h2 class="text-3xl font-bold text-indigo-500 dark:text-indigo-300 mb-4">
+                <h2 class="text-3xl font-bold text-primary-500 dark:text-primary-300 mb-4">
                     e-Procurement dengan Pengadaan Otomatis
                 </h2>
                 <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
@@ -176,7 +176,7 @@
             </div>
 
             <div class="md:order-1">
-                <h2 class="text-3xl font-bold text-indigo-500 dark:text-indigo-300 mb-4">
+                <h2 class="text-3xl font-bold text-primary-500 dark:text-primary-300 mb-4">
                     Manajemen Vendor yang Lebih Terstruktur
                 </h2>
                 <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
@@ -200,7 +200,7 @@
             </div>
 
             <div data-aos="fade-left" class="flex flex-col justify-center">
-                <h2 class="text-3xl font-bold mb-6">Mengapa Memilih <span class="text-indigo-600">MyApp ERP?</span></h2>
+                <h2 class="text-3xl font-bold mb-6">Mengapa Memilih <span class="text-primary-600">MyApp ERP?</span></h2>
 
                 <ul class="space-y-4 text-gray-600 dark:text-gray-300 text-lg">
                     <li class="flex gap-3">
@@ -243,7 +243,7 @@
 
             <div class="overflow-x-auto rounded-2xl shadow-lg" data-aos="fade-up" data-aos-delay="250">
                 <table class="w-full text-left border-collapse bg-white dark:bg-gray-900">
-                    <thead class="bg-indigo-600 text-white">
+                    <thead class="bg-primary-600 text-white">
                         <tr>
                             <th class="p-4">Fitur</th>
                             <th class="p-4">MyERP</th>
@@ -338,7 +338,7 @@
                         Paket paling terjangkau untuk UMKM yang baru mulai digitalisasi proses bisnis.
                     </p>
 
-                    <h4 class="text-4xl font-extrabold text-indigo-600 mb-2">
+                    <h4 class="text-4xl font-extrabold text-primary-600 mb-2">
                         Rp 199.000<span class="text-lg font-medium text-gray-500">/bulan</span>
                     </h4>
 
@@ -364,7 +364,7 @@
                     </p>
 
                     <button
-                        class="mt-8 w-full py-3 px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                        class="mt-8 w-full py-3 px-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition">
                         Mulai Paket Basic
                     </button>
                 </div>
@@ -372,11 +372,11 @@
 
 
                 {{-- PROFESSIONAL PLAN --}}
-                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl p-10 border-2 border-indigo-600 hover:-translate-y-2 hover:shadow-2xl transition-transform relative overflow-hidden"
+                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl p-10 border-2 border-primary-600 hover:-translate-y-2 hover:shadow-2xl transition-transform relative overflow-hidden"
                     data-aos="zoom-in" data-aos-delay="150">
 
                     <span
-                        class="absolute top-0 right-0 bg-indigo-600 text-white px-5 py-1 rounded-bl-xl text-xs font-bold">
+                        class="absolute top-0 right-0 bg-primary-600 text-white px-5 py-1 rounded-bl-xl text-xs font-bold">
                         TERLARIS
                     </span>
 
@@ -385,7 +385,7 @@
                         Solusi lengkap untuk bisnis berkembang yang butuh automasi dan integrasi antar divisi.
                     </p>
 
-                    <h4 class="text-4xl font-extrabold text-indigo-600 mb-2">
+                    <h4 class="text-4xl font-extrabold text-primary-600 mb-2">
                         Rp 499.000<span class="text-lg font-medium text-gray-500">/bulan</span>
                     </h4>
 
@@ -412,7 +412,7 @@
                     </p>
 
                     <button
-                        class="mt-8 w-full py-3 px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                        class="mt-8 w-full py-3 px-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition">
                         Pilih Professional
                     </button>
                 </div>
@@ -428,7 +428,7 @@
                         Paket premium untuk perusahaan besar dengan proses kompleks dan integrasi tingkat tinggi.
                     </p>
 
-                    <h4 class="text-4xl font-extrabold text-indigo-600 mb-2">
+                    <h4 class="text-4xl font-extrabold text-primary-600 mb-2">
                         Custom
                     </h4>
 
