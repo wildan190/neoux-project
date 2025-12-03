@@ -6,8 +6,21 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $companies = auth()->user()->companies()->get();
+        $user = auth()->user();
+        $companies = $user->companies()->get();
 
+        if ($companies->isEmpty()) {
+            return redirect()->route('companies.create');
+        }
+
+        // Check if a company is already selected in session
+        $selectedCompanyId = session('selected_company_id');
+
+        if ($selectedCompanyId && $companies->contains('id', $selectedCompanyId)) {
+            return redirect()->route('company.dashboard');
+        }
+
+        // If no company selected, show the selection list
         return view('dashboard', compact('companies'));
     }
 
@@ -17,8 +30,7 @@ class DashboardController extends Controller
 
         session(['selected_company_id' => $company->id]);
 
-        // Debug: Tambahkan flash message untuk memastikan session ter-set
         return redirect()->route('company.dashboard')
-            ->with('success', 'Logged in as: '.$company->name.' (Status: '.$company->status.')');
+            ->with('success', 'Switched to workspace: ' . $company->name);
     }
 }
