@@ -73,6 +73,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's detail information.
+     */
+    public function userDetail()
+    {
+        return $this->hasOne(\App\Modules\User\Domain\Models\UserDetail::class);
+    }
+
+    /**
      * Create a new factory instance for the model.
      */
     protected static function newFactory()

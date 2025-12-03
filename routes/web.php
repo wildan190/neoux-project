@@ -39,4 +39,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/profile', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile/details', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updateDetails'])->name('profile.details.update');
+    Route::post('/profile/photo', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::delete('/profile/photo', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
 });
