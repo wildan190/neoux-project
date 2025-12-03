@@ -19,4 +19,9 @@ class CompanyLocation extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\CompanyLocationFactory::new();
+    }
 }
