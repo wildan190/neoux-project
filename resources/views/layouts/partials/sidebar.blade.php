@@ -57,6 +57,25 @@
             </a>
         @endif
 
+        {{-- Procurement Menu --}}
+        <a href="{{ route('procurement.pr.public-feed') }}"
+            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+            <div
+                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                <i data-feather="globe" class="w-5 h-5"></i>
+            </div>
+            <span class="ml-3">All Requests</span>
+        </a>
+
+        <a href="{{ route('procurement.pr.index') }}"
+            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+            <div
+                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                <i data-feather="shopping-cart" class="w-5 h-5"></i>
+            </div>
+            <span class="ml-3">Procurement</span>
+        </a>
+
         <a href="/settings"
             class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group text-gray-300 hover:bg-gray-700/50 hover:text-white">
             <div
@@ -71,10 +90,15 @@
     <div class="p-4 border-t border-gray-700/50">
         <div class="bg-gray-700/30 rounded-xl p-3 backdrop-blur-sm">
             <a href="{{ route('profile.show') }}" class="flex items-center space-x-3 hover:opacity-80 transition">
-                <div
-                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </div>
+                @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
+                    <img src="{{ Auth::user()->userDetail->profile_photo_url }}" alt="{{ Auth::user()->name }}"
+                        class="w-10 h-10 rounded-lg object-cover shadow-lg">
+                @else
+                    <div
+                        class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                @endif
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</p>
                     <p class="text-xs text-gray-400 truncate">{{ Auth::user()->email }}</p>

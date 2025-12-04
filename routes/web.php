@@ -38,6 +38,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/generate-sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 
+    Route::prefix('procurement')->name('procurement.')->group(function () {
+        Route::prefix('pr')->name('pr.')->group(function () {
+            Route::get('/', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'index'])->name('index');
+            Route::get('/my-requests', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'myRequests'])->name('my-requests');
+            Route::get('/public-feed', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'publicFeed'])->name('public-feed');
+            Route::get('/create', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'create'])->name('create');
+            Route::post('/', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'store'])->name('store');
+            Route::get('/public/{purchaseRequisition}', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'showPublic'])->name('show-public');
+            Route::get('/{purchaseRequisition}', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'show'])->name('show');
+            Route::get('/documents/{document}/download', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'downloadDocument'])->name('download-document');
+            Route::post('/{purchaseRequisition}/comment', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'addComment'])->name('add-comment');
+        });
+    });
+
     Route::get('/profile', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile/details', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updateDetails'])->name('profile.details.update');
     Route::post('/profile/photo', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updatePhoto'])->name('profile.photo.update');

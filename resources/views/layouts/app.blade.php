@@ -6,8 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Dashboard' }}</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
+        rel="stylesheet">
+
     @vite('resources/css/app.css')
     <script src="https://unpkg.com/feather-icons"></script>
+    @stack('styles')
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -90,16 +96,18 @@
                                                                             <form action="{{ route('dashboard.select-company', $company->id) }}"
                                                                                 method="POST">
                                                                                 @csrf
-                                                                                <button type="submit" class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                {{ $company->id == $selectedCompany->id
+                                                                                <button type="submit"
+                                                                                    class="w-full flex items-center gap-3 p-2 rounded-xl transition
+                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                }}">
-                                                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                            }}">
+                                                                                    <div
+                                                                                        class="w-8 h-8 rounded-lg flex items-center justify-center
+                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                }}">
+                                                                                                                                                                                                            }}">
                                                                                         @if($company->id == $selectedCompany->id)
                                                                                             <i data-feather="check" class="w-4 h-4"></i>
                                                                                         @else
@@ -111,13 +119,12 @@
                                                                                     <div class="text-left flex-1 min-w-0">
                                                                                         <p
                                                                                             class="text-sm font-semibold truncate
-                                                                                                {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                                             {{ $company->name }}
                                                                                         </p>
                                                                                         <div class="flex items-center gap-2">
-                                                                                            <span
-                                                                                                class="w-1.5 h-1.5 rounded-full
-                                                                                                    {{ in_array($company->status, ['approved', 'active'])
+                                                                                            <span class="w-1.5 h-1.5 rounded-full
+                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
                                                 ? 'bg-green-500'
                                                 : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
                                                                                             </span>
@@ -239,6 +246,7 @@
         });
     </script>
 
+    @stack('scripts')
 </body>
 
 </html>

@@ -70,6 +70,18 @@ class Company extends Model
     }
 
     /**
+     * Get the full URL for the company logo.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (!$this->logo) {
+            return null;
+        }
+
+        return asset('storage/' . $this->logo);
+    }
+
+    /**
      * Create a new factory instance for the model.
      */
     protected static function newFactory()
