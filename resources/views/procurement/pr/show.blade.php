@@ -2,7 +2,7 @@
     'title' => 'Request Details',
     'breadcrumbs' => [
         ['name' => 'Procurement', 'url' => route('procurement.pr.index')],
-        ['name' => 'Request #' . $purchaseRequisition->id, 'url' => '#']
+        ['name' => $purchaseRequisition->pr_number ?: 'Request #' . $purchaseRequisition->id, 'url' => '#']
     ]
 ])
 
@@ -20,6 +20,16 @@
         </div>
         <div class="px-6 py-5">
             <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">PR Number</dt>
+                    <dd class="mt-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400">
+                            <i data-feather="hash" class="w-4 h-4 mr-1"></i>
+                            {{ $purchaseRequisition->pr_number ?: 'N/A' }}
+                        </span>
+                    </dd>
+                </div>
+
                 <div class="sm:col-span-2">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Company</dt>
                     <dd class="mt-2">

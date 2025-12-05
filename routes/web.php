@@ -69,11 +69,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/gr/{id}/print', [GoodsReceiptController::class, 'print'])->name('gr.print');
         Route::get('/gr/{id}/download-pdf', [GoodsReceiptController::class, 'downloadPdf'])->name('gr.download-pdf');
 
-        // Invoices
-        Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-        Route::get('/po/{purchaseOrder}/invoice', [InvoiceController::class, 'create'])->name('invoices.create');
-        Route::post('/po/{purchaseOrder}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
-        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+        // Invoice routes
+        Route::prefix('invoices')->as('invoices.')->group(function () {
+            Route::get('/', [InvoiceController::class, 'index'])->name('index');
+            Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
+            Route::get('/{invoice}/print', [InvoiceController::class, 'print'])->name('print');
+            Route::get('/{invoice}/download-pdf', [InvoiceController::class, 'downloadPdf'])->name('download-pdf');
+            Route::post('/{invoice}/issue-tax-invoice', [InvoiceController::class, 'issueTaxInvoice'])->name('issue-tax-invoice');
+            Route::get('/{invoice}/tax-invoice-print', [InvoiceController::class, 'printTaxInvoice'])->name('tax-invoice-print');
+            Route::get('/{invoice}/tax-invoice-pdf', [InvoiceController::class, 'downloadTaxInvoicePdf'])->name('tax-invoice-pdf');
+            Route::get('po/{purchaseOrder}/create-invoice', [InvoiceController::class, 'create'])->name('create');
+            Route::post('po/{purchaseOrder}/create-invoice', [InvoiceController::class, 'store'])->name('store');
+        });
 
         // Offers
         Route::prefix('offers')->name('offers.')->group(function () {

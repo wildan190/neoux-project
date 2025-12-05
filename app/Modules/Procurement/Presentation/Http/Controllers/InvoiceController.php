@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -167,5 +168,87 @@ class InvoiceController extends Controller
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder']);
 
         return view('procurement.invoices.show', compact('invoice', 'isBuyer', 'isVendor'));
+    }
+
+    /**
+     * Print invoice view
+     */
+    public function print(Invoice $invoice)
+    {
+        $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
+
+        return view('procurement.invoices.print', compact('invoice'));
+    }
+
+    /**
+     * Download Invoice as PDF
+     */
+    public function downloadPdf($id)
+    {
+        $invoice = \App\Modules\Procurement\Domain\Models\Invoice::findOrFail($id);
+        $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
+
+        $pdf = Pdf::loadView('procurement.invoices.pdf', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('Invoice-' . $invoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * Issue Tax Invoice (Faktur Pajak)
+     */
+    public function issueTaxInvoice(Invoice $invoice)
+    {
+        if ($invoice->tax_invoice_number) {
+            return back()->with('error', 'Tax Invoice already issued for this invoice.');
+        }
+
+        // Generate Tax Invoice Number: FP-YYMM-XXXXXXXX
+        $year = date('y');
+        $month = date('m');
+        $sequential = Invoice::whereNotNull('tax_invoice_number')
+            ->whereYear('tax_invoice_issued_at', date('Y'))
+            ->whereMonth('tax_invoice_issued_at', date('m'))
+            ->count() + 1;
+
+        $taxInvoiceNumber = 'FP-' . $year . $month . '-' . str_pad($sequential, 8, '0', STR_PAD_LEFT);
+
+        $invoice->update([
+            'tax_invoice_number' => $taxInvoiceNumber,
+            'tax_invoice_issued_at' => now(),
+        ]);
+
+        return back()->with('success', 'Tax Invoice issued successfully! Number: ' . $taxInvoiceNumber);
+    }
+
+    /**
+     * Print Tax Invoice
+     */
+    public function printTaxInvoice(Invoice $invoice)
+    {
+        if (!$invoice->tax_invoice_number) {
+            return back()->with('error', 'Tax Invoice has not been issued yet.');
+        }
+
+        $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
+
+        return view('procurement.invoices.tax-invoice-print', compact('invoice'));
+    }
+
+    /**
+     * Download Tax Invoice as PDF
+     */
+    public function downloadTaxInvoicePdf(Invoice $invoice)
+    {
+        if (!$invoice->tax_invoice_number) {
+            return back()->with('error', 'Tax Invoice has not been issued yet.');
+        }
+
+        $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
+
+        $pdf = Pdf::loadView('procurement.invoices.tax-invoice-print', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('Tax-Invoice-' . $invoice->tax_invoice_number . '.pdf');
     }
 }

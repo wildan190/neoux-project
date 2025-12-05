@@ -18,6 +18,7 @@ class PurchaseRequisition extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'pr_number',
         'company_id',
         'user_id',
         'title',
