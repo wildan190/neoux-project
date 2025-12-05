@@ -107,11 +107,21 @@
 
                         {{-- Actions --}}
                         <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4 flex items-center justify-between">
-                            <a href="{{ route('procurement.pr.show-public', $offer->purchaseRequisition) }}" 
-                               class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 inline-flex items-center gap-1">
-                                <i data-feather="file-text" class="w-3 h-3"></i>
-                                View Original Request
-                            </a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('procurement.pr.show-public', $offer->purchaseRequisition) }}" 
+                                   class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 inline-flex items-center gap-1">
+                                    <i data-feather="file-text" class="w-3 h-3"></i>
+                                    View Request
+                                </a>
+
+                                @if($offer->purchaseOrder)
+                                    <a href="{{ route('procurement.po.show', $offer->purchaseOrder) }}" 
+                                       class="text-sm font-semibold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 transition-colors shadow-sm">
+                                        <i data-feather="shopping-bag" class="w-3 h-3"></i>
+                                        View Purchase Order
+                                    </a>
+                                @endif
+                            </div>
 
                             <a href="{{ route('procurement.offers.show', $offer) }}" 
                                class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 inline-flex items-center gap-1">

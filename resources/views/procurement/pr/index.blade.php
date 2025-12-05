@@ -7,6 +7,44 @@
 ])
 
 @section('content')
+    {{-- Filter Tabs --}}
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 mb-6">
+        <div class="flex items-center gap-2">
+            <a href="{{ route('procurement.pr.index', ['filter' => 'open']) }}"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200
+                    {{ $filter === 'open' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                <i data-feather="unlock" class="w-4 h-4"></i>
+                <span>Open</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold
+                    {{ $filter === 'open' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' }}">
+                    {{ $openCount }}
+                </span>
+            </a>
+
+            <a href="{{ route('procurement.pr.index', ['filter' => 'closed']) }}"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200
+                    {{ $filter === 'closed' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                <i data-feather="lock" class="w-4 h-4"></i>
+                <span>Closed</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold
+                    {{ $filter === 'closed' ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' }}">
+                    {{ $closedCount }}
+                </span>
+            </a>
+
+            <a href="{{ route('procurement.pr.index', ['filter' => 'all']) }}"
+                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200
+                    {{ $filter === 'all' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                <i data-feather="list" class="w-4 h-4"></i>
+                <span>All</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold
+                    {{ $filter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
+                    {{ $openCount + $closedCount }}
+                </span>
+            </a>
+        </div>
+    </div>
+
     <div class="flex justify-end mb-6">
         <a href="{{ route('procurement.pr.create') }}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">

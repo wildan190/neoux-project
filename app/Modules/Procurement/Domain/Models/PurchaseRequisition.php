@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Laravel\Scout\Searchable;
 
 class PurchaseRequisition extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, Searchable;
 
     protected $fillable = [
         'pr_number',
@@ -32,6 +33,22 @@ class PurchaseRequisition extends Model
     protected $casts = [
         'po_generated_at' => 'datetime',
     ];
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+            'pr_number' => $this->pr_number,
+            'status' => $this->status,
+        ];
+    }
+
 
     public function company(): BelongsTo
     {

@@ -58,6 +58,11 @@ class PurchaseRequisitionOffer extends Model
         return $this->hasMany(PurchaseRequisitionOfferDocument::class, 'offer_id');
     }
 
+    public function purchaseOrder(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Modules\Procurement\Domain\Models\PurchaseOrder::class, 'offer_id');
+    }
+
     // Accessor for formatted price
     public function getFormattedTotalPriceAttribute(): string
     {

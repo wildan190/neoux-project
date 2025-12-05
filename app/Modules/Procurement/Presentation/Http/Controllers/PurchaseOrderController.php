@@ -151,8 +151,21 @@ class PurchaseOrderController extends Controller
 
             DB::commit();
 
+            // Send Email Notification to Vendor
+            try {
+                // Find contact person to email: The user who created the winning offer
+                $vendorUser = $offer->user;
+                if ($vendorUser) {
+                    \Illuminate\Support\Facades\Mail::to($vendorUser->email)
+                        ->send(new \App\Mail\PurchaseOrderSent($purchaseOrder));
+                }
+            } catch (\Exception $e) {
+                // Don't rollback if email fails, just log it
+                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
+            }
+
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('success', 'Purchase Order generated successfully!');
+                ->with('success', 'Purchase Order generated successfully! Notification has been sent to the vendor.');
 
         } catch (\Exception $e) {
             DB::rollBack();
