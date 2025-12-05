@@ -95,10 +95,44 @@
                         </div>
                     </dd>
                 </div>
+                
+                {{-- Offers Section (PR Creator Only) --}}
+                @php
+                    $offersCount = $purchaseRequisition->offers()->count();
+                @endphp
+                @if($offersCount > 0)
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Tender Offers</dt>
+                        <dd class="mt-1">
+                            <div class="flex items-center gap-4">
+                                <a href="{{ route('procurement.offers.index', $purchaseRequisition) }}" 
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-lg transition shadow-sm">
+                                    <i data-feather="file-text" class="w-4 h-4"></i>
+                                    View All Offers
+                                    <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs">{{ $offersCount }}</span>
+                                </a>
+                                
+                                @if($purchaseRequisition->winningOffer)
+                                    <div class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                        <i data-feather="award" class="w-4 h-4"></i>
+                                        <span class="font-semibold">Winner: {{ $purchaseRequisition->winningOffer->company->name }}</span>
+                                    </div>
+                                @else
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full 
+                                        @if($purchaseRequisition->tender_status === 'open') bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400
+                                        @else bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 @endif">
+                                        Tender: {{ ucfirst($purchaseRequisition->tender_status) }}
+                                    </span>
+                                @endif
+                            </div>
+                        </dd>
+                    </div>
+                @endif
             </dl>
         </div>
     </div>
 
+    {{-- Items Section --}}
     <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700">
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
             <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white">Items</h3>

@@ -14,6 +14,31 @@
         </a>
     </div>
 
+    {{-- Winner Announcement --}}
+    @if($purchaseRequisition->tender_status === 'awarded' && $purchaseRequisition->winningOffer)
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-800 rounded-2xl p-6 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <i data-feather="award" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-green-900 dark:text-green-200 mb-1">
+                        🎉 Tender Awarded
+                    </h3>
+                    <p class="text-sm text-green-700 dark:text-green-300">
+                        This tender has been awarded to <strong class="font-bold">{{ $purchaseRequisition->winningOffer->company->name }}</strong>
+                        with a total offer of <strong class="font-bold">{{ $purchaseRequisition->winningOffer->formatted_total_price }}</strong>.
+                    </p>
+                    <p class="text-xs text-green-600 dark:text-green-400 mt-1">
+                        Tender is now closed for new offers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
             <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white">General Information</h3>
@@ -146,6 +171,192 @@
             </table>
         </div>
     </div>
+
+    {{-- Submit Offer Section --}}
+    @php
+        $selectedCompanyId = session('selected_company_id');
+        $canSubmitOffer = Auth::check() && 
+                         $selectedCompanyId &&
+                         $selectedCompanyId != $purchaseRequisition->company_id &&
+                         $purchaseRequisition->tender_status === 'open';
+        
+        $hasExistingOffer = Auth::check() && 
+                           $selectedCompanyId &&
+                           $purchaseRequisition->offers()
+                               ->where('company_id', $selectedCompanyId)
+                               ->exists();
+    @endphp
+
+    @if($canSubmitOffer && !$hasExistingOffer)
+        <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-primary-50/50 dark:bg-primary-900/10">
+                <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white">
+                    <i data-feather="tag" class="w-5 h-5 inline mr-2 text-primary-600 dark:text-primary-400"></i>
+                    Submit Your Offer
+                </h3>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Provide your pricing and quantities for this procurement request</p>
+            </div>
+
+            <form action="{{ route('procurement.offers.store', $purchaseRequisition) }}" method="POST" id="offerForm" enctype="multipart/form-data">
+                @csrf
+                <div class="px-6 py-5">
+                    {{-- Error Alert --}}
+                    @if($errors->any())
+                        <div class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                            <div class="flex items-start gap-3">
+                                <i data-feather="alert-circle" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <h3 class="text-sm font-bold text-red-900 dark:text-red-200 mb-1">Validation Errors</h3>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        @foreach($errors->all() as $error)
+                                            <li class="text-sm text-red-700 dark:text-red-300">{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Items Table --}}
+                    <div class="overflow-x-auto mb-6">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Requested Qty</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Your Qty</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit Price (Rp)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @foreach($purchaseRequisition->items as $index => $item)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 offer-item-row">
+                                        <td class="px-4 py-4">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->catalogueItem->name }}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">SKU: {{ $item->catalogueItem->sku }}</div>
+                                            <input type="hidden" name="items[{{ $index }}][item_id]" value="{{ $item->id }}">
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                            {{ $item->quantity }}
+                                        </td>
+                                        <td class="px-4 py-4">
+                                            <input type="number" 
+                                                   name="items[{{ $index }}][quantity_offered]" 
+                                                   class="offer-quantity block w-24 rounded-lg border @error('items.'.$index.'.quantity_offered') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
+                                                   min="1" 
+                                                   value="{{ old('items.'.$index.'.quantity_offered', $item->quantity) }}"
+                                                   required
+                                                   data-row="{{ $index }}">
+                                            @error('items.'.$index.'.quantity_offered')
+                                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                            @enderror
+                                        </td>
+                                        <td class="px-4 py-4">
+                                            <input type="number" 
+                                                   name="items[{{ $index }}][unit_price]" 
+                                                   class="offer-price block w-32 rounded-lg border @error('items.'.$index.'.unit_price') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
+                                                   min="0" 
+                                                   step="0.01"
+                                                   placeholder="0.00"
+                                                   value="{{ old('items.'.$index.'.unit_price') }}"
+                                                   required
+                                                   data-row="{{ $index }}">
+                                            @error('items.'.$index.'.unit_price')
+                                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                                            @enderror
+                                        </td>
+                                        <td class="px-4 py-4">
+                                            <span class="offer-subtotal text-sm font-bold text-gray-900 dark:text-white" data-row="{{ $index }}">Rp 0.00</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot class="bg-gray-50 dark:bg-gray-700/50">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Total Offer Price</td>
+                                    <td class="px-4 py-4">
+                                        <span id="totalOfferPrice" class="text-lg font-bold text-primary-600 dark:text-primary-400">Rp 0.00</span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    {{-- Supporting Documents Upload --}}
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                            <i data-feather="paperclip" class="w-4 h-4 inline mr-1"></i>
+                            Supporting Documents (Optional)
+                        </label>
+                        <input type="file" 
+                               name="documents[]" 
+                               id="documents" 
+                               multiple 
+                               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                               class="block w-full text-sm text-gray-900 dark:text-gray-300 border @error('documents') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/30 dark:file:text-primary-400">
+                        @error('documents')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        @error('documents.*')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <i data-feather="info" class="w-3 h-3 inline mr-1"></i>
+                            Upload up to 5 files (PDF, DOC, DOCX, XLS, XLSX, JPG, PNG). Max 10MB per file.
+                        </p>
+                        {{-- File Preview --}}
+                        <div id="filePreview" class="mt-3 space-y-2 hidden"></div>
+                    </div>
+
+                    {{-- Proposal Notes --}}
+                    <div class="mb-6">
+                        <label for="notes" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                            <i data-feather="file-text" class="w-4 h-4 inline mr-1"></i>
+                            Proposal Notes (Optional)
+                        </label>
+                        <textarea name="notes" 
+                                  id="notes" 
+                                  rows="4" 
+                                  placeholder="Describe your offer, delivery terms, warranty, or any special conditions..."
+                                  class="block w-full rounded-lg border @error('notes') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+                                  maxlength="2000">{{ old('notes') }}</textarea>
+                        @error('notes')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum 2000 characters</p>
+                    </div>
+
+                    {{-- Submit Button --}}
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                            Your offer will be ranked and compared with others
+                        </p>
+                        <button type="submit" 
+                                class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-lg transition shadow-sm hover:shadow flex items-center gap-2">
+                            <i data-feather="send" class="w-4 h-4"></i>
+                            Submit Offer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    @elseif($hasExistingOffer)
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 mb-8">
+            <div class="flex items-start gap-3">
+                <i data-feather="check-circle" class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
+                <div>
+                    <h3 class="text-base font-bold text-blue-900 dark:text-blue-200">Offer Already Submitted</h3>
+                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">Your company has already submitted an offer for this requisition.</p>
+                    <a href="{{ route('procurement.offers.my') }}" class="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-2 inline-flex items-center gap-1">
+                        View My Offers
+                        <i data-feather="arrow-right" class="w-3 h-3"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Supporting Documents Section --}}
     @if($purchaseRequisition->documents->count() > 0)
@@ -377,6 +588,64 @@
                 
                 feather.replace();
             }
+
+            // Offer Form Auto-calculation
+            function calculateOfferSubtotal(row) {
+                const quantityInput = document.querySelector(`.offer-quantity[data-row="${row}"]`);
+                const priceInput = document.querySelector(`.offer-price[data-row="${row}"]`);
+                const subtotalSpan = document.querySelector(`.offer-subtotal[data-row="${row}"]`);
+
+                if (quantityInput && priceInput && subtotalSpan) {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    const subtotal = quantity * price;
+
+                    subtotalSpan.textContent = 'Rp ' + subtotal.toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    calculateOfferTotal();
+                }
+            }
+
+            function calculateOfferTotal() {
+                let total = 0;
+                document.querySelectorAll('.offer-item-row').forEach((row, index) => {
+                    const quantityInput = document.querySelector(`.offer-quantity[data-row="${index}"]`);
+                    const priceInput = document.querySelector(`.offer-price[data-row="${index}"]`);
+
+                    if (quantityInput && priceInput) {
+                        const quantity = parseFloat(quantityInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        total += quantity * price;
+                    }
+                });
+
+                const totalElement = document.getElementById('totalOfferPrice');
+                if (totalElement) {
+                    totalElement.textContent = 'Rp ' + total.toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            }
+
+            // Attach event listeners to offer inputs
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.offer-quantity, .offer-price').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const row = this.getAttribute('data-row');
+                        calculateOfferSubtotal(row);
+                    });
+
+                    // Trigger initial calculation
+                    const row = input.getAttribute('data-row');
+                    calculateOfferSubtotal(row);
+                });
+
+                feather.replace();
+            });
         </script>
     @endpush
 @endsection

@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController;
+use App\Modules\Procurement\Presentation\Http\Controllers\OfferController;
+use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseOrderController;
+use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
+use App\Modules\Procurement\Presentation\Http\Controllers\InvoiceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,15 +45,44 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('procurement')->name('procurement.')->group(function () {
         Route::prefix('pr')->name('pr.')->group(function () {
-            Route::get('/', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'index'])->name('index');
-            Route::get('/my-requests', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'myRequests'])->name('my-requests');
-            Route::get('/public-feed', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'publicFeed'])->name('public-feed');
-            Route::get('/create', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'create'])->name('create');
-            Route::post('/', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'store'])->name('store');
-            Route::get('/public/{purchaseRequisition}', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'showPublic'])->name('show-public');
-            Route::get('/{purchaseRequisition}', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'show'])->name('show');
-            Route::get('/documents/{document}/download', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'downloadDocument'])->name('download-document');
-            Route::post('/{purchaseRequisition}/comment', [\App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController::class, 'addComment'])->name('add-comment');
+            Route::get('/', [PurchaseRequisitionController::class, 'index'])->name('index');
+            Route::get('/my-requests', [PurchaseRequisitionController::class, 'myRequests'])->name('my-requests');
+            Route::get('/public-feed', [PurchaseRequisitionController::class, 'publicFeed'])->name('public-feed');
+            Route::get('/create', [PurchaseRequisitionController::class, 'create'])->name('create');
+            Route::post('/', [PurchaseRequisitionController::class, 'store'])->name('store');
+            Route::get('/public/{purchaseRequisition}', [PurchaseRequisitionController::class, 'showPublic'])->name('show-public');
+            Route::get('/{purchaseRequisition}', [PurchaseRequisitionController::class, 'show'])->name('show');
+            Route::get('/documents/{document}/download', [PurchaseRequisitionController::class, 'downloadDocument'])->name('download-document');
+            Route::post('/{purchaseRequisition}/comment', [PurchaseRequisitionController::class, 'addComment'])->name('add-comment');
+        });
+
+        // Purchase Orders
+        Route::get('/po', [PurchaseOrderController::class, 'index'])->name('po.index');
+        Route::get('/po/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('po.show');
+        Route::get('/po/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('po.print');
+        Route::get('/po/{purchaseOrder}/download-pdf', [PurchaseOrderController::class, 'downloadPdf'])->name('po.download-pdf');
+        Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
+
+        // Goods Receipts
+        Route::get('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'create'])->name('gr.create');
+        Route::post('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'store'])->name('gr.store');
+        Route::get('/gr/{id}/print', [GoodsReceiptController::class, 'print'])->name('gr.print');
+        Route::get('/gr/{id}/download-pdf', [GoodsReceiptController::class, 'downloadPdf'])->name('gr.download-pdf');
+
+        // Invoices
+        Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/po/{purchaseOrder}/invoice', [InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('/po/{purchaseOrder}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+
+        // Offers
+        Route::prefix('offers')->name('offers.')->group(function () {
+            Route::get('/my-offers', [OfferController::class, 'myOffers'])->name('my');
+            Route::get('/pr/{purchaseRequisition}', [OfferController::class, 'index'])->name('index');
+            Route::post('/pr/{purchaseRequisition}', [OfferController::class, 'store'])->name('store');
+            Route::get('/{offer}', [OfferController::class, 'show'])->name('show');
+            Route::post('/{offer}/accept', [OfferController::class, 'accept'])->name('accept');
+            Route::post('/{offer}/reject', [OfferController::class, 'reject'])->name('reject');
         });
     });
 

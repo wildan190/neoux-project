@@ -14,20 +14,54 @@
 <form action="{{ route('procurement.pr.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" id="pr-form">
     @csrf
 
+    {{-- Error/Success Messages --}}
+    @if(session('error'))
+        <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 rounded-r-lg">
+            <div class="flex items-center">
+                <i data-feather="alert-circle" class="w-5 h-5 text-red-500 mr-3"></i>
+                <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ session('error') }}</p>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 p-4 rounded-r-lg">
+            <div class="flex items-start">
+                <i data-feather="alert-circle" class="w-5 h-5 text-red-500 mr-3 mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-red-800 dark:text-red-200 mb-2">Please fix the following errors:</p>
+                    <ul class="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- General Information Card --}}
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">General Information</h3>
         <div class="grid grid-cols-1 gap-6">
             <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Request Title</label>
-                <input type="text" name="title" id="title" required placeholder="e.g. Q4 Office Supplies Restock"
-                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Request Title <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="title" id="title" required placeholder="e.g. Q4 Office Supplies Restock" value="{{ old('title') }}"
+                    class="block w-full rounded-lg border @error('title') border-red-500 @else border-gray-300 @enderror px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                @error('title')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                 <textarea id="description" name="description" rows="4" placeholder="Describe the purpose and justification for this request..."
-                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
+                    class="block w-full rounded-lg border @error('description') border-red-500 @else border-gray-300 @enderror px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">{{ old('description') }}</textarea>
+                @error('description')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
         </div>
     </div>
