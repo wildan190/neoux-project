@@ -12,7 +12,7 @@
         rel="stylesheet">
 
     @vite('resources/css/app.css')
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="{{ asset('js/feather.min.js') }}" defer></script>
     @stack('styles')
 </head>
 
@@ -98,16 +98,16 @@
                                                                                 @csrf
                                                                                 <button type="submit"
                                                                                     class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                            }}">
                                                                                     <div
                                                                                         class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                            }}">
                                                                                         @if($company->id == $selectedCompany->id)
                                                                                             <i data-feather="check" class="w-4 h-4"></i>
                                                                                         @else
@@ -119,12 +119,12 @@
                                                                                     <div class="text-left flex-1 min-w-0">
                                                                                         <p
                                                                                             class="text-sm font-semibold truncate
-                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                                             {{ $company->name }}
                                                                                         </p>
                                                                                         <div class="flex items-center gap-2">
                                                                                             <span class="w-1.5 h-1.5 rounded-full
-                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
+                                                                                                                                                                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
                                                 ? 'bg-green-500'
                                                 : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
                                                                                             </span>
@@ -178,10 +178,14 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
 
+
             /* ---------------------------
              * FEATHER ICONS
              * --------------------------- */
-            feather.replace();
+            // Ensure DOM is fully loaded before replacing icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
 
             /* ---------------------------
              * DARK MODE SYSTEM
@@ -197,7 +201,10 @@
                 darkIcon.dataset.feather = 'sun';
             }
 
-            feather.replace();
+            // Replace icons after theme is set
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
 
             darkToggle.addEventListener('click', () => {
                 htmlEl.classList.toggle('dark');
@@ -206,7 +213,9 @@
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
                 darkIcon.dataset.feather = isDark ? 'sun' : 'moon';
-                feather.replace();
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
             });
 
             /* ---------------------------

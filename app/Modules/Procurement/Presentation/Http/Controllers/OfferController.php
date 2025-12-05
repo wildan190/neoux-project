@@ -185,10 +185,11 @@ class OfferController extends Controller
             // Accept this offer
             $offer->update(['status' => 'accepted']);
 
-            // Update PR with winning offer
+            // Update PR with winning offer and close the tender
             $purchaseRequisition->update([
                 'winning_offer_id' => $offer->id,
                 'tender_status' => 'awarded',
+                'status' => 'awarded', // Close the PR - tender awarded
             ]);
 
             // Reject all other pending offers
