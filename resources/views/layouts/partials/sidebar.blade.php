@@ -57,52 +57,53 @@
             </a>
         @endif
 
-        {{-- Procurement Menu --}}
-        <a href="{{ route('procurement.pr.public-feed') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <i data-feather="globe" class="w-5 h-5"></i>
-            </div>
-            <span class="ml-3">All Requests</span>
-        </a>
+        @if(session('selected_company_id'))
+            {{-- Procurement Menu - Only show when company is selected --}}
+            <a href="{{ route('procurement.pr.public-feed') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <i data-feather="globe" class="w-5 h-5"></i>
+                </div>
+                <span class="ml-3">All Requests</span>
+            </a>
 
-        <a href="{{ route('procurement.pr.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <i data-feather="shopping-cart" class="w-5 h-5"></i>
-            </div>
-            <span class="ml-3">Purchase Requisitions</span>
-        </a>
+            <a href="{{ route('procurement.pr.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <i data-feather="shopping-cart" class="w-5 h-5"></i>
+                </div>
+                <span class="ml-3">Purchase Requisitions</span>
+            </a>
 
-        <a href="{{ route('procurement.po.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.po.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.po.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <i data-feather="file-text" class="w-5 h-5"></i>
-            </div>
-            <span class="ml-3">Purchase Orders</span>
-        </a>
+            <a href="{{ route('procurement.po.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.po.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.po.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <i data-feather="file-text" class="w-5 h-5"></i>
+                </div>
+                <span class="ml-3">Purchase Orders</span>
+            </a>
 
-        <a href="{{ route('procurement.invoices.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.invoices.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.invoices.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <i data-feather="dollar-sign" class="w-5 h-5"></i>
-            </div>
-            <span class="ml-3">Invoices</span>
-        </a>
+            <a href="{{ route('procurement.invoices.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.invoices.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.invoices.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <i data-feather="credit-card" class="w-5 h-5"></i>
+                </div>
+                <span class="ml-3">Invoices</span>
+            </a>
 
-        {{-- My Offers --}}
-        <a href="{{ route('procurement.offers.my') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.offers.my') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.offers.my') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <i data-feather="tag" class="w-5 h-5"></i>
-            </div>
-            <span class="ml-3">My Offers</span>
-        </a>
+            <a href="{{ route('procurement.offers.my') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.offers.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.offers.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <i data-feather="briefcase" class="w-5 h-5"></i>
+                </div>
+                <span class="ml-3">My Offers</span>
+            </a>
+        @endif
 
         <a href="/settings"
             class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group text-gray-300 hover:bg-gray-700/50 hover:text-white">

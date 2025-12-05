@@ -16,14 +16,30 @@ use Illuminate\Support\Str;
 
 class PurchaseRequisitionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requisitions = PurchaseRequisition::with(['user.userDetail', 'items'])
-            ->where('company_id', Auth::user()->companies->first()->id) // Assuming user belongs to one company for now or context is set
-            ->latest()
-            ->paginate(10);
+        $selectedCompanyId = session('selected_company_id');
+        $filter = $request->get('filter', 'all'); // Default to 'all' for owned PRs
 
-        return view('procurement.pr.index', compact('requisitions'));
+        $query = PurchaseRequisition::with(['user.userDetail', 'items'])
+            ->where('company_id', $selectedCompanyId);
+
+        if ($filter === 'open') {
+            $query->where('status', 'pending');
+        } elseif ($filter === 'closed') {
+            $query->whereIn('status', ['awarded', 'ordered']);
+        }
+        // 'all' shows everything for this company
+
+        $requisitions = $query->latest()->paginate(10)->appends(['filter' => $filter]);
+
+        // Counts for badges
+        $openCount = PurchaseRequisition::where('company_id', $selectedCompanyId)
+            ->where('status', 'pending')->count();
+        $closedCount = PurchaseRequisition::where('company_id', $selectedCompanyId)
+            ->whereIn('status', ['awarded', 'ordered'])->count();
+
+        return view('procurement.pr.index', compact('requisitions', 'filter', 'openCount', 'closedCount'));
     }
 
     public function myRequests()

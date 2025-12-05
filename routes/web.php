@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/companies/{company}/edit', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'edit'])->name('companies.edit');
     Route::put('/companies/{company}', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'update'])->name('companies.update');
 
-    Route::prefix('catalogue')->name('catalogue.')->group(function () {
+    Route::prefix('catalogue')->name('catalogue.')->middleware('company.selected')->group(function () {
         Route::get('/import/template', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'downloadTemplate'])->name('import.template');
         Route::post('/import/preview', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'previewImport'])->name('import.preview');
         Route::post('/import', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'import'])->name('import');
@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/generate-sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 
-    Route::prefix('procurement')->name('procurement.')->group(function () {
+    Route::prefix('procurement')->name('procurement.')->middleware('company.selected')->group(function () {
         Route::prefix('pr')->name('pr.')->group(function () {
             Route::get('/', [PurchaseRequisitionController::class, 'index'])->name('index');
             Route::get('/my-requests', [PurchaseRequisitionController::class, 'myRequests'])->name('my-requests');
