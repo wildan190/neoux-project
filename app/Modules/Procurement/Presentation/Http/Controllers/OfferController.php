@@ -248,8 +248,11 @@ class OfferController extends Controller
      */
     public function myOffers()
     {
+        $selectedCompanyId = session('selected_company_id');
+
         $offers = PurchaseRequisitionOffer::where('user_id', Auth::id())
-            ->with(['purchaseRequisition.company', 'purchaseRequisition.user', 'items'])
+            ->where('company_id', $selectedCompanyId) // Fix: Filter by selected company
+            ->with(['purchaseRequisition.company', 'purchaseRequisition.user', 'items', 'purchaseOrder']) // Added purchaseOrder
             ->latest()
             ->paginate(10);
 

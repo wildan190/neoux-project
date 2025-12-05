@@ -8,6 +8,31 @@
 
 @section('content')
     <div class="max-w-5xl mx-auto space-y-6">
+        {{-- Header: Search & Create --}}
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {{-- Search --}}
+            <div class="flex-1 max-w-lg">
+                <form action="{{ route('procurement.pr.public-feed') }}" method="GET" class="relative">
+                    @if(request('filter'))
+                        <input type="hidden" name="filter" value="{{ request('filter') }}">
+                    @endif
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-feather="search" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input type="text" name="search" value="{{ $search ?? '' }}"
+                        class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm shadow-sm transition-all"
+                        placeholder="Search by title, number, or description...">
+                </form>
+            </div>
+
+            {{-- Create Button --}}
+            <a href="{{ route('procurement.pr.create') }}"
+                class="inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+                Create Request
+            </a>
+        </div>
+
         {{-- Filter Tabs --}}
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2">
             <div class="flex items-center gap-2">

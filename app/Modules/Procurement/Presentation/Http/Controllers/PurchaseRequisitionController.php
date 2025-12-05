@@ -168,26 +168,57 @@ class PurchaseRequisitionController extends Controller
 
     public function publicFeed(Request $request)
     {
-        $filter = $request->get('filter', 'open'); // Default to 'open'
+        $selectedCompanyId = session('selected_company_id');
+        $filter = $request->get('filter', 'open');
+        $search = $request->get('search');
 
-        $query = PurchaseRequisition::with(['user.userDetail', 'company', 'items', 'comments']);
+        // Logic: If search exists, use Scout. Else use Eloquent.
+        if ($search) {
+            // Scout Search - Public Feed shows ALL requests
+            $query = PurchaseRequisition::search($search);
+            // ->where('company_id', $selectedCompanyId); // REMOVED: Public feed should explicitly show ALL
 
-        if ($filter === 'open') {
-            // Open = pending status, no winner yet
-            $query->where('status', 'pending');
-        } elseif ($filter === 'closed') {
-            // Closed = awarded or ordered (has winner)
-            $query->whereIn('status', ['awarded', 'ordered']);
+            // Apply status filter
+            if ($filter === 'open') {
+                $query->where('status', 'pending');
+            } elseif ($filter === 'closed') {
+                // Scout 'where' is strict equality.
+                // Ideally we use a dedicated index field 'is_closed' or similar.
+                // But for database driver, we can use the callback to filter on the query builder.
+                $query->query(function ($builder) {
+                    $builder->whereIn('status', ['awarded', 'ordered']);
+                });
+            }
+
+            // Eager load relationships for Scout results
+            $query->query(function ($builder) {
+                $builder->with(['user.userDetail', 'company', 'items']);
+            });
+
+            $requisitions = $query->paginate(10);
+
+        } else {
+            // Standard Eloquent (No Search) - Public Feed shows ALL requests
+            $query = PurchaseRequisition::with(['user.userDetail', 'company', 'items']);
+            // ->where('company_id', $selectedCompanyId); // REMOVED: Public feed should explicitly show ALL
+
+            if ($filter === 'open') {
+                $query->where('status', 'pending');
+            } elseif ($filter === 'closed') {
+                $query->whereIn('status', ['awarded', 'ordered']);
+            }
+
+            $requisitions = $query->latest()->paginate(10);
         }
-        // 'all' shows everything
 
-        $requisitions = $query->latest()->paginate(12)->appends(['filter' => $filter]);
+        // Append query params
+        $requisitions->appends(['filter' => $filter, 'search' => $search]);
 
-        // Count for badges
+        // Counts for badges - Global counts for public feed
         $openCount = PurchaseRequisition::where('status', 'pending')->count();
         $closedCount = PurchaseRequisition::whereIn('status', ['awarded', 'ordered'])->count();
 
-        return view('procurement.pr.public-feed', compact('requisitions', 'filter', 'openCount', 'closedCount'));
+        return view('procurement.pr.public-feed', compact('requisitions', 'filter', 'openCount', 'closedCount', 'search'));
     }
 
     public function downloadDocument(PurchaseRequisitionDocument $document)
