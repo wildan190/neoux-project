@@ -256,10 +256,10 @@
     @endif
 
     <div class="mt-6">
-        <a href="{{ route('procurement.offers.index', $purchaseRequisition) }}"
+        <a href="{{ $isOwner ? route('procurement.pr.show', $purchaseRequisition) : route('procurement.offers.my') }}"
             class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
             <i data-feather="arrow-left" class="w-4 h-4"></i>
-            Back to All Offers
+            {{ $isOwner ? 'Back to Request' : 'Back to My Offers' }}
         </a>
     </div>
 @endsection

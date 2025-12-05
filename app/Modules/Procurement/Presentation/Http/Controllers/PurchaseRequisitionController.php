@@ -80,7 +80,11 @@ class PurchaseRequisitionController extends Controller
                     throw new \Exception('No company found for this user.');
                 }
 
+                // Generate PR Number
+                $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
+
                 $requisition = PurchaseRequisition::create([
+                    'pr_number' => $prNumber,
                     'company_id' => $companyId,
                     'user_id' => Auth::id(),
                     'title' => $request->title,

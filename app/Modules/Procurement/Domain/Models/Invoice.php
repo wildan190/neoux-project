@@ -23,6 +23,8 @@ class Invoice extends Model
         'total_amount',
         'status',
         'match_status',
+        'tax_invoice_number',
+        'tax_invoice_issued_at',
     ];
 
     protected $casts = [
@@ -30,6 +32,7 @@ class Invoice extends Model
         'due_date' => 'date',
         'total_amount' => 'decimal:2',
         'match_status' => 'array',
+        'tax_invoice_issued_at' => 'datetime',
     ];
 
     public function purchaseOrder(): BelongsTo

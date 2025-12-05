@@ -152,16 +152,30 @@ class OfferController extends Controller
      */
     public function show(PurchaseRequisitionOffer $offer)
     {
-        // Authorization: PR creator or offer creator
+        $selectedCompanyId = session('selected_company_id');
         $purchaseRequisition = $offer->purchaseRequisition;
 
-        if ($purchaseRequisition->user_id !== Auth::id() && $offer->user_id !== Auth::id()) {
+        // Authorization: Only PR owner or Offer submitter can view
+        $isPROwner = $purchaseRequisition->company_id == $selectedCompanyId;
+        $isOfferSubmitter = $offer->company_id == $selectedCompanyId;
+
+        if (!$isPROwner && !$isOfferSubmitter) {
             abort(403, 'Unauthorized to view this offer.');
         }
 
-        $offer->load(['company', 'user.userDetail', 'items.purchaseRequisitionItem.catalogueItem', 'documents']);
+        $offer->load([
+            'items.purchaseRequisitionItem.catalogueItem',
+            'documents',
+            'company',
+            'user.userDetail'
+        ]);
 
-        return view('procurement.offers.show', compact('offer', 'purchaseRequisition'));
+        $purchaseRequisition->load(['items', 'company']);
+
+        // Determine if current user is the PR owner (for back button routing)
+        $isOwner = $isPROwner;
+
+        return view('procurement.offers.show', compact('offer', 'purchaseRequisition', 'isOwner'));
     }
 
     /**

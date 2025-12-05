@@ -9,15 +9,22 @@
 ])
 
 @section('content')
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-start mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $invoice->invoice_number }}</h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">
                 Submitted on {{ $invoice->created_at->format('d F Y') }} | 
                 Due: {{ $invoice->due_date->format('d F Y') }}
             </p>
+            @if($invoice->tax_invoice_number)
+                <p class="text-sm font-bold text-primary-600 dark:text-primary-400 mt-1">
+                    <i data-feather="file-text" class="w-4 h-4 inline"></i>
+                    Tax Invoice: {{ $invoice->tax_invoice_number }}
+                </p>
+            @endif
         </div>
-        <div>
+        <div class="flex items-center gap-3">
+            {{-- Status Badge --}}
             <span class="px-3 py-1 text-sm font-bold rounded-full 
                 @if($invoice->status === 'approved' || $invoice->status === 'paid') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
                 @elseif($invoice->status === 'mismatch' || $invoice->status === 'rejected') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
@@ -25,6 +32,19 @@
                 @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
                 {{ ucfirst($invoice->status) }}
             </span>
+
+            {{-- Action Buttons --}}
+            <a href="{{ route('procurement.invoices.print', $invoice) }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <i data-feather="printer" class="w-4 h-4"></i>
+                Print
+            </a>
+
+            <a href="{{ route('procurement.invoices.download-pdf', $invoice) }}"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                <i data-feather="download" class="w-4 h-4"></i>
+                PDF
+            </a>
         </div>
     </div>
 
@@ -160,6 +180,53 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">View Purchase Order</p>
                 </a>
             </div>
+
+            {{-- Tax Invoice Section (Vendor Only) --}}
+            @if($isVendor)
+                <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-4">Tax Invoice</h3>
+                    
+                    @if($invoice->tax_invoice_number)
+                        {{-- Tax Invoice Already Issued --}}
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 mb-3">
+                            <div class="flex items-start gap-3">
+                                <i data-feather="check-circle" class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold text-green-900 dark:text-green-100">Issued</p>
+                                    <p class="text-xs text-green-700 dark:text-green-300 mt-1 font-mono">{{ $invoice->tax_invoice_number }}</p>
+                                    <p class="text-xs text-green-600 dark:text-green-400 mt-1">{{ $invoice->tax_invoice_issued_at->format('d M Y H:i') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Print & PDF Buttons for Tax Invoice --}}
+                        <div class="flex flex-col gap-2">
+                            <a href="{{ route('procurement.invoices.tax-invoice-print', $invoice) }}" target="_blank"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                                <i data-feather="printer" class="w-4 h-4"></i>
+                                Print Faktur
+                            </a>
+                            
+                            <a href="{{ route('procurement.invoices.tax-invoice-pdf', $invoice) }}"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                                <i data-feather="download" class="w-4 h-4"></i>
+                                Download Faktur PDF
+                            </a>
+                        </div>
+                    @else
+                        {{-- Issue Tax Invoice Button --}}
+                        <form action="{{ route('procurement.invoices.issue-tax-invoice', $invoice) }}" method="POST">
+                            @csrf
+                            <button type="submit" 
+                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-bold rounded-lg transition shadow-md hover:shadow-lg">
+                                <i data-feather="file-plus" class="w-4 h-4"></i>
+                                Issue Tax Invoice
+                            </button>
+                        </form>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Generate Faktur Pajak</p>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 @endsection
