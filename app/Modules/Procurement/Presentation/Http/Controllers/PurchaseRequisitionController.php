@@ -146,13 +146,28 @@ class PurchaseRequisitionController extends Controller
         return view('procurement.pr.show-public', compact('purchaseRequisition'));
     }
 
-    public function publicFeed()
+    public function publicFeed(Request $request)
     {
-        $requisitions = PurchaseRequisition::with(['user.userDetail', 'company', 'items', 'comments'])
-            ->latest()
-            ->paginate(12);
+        $filter = $request->get('filter', 'open'); // Default to 'open'
 
-        return view('procurement.pr.public-feed', compact('requisitions'));
+        $query = PurchaseRequisition::with(['user.userDetail', 'company', 'items', 'comments']);
+
+        if ($filter === 'open') {
+            // Open = pending status, no winner yet
+            $query->where('status', 'pending');
+        } elseif ($filter === 'closed') {
+            // Closed = awarded or ordered (has winner)
+            $query->whereIn('status', ['awarded', 'ordered']);
+        }
+        // 'all' shows everything
+
+        $requisitions = $query->latest()->paginate(12)->appends(['filter' => $filter]);
+
+        // Count for badges
+        $openCount = PurchaseRequisition::where('status', 'pending')->count();
+        $closedCount = PurchaseRequisition::whereIn('status', ['awarded', 'ordered'])->count();
+
+        return view('procurement.pr.public-feed', compact('requisitions', 'filter', 'openCount', 'closedCount'));
     }
 
     public function downloadDocument(PurchaseRequisitionDocument $document)

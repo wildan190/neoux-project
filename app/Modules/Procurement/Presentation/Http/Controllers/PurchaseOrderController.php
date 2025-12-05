@@ -146,6 +146,7 @@ class PurchaseOrderController extends Controller
 
             $purchaseRequisition->update([
                 'po_generated_at' => now(),
+                'status' => 'ordered', // PO has been generated
             ]);
 
             DB::commit();
