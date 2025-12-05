@@ -56,49 +56,74 @@ class PurchaseRequisitionController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'documents.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
+        ], [
+            'title.required' => 'Request title is required.',
+            'items.required' => 'At least one item is required.',
+            'items.min' => 'At least one item must be added.',
+            'items.*.catalogue_item_id.required' => 'Please select an item.',
+            'items.*.catalogue_item_id.exists' => 'Selected item does not exist.',
+            'items.*.quantity.required' => 'Quantity is required.',
+            'items.*.quantity.min' => 'Quantity must be at least 1.',
+            'items.*.price.required' => 'Price is required.',
+            'items.*.price.min' => 'Price cannot be negative.',
         ]);
 
-        DB::transaction(function () use ($request) {
-            $companyId = Auth::user()->companies->first()->id;
+        try {
+            DB::transaction(function () use ($request) {
+                $companyId = session('selected_company_id');
 
-            $requisition = PurchaseRequisition::create([
-                'company_id' => $companyId,
-                'user_id' => Auth::id(),
-                'title' => $request->title,
-                'description' => $request->description,
-                'status' => 'pending',
-            ]);
+                if (!$companyId) {
+                    $companyId = Auth::user()->companies->first()?->id;
+                }
 
-            foreach ($request->items as $item) {
-                PurchaseRequisitionItem::create([
-                    'purchase_requisition_id' => $requisition->id,
-                    'catalogue_item_id' => $item['catalogue_item_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+                if (!$companyId) {
+                    throw new \Exception('No company found for this user.');
+                }
+
+                $requisition = PurchaseRequisition::create([
+                    'company_id' => $companyId,
+                    'user_id' => Auth::id(),
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'status' => 'pending',
                 ]);
-            }
 
-            // Handle document uploads
-            if ($request->hasFile('documents')) {
-                foreach ($request->file('documents') as $file) {
-                    $originalName = $file->getClientOriginalName();
-                    $extension = $file->getClientOriginalExtension();
-                    $filename = Str::uuid() . '.' . $extension;
-                    $path = $file->storeAs('procurement/documents/' . $requisition->id, $filename, 'public');
-
-                    PurchaseRequisitionDocument::create([
+                foreach ($request->items as $item) {
+                    PurchaseRequisitionItem::create([
                         'purchase_requisition_id' => $requisition->id,
-                        'original_name' => $originalName,
-                        'file_path' => $path,
-                        'file_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                        'uploaded_by' => Auth::id(),
+                        'catalogue_item_id' => $item['catalogue_item_id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
                     ]);
                 }
-            }
-        });
 
-        return redirect()->route('procurement.pr.my-requests')->with('success', 'Purchase Requisition created successfully.');
+                // Handle document uploads
+                if ($request->hasFile('documents')) {
+                    foreach ($request->file('documents') as $file) {
+                        $originalName = $file->getClientOriginalName();
+                        $extension = $file->getClientOriginalExtension();
+                        $filename = Str::uuid() . '.' . $extension;
+                        $path = $file->storeAs('procurement/documents/' . $requisition->id, $filename, 'public');
+
+                        PurchaseRequisitionDocument::create([
+                            'purchase_requisition_id' => $requisition->id,
+                            'original_name' => $originalName,
+                            'file_path' => $path,
+                            'file_type' => $file->getMimeType(),
+                            'file_size' => $file->getSize(),
+                            'uploaded_by' => Auth::id(),
+                        ]);
+                    }
+                }
+            });
+
+            return redirect()->route('procurement.pr.my-requests')->with('success', 'Purchase Requisition created successfully!');
+
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to create Purchase Requisition: ' . $e->getMessage());
+        }
     }
 
     public function show(PurchaseRequisition $purchaseRequisition)
