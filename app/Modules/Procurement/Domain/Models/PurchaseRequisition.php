@@ -25,6 +25,11 @@ class PurchaseRequisition extends Model
         'title',
         'description',
         'status',
+        'approval_status',
+        'approval_notes',
+        'approver_id',
+        'assigned_to',
+        'submitted_at',
         'winning_offer_id',
         'tender_status',
         'po_generated_at',
@@ -49,6 +54,16 @@ class PurchaseRequisition extends Model
         ];
     }
 
+
+    public function approver()
+    {
+        return $this->belongsTo(\App\Modules\User\Domain\Models\User::class, 'approver_id');
+    }
+
+    public function assignee()
+    {
+        return $this->belongsTo(\App\Modules\User\Domain\Models\User::class, 'assigned_to');
+    }
 
     public function company(): BelongsTo
     {

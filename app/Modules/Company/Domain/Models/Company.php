@@ -64,6 +64,16 @@ class Company extends Model
         return $this->belongsTo(\App\Modules\Admin\Domain\Models\Admin::class, 'declined_by');
     }
 
+    public function offers(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer::class);
+    }
+
+    public function purchaseRequisitions(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Procurement\Domain\Models\PurchaseRequisition::class);
+    }
+
     public function activities()
     {
         return $this->hasMany(\App\Modules\Admin\Domain\Models\CompanyActivity::class)->latest();
@@ -79,6 +89,24 @@ class Company extends Model
         }
 
         return asset('storage/' . $this->logo);
+    }
+
+    /**
+     * Get the team members including owner
+     */
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'company_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get pending invitations
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(CompanyInvitation::class);
     }
 
     /**

@@ -26,7 +26,15 @@ class CompanyReviewController extends Controller
     {
         $company->load(['user', 'documents', 'locations', 'approvedBy', 'declinedBy', 'activities.admin']);
 
-        return view('admin.companies.show', compact('company'));
+        // History Stats
+        $stats = [
+            'offers_submitted' => $company->offers()->count(),
+            'offers_won' => $company->offers()->where('status', 'accepted')->count(),
+            'total_requests' => $company->purchaseRequisitions()->count(),
+            'active_requests' => $company->purchaseRequisitions()->whereIn('status', ['pending', 'open'])->count(),
+        ];
+
+        return view('admin.companies.show', compact('company', 'stats'));
     }
 
     public function approve(Company $company)
@@ -42,7 +50,7 @@ class CompanyReviewController extends Controller
             'company_id' => $company->id,
             'admin_id' => auth('admin')->id(),
             'action' => 'approved',
-            'description' => 'Company application approved by '.auth('admin')->user()->name,
+            'description' => 'Company application approved by ' . auth('admin')->user()->name,
         ]);
 
         return back()->with('success', 'Company has been approved successfully.');
@@ -61,7 +69,7 @@ class CompanyReviewController extends Controller
             'company_id' => $company->id,
             'admin_id' => auth('admin')->id(),
             'action' => 'declined',
-            'description' => 'Company application declined by '.auth('admin')->user()->name,
+            'description' => 'Company application declined by ' . auth('admin')->user()->name,
         ]);
 
         return back()->with('success', 'Company has been declined.');

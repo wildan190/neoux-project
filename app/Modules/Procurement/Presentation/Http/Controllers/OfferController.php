@@ -276,6 +276,14 @@ class OfferController extends Controller
         // Get total requested quantity
         $totalRequestedQuantity = $purchaseRequisition->items->sum('quantity');
 
+        // Pre-fetch win counts for all companies involved to avoid N+1
+        $companyIds = $offers->pluck('company_id')->unique();
+        $winCounts = PurchaseRequisitionOffer::whereIn('company_id', $companyIds)
+            ->where('status', 'accepted')
+            ->selectRaw('company_id, count(*) as count')
+            ->groupBy('company_id')
+            ->pluck('count', 'company_id');
+
         foreach ($offers as $offer) {
             $score = 0;
 
@@ -292,10 +300,11 @@ class OfferController extends Controller
                 $score += $quantityScore;
             }
 
-            // 3. Company Rating Score (20%) - Future: based on past performance
-            // For now, give default score
-            $ratingScore = 15; // 75% of 20
-            $score += $ratingScore;
+            // 3. Win History Score (20%) - Based on past tender wins
+            // Cap at 10 wins for max score to avoid skewing
+            $wins = $winCounts->get($offer->company_id, 0);
+            $winScore = min(1, $wins / 10) * 20;
+            $score += $winScore;
 
             // 4. Response Time Score (10%) - How quick to submit
             $hoursSincePR = $offer->created_at->diffInHours($purchaseRequisition->created_at);

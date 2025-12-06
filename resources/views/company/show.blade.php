@@ -86,6 +86,57 @@
     </div>
 
     <div class="px-4 md:px-0 pb-12">
+        <!-- History Track (Jejak Riwayat) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {{-- Offers Submitted --}}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Penawaran Diajukan</p>
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <i data-feather="send" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['offers_submitted'] }}</p>
+                <p class="text-xs text-gray-500 mt-1">Total offers sent</p>
+            </div>
+
+            {{-- Offers Won --}}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5 border-l-4 border-green-500">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Penawaran Dimenangkan</p>
+                    <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                        <i data-feather="award" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['offers_won'] }}</p>
+                <p class="text-xs text-gray-500 mt-1">Offers accepted</p>
+            </div>
+
+            {{-- Total Requests --}}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5 border-l-4 border-purple-500">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Permintaan</p>
+                    <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                        <i data-feather="shopping-cart" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_requests'] }}</p>
+                <p class="text-xs text-gray-500 mt-1">All PRs created</p>
+            </div>
+
+            {{-- Active Requests --}}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5 border-l-4 border-orange-500">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Permintaan Aktif</p>
+                    <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                        <i data-feather="activity" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['active_requests'] }}</p>
+                <p class="text-xs text-gray-500 mt-1">Open / Pending</p>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         
         {{-- Left Column --}}

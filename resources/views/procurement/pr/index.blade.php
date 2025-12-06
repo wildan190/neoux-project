@@ -95,12 +95,30 @@
                             {{ $pr->created_at->format('M d, Y') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full 
-                                @if($pr->status === 'approved') bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
-                                @elseif($pr->status === 'rejected') bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
-                                @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
-                                {{ ucfirst($pr->status) }}
-                            </span>
+                            @if(in_array($pr->status, ['awarded', 'ordered']))
+                                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                    {{ ucfirst($pr->status) }}
+                                </span>
+                            @else
+                                {{-- Show Approval Status for open items --}}
+                                @if($pr->approval_status === 'approved')
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                        Approved
+                                    </span>
+                                @elseif($pr->approval_status === 'rejected')
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                                        Rejected
+                                    </span>
+                                @elseif($pr->approval_status === 'pending')
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                        Waiting Approval
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                        Draft
+                                    </span>
+                                @endif
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ $pr->items->count() }} items

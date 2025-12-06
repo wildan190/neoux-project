@@ -37,7 +37,7 @@ class CompanyController extends Controller
 
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (! empty($location)) {
+                if (!empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }
@@ -60,7 +60,15 @@ class CompanyController extends Controller
     {
         $company->load(['documents', 'locations']);
 
-        return view('company.show', compact('company'));
+        // History Stats
+        $stats = [
+            'offers_submitted' => $company->offers()->count(),
+            'offers_won' => $company->offers()->where('status', 'accepted')->count(),
+            'total_requests' => $company->purchaseRequisitions()->count(),
+            'active_requests' => $company->purchaseRequisitions()->whereIn('status', ['pending', 'open'])->count(),
+        ];
+
+        return view('company.show', compact('company', 'stats'));
     }
 
     public function edit(Company $company)
@@ -115,7 +123,7 @@ class CompanyController extends Controller
         $company->locations()->delete();
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (! empty($location)) {
+                if (!empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }
