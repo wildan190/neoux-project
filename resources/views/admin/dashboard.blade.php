@@ -59,8 +59,113 @@
         </div>
     </div>
 
+    {{-- Analytics Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+        {{-- Recent Tender Activity --}}
+        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                    <i data-feather="activity" class="w-5 h-5 mr-2 text-primary-600"></i>
+                    Recent Tender Activity
+                </h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-500 dark:text-gray-400 uppercase">
+                        <tr>
+                            <th class="px-6 py-3 font-semibold">Tender / PR</th>
+                            <th class="px-6 py-3 font-semibold">Buyer</th>
+                            <th class="px-6 py-3 font-semibold">Winner</th>
+                            <th class="px-6 py-3 font-semibold text-right">Amount</th>
+                            <th class="px-6 py-3 font-semibold">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                        @forelse($recentTenders as $pr)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-900 dark:text-white">{{ $pr->title }}</div>
+                                    <div class="text-xs text-gray-500">{{ $pr->pr_number }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
+                                            {{ substr($pr->company->name, 0, 1) }}
+                                        </div>
+                                        <span class="text-gray-700 dark:text-gray-300">{{ $pr->company->name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($pr->winningOffer)
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">
+                                                {{ substr($pr->winningOffer->company->name, 0, 1) }}
+                                            </div>
+                                            <span class="text-green-700 dark:text-green-400 font-medium">{{ $pr->winningOffer->company->name }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400 italic">No Winner</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right font-medium text-gray-900 dark:text-white">
+                                    {{ $pr->winningOffer ? $pr->winningOffer->formatted_total_price : '-' }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                    {{ $pr->updated_at->format('d M Y') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    No recent tender activity found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Top Purchased Products --}}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                    <i data-feather="trending-up" class="w-5 h-5 mr-2 text-green-600"></i>
+                    Top Purchased Products
+                </h3>
+            </div>
+            <div class="p-4">
+                <div class="space-y-4">
+                    @forelse($topProducts as $index => $product)
+                        <div class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-500 dark:text-gray-400">
+                                #{{ $index + 1 }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                    {{ $product->name }}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    {{ $product->category->name ?? 'Uncategorized' }}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $product->transaction_count }}x</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Sold</p>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            No sales data yet.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Quick Actions --}}
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mt-8">
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
                 <i data-feather="zap" class="w-5 h-5 mr-2 text-primary-600"></i>

@@ -65,11 +65,32 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the companies owned by the user.
+     * Get the companies the user belongs to (as a member).
      */
     public function companies()
     {
-        return $this->hasMany(\App\Modules\Company\Domain\Models\Company::class);
+        return $this->belongsToMany(\App\Modules\Company\Domain\Models\Company::class, 'company_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the companies the user owns.
+     */
+    public function ownedCompanies()
+    {
+        return $this->hasMany(\App\Modules\Company\Domain\Models\Company::class, 'user_id');
+    }
+
+    /**
+     * Get all companies the user has access to (owned + member).
+     */
+    public function allCompanies()
+    {
+        $owned = $this->ownedCompanies;
+        $member = $this->companies;
+
+        return $owned->merge($member)->unique('id');
     }
 
     /**

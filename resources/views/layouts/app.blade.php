@@ -56,7 +56,7 @@
                             {{-- Company Switcher --}}
                             @php
                                 $selectedCompanyId = session('selected_company_id');
-                                $userCompanies = auth()->user()->companies()->get();
+                                $userCompanies = auth()->user()->allCompanies();
                                 $selectedCompany = $userCompanies->firstWhere('id', $selectedCompanyId)
                                     ?? $userCompanies->first();
                             @endphp
@@ -98,16 +98,16 @@
                                                                                 @csrf
                                                                                 <button type="submit"
                                                                                     class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }}">
                                                                                     <div
                                                                                         class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }}">
                                                                                         @if($company->id == $selectedCompany->id)
                                                                                             <i data-feather="check" class="w-4 h-4"></i>
                                                                                         @else
@@ -119,12 +119,12 @@
                                                                                     <div class="text-left flex-1 min-w-0">
                                                                                         <p
                                                                                             class="text-sm font-semibold truncate
-                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                                             {{ $company->name }}
                                                                                         </p>
                                                                                         <div class="flex items-center gap-2">
                                                                                             <span class="w-1.5 h-1.5 rounded-full
-                                                                                                                                                                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ in_array($company->status, ['approved', 'active'])
                                                 ? 'bg-green-500'
                                                 : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
                                                                                             </span>
@@ -165,7 +165,7 @@
 
             {{-- Content --}}
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
-                <div class="container mx-auto px-4 md:px-6 py-8">
+                <div class="w-full px-6 py-8">
                     @yield('content')
                 </div>
             </main>
@@ -256,6 +256,49 @@
     </script>
 
     @stack('scripts')
+
+    <!-- Global SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Success Message
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: "{{ session('success') }}",
+                    confirmButtonColor: '#4f46e5',
+                    timer: 3000
+                });
+            @endif
+
+            // Error Message
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: "{{ session('error') }}",
+                    confirmButtonColor: '#ef4444'
+                });
+            @endif
+
+            // Validation Errors
+            @if($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: `
+                            <ul class="text-left text-sm">
+                                @foreach($errors->all() as $error)
+                                    <li>• {{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        `,
+                    confirmButtonColor: '#ef4444'
+                });
+            @endif
+        });
+    </script>
 </body>
 
 </html>

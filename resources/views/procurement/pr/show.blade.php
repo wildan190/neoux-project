@@ -14,6 +14,98 @@
         </a>
     </div>
 
+    {{-- Approval Actions Section --}}
+    @php
+        $currentUser = Auth::user();
+        $userRole = $currentUser->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
+        $isApprover = $purchaseRequisition->approver_id === $currentUser->id;
+        $isCreator = $purchaseRequisition->user_id === $currentUser->id; // Renamed from isOwner for clarity
+        $isCompanyOwner = $purchaseRequisition->company->user_id === $currentUser->id; // Actual Company Owner
+        $isAdmin = $userRole === 'admin';
+        $isManager = $userRole === 'manager';
+    @endphp
+
+    @if($purchaseRequisition->approval_status === 'pending' && ($isApprover || $isAdmin || $isCompanyOwner))
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border-l-4 border-yellow-500 p-6 mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Approval Required</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">This requisition is waiting for your approval.</p>
+            <form action="{{ route('procurement.pr.approve', $purchaseRequisition) }}" method="POST" class="inline-block">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                    <textarea name="approval_notes" rows="2" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 max-w-lg"></textarea>
+                </div>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-sm transition">
+                    Approve Request
+                </button>
+            </form>
+            <button onclick="document.getElementById('rejectModal').classList.remove('hidden')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition ml-2">
+                Reject Request
+            </button>
+        </div>
+    @endif
+
+    {{-- Submission Section --}}
+    @if(($purchaseRequisition->approval_status === 'draft' || $purchaseRequisition->approval_status === 'rejected') && ($isCreator || $isAdmin))
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Submit for Approval</h3>
+            <form action="{{ route('procurement.pr.submit-approval', $purchaseRequisition) }}" method="POST" class="max-w-md">
+                @csrf
+                <div class="flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Approver</label>
+                        <select name="approver_id" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                             {{-- Ideally pass users from controller, but for now we rely on simple query or assumption. 
+                                  Wait, we don't have users list here. Controller needs to pass it.
+                                  Let's check if we can get logic. For now, we will add a TODO to fix controller? 
+                                  No, we must fix it. 
+                                  Actually, we can use $purchaseRequisition->company->members (if eager loaded).
+                             --}}
+                             @foreach($purchaseRequisition->company->members as $member)
+                                 @if(in_array($member->pivot->role, ['admin', 'manager', 'approver']))
+                                     <option value="{{ $member->id }}">{{ $member->name }} ({{ ucfirst($member->pivot->role) }})</option>
+                                 @endif
+                             @endforeach
+                             {{-- Add Owner if valid role --}}
+                             @if($purchaseRequisition->company->user && $purchaseRequisition->company->user_id !== $purchaseRequisition->user_id)
+                                <option value="{{ $purchaseRequisition->company->user_id }}">{{ $purchaseRequisition->company->user->name }} (Owner)</option>
+                             @endif
+                        </select>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow-sm transition">
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    {{-- Assignment Section (Admin/Manager) --}}
+    @if($isAdmin || $isManager)
+         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Task Assignment</h3>
+             <form action="{{ route('procurement.pr.assign', $purchaseRequisition) }}" method="POST" class="max-w-md">
+                @csrf
+                <div class="flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign To</label>
+                        <select name="assigned_to" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                             <option value="">Select Member</option>
+                             @foreach($purchaseRequisition->company->members as $member)
+                                 <option value="{{ $member->id }}" {{ $purchaseRequisition->assigned_to == $member->id ? 'selected' : '' }}>
+                                     {{ $member->name }} ({{ ucfirst($member->pivot->role) }})
+                                 </option>
+                             @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-sm transition">
+                        Assign
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
+
     <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
             <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white">General Information</h3>
@@ -228,4 +320,25 @@
             </div>
         </div>
     @endif
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative">
+            <button onclick="document.getElementById('rejectModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Reject Requisition</h3>
+            <form action="{{ route('procurement.pr.reject', $purchaseRequisition) }}" method="POST">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason for Rejection</label>
+                        <textarea name="approval_notes" required rows="3" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">Confirm Rejection</button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
+```

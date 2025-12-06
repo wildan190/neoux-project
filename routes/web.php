@@ -11,6 +11,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Invitation (Public/Auth) - Moved here to allow guest access
+Route::get('/invitation/{token}', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'acceptInvitation'])->name('team.accept-invitation');
+Route::post('/invitation/process', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'processAcceptInvitation'])->name('team.process-acceptance');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/select-company/{company}', [\App\Http\Controllers\DashboardController::class, 'selectCompany'])->name('dashboard.select-company');
@@ -43,6 +47,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/generate-sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 
+    // Team Management
+    Route::prefix('team')->name('team.')->middleware('company.selected')->group(function () {
+        Route::get('/', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'index'])->name('index');
+        Route::post('/invite', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'invite'])->name('invite');
+        Route::post('/{user}/remove', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'removeMember'])->name('remove');
+        Route::put('/{user}/role', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'updateRole'])->name('update-role');
+    });
+
     Route::prefix('procurement')->name('procurement.')->middleware('company.selected')->group(function () {
         Route::prefix('pr')->name('pr.')->group(function () {
             Route::get('/', [PurchaseRequisitionController::class, 'index'])->name('index');
@@ -54,6 +66,12 @@ Route::middleware('auth')->group(function () {
             Route::get('/{purchaseRequisition}', [PurchaseRequisitionController::class, 'show'])->name('show');
             Route::get('/documents/{document}/download', [PurchaseRequisitionController::class, 'downloadDocument'])->name('download-document');
             Route::post('/{purchaseRequisition}/comment', [PurchaseRequisitionController::class, 'addComment'])->name('add-comment');
+
+            // Approval Routes
+            Route::post('/{purchaseRequisition}/submit-approval', [PurchaseRequisitionController::class, 'submitForApproval'])->name('submit-approval');
+            Route::post('/{purchaseRequisition}/approve', [PurchaseRequisitionController::class, 'approve'])->name('approve');
+            Route::post('/{purchaseRequisition}/reject', [PurchaseRequisitionController::class, 'reject'])->name('reject');
+            Route::post('/{purchaseRequisition}/assign', [PurchaseRequisitionController::class, 'assign'])->name('assign');
         });
 
         // Purchase Orders

@@ -7,7 +7,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $companies = $user->companies()->get();
+        $companies = $user->allCompanies();
 
         if ($companies->isEmpty()) {
             return redirect()->route('companies.create');
@@ -26,7 +26,11 @@ class DashboardController extends Controller
 
     public function selectCompany($companyId)
     {
-        $company = auth()->user()->companies()->findOrFail($companyId);
+        $company = auth()->user()->allCompanies()->firstWhere('id', $companyId);
+
+        if (!$company) {
+            abort(404);
+        }
 
         session(['selected_company_id' => $company->id]);
 

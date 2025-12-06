@@ -1,22 +1,42 @@
 <aside id="sidebar"
     class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 shadow-2xl transform transition-transform duration-300 flex flex-col -translate-x-full md:translate-x-0">
 
-    {{-- Logo & Brand --}}
-    <div class="p-6 border-b border-gray-700/50">
-        <div class="flex items-center space-x-3">
-            <div
-                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="w-6 h-6 text-white">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
+    {{-- Company Brand --}}
+    <div class="px-6 py-6 border-b border-gray-700/50">
+        @php
+            $selectedCompanyId = session('selected_company_id');
+            $userCompanies = auth()->user()->allCompanies();
+            $selectedCompany = $userCompanies->firstWhere('id', $selectedCompanyId);
+        @endphp
+
+        @if($selectedCompany)
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg text-white font-bold text-lg">
+                    {{ substr($selectedCompany->name, 0, 1) }}
+                </div>
+                <div class="text-left overflow-hidden">
+                    <h2 class="text-sm font-bold text-white truncate w-32">{{ $selectedCompany->name }}</h2>
+                    <p class="text-xs text-gray-400 truncate w-32">{{ $selectedCompany->category }}</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-xl font-bold text-white">NeoUX</h2>
-                <p class="text-xs text-gray-400">Platform by HUNTR</p>
+        @else
+            {{-- Default Brand if No Company Selected --}}
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-6 h-6 text-white">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white">NeoUX</h2>
+                    <p class="text-xs text-gray-400">Platform by HUNTR</p>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 
     {{-- Navigation --}}
@@ -34,6 +54,24 @@
             </div>
             <span class="ml-3">Dashboard</span>
         </a>
+
+        @if(session('selected_company_id'))
+            <a href="{{ route('company.dashboard') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('company.dashboard') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('company.dashboard') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </div>
+                <span class="ml-3">Company Dashboard</span>
+            </a>
+        @endif
 
         <a href="{{ route('companies.index') }}"
             class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('companies.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
@@ -176,6 +214,24 @@
                     </a>
                 </div>
             </div>
+        @endif
+
+        @if(session('selected_company_id'))
+            <a href="{{ route('team.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('team.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('team.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Team</span>
+            </a>
         @endif
 
         <a href="/settings"

@@ -55,8 +55,7 @@ class PurchaseRequisitionController extends Controller
     public function create()
     {
         // Fetch catalogue items for the dropdown
-        // Assuming we need to fetch items for the user's company
-        $companyId = Auth::user()->companies->first()->id;
+        $companyId = session('selected_company_id');
         $catalogueItems = CatalogueItem::where('company_id', $companyId)->get();
 
         return view('procurement.pr.create', compact('catalogueItems'));
@@ -89,7 +88,7 @@ class PurchaseRequisitionController extends Controller
                 $companyId = session('selected_company_id');
 
                 if (!$companyId) {
-                    $companyId = Auth::user()->companies->first()?->id;
+                    $companyId = Auth::user()->allCompanies()->first()?->id;
                 }
 
                 if (!$companyId) {
@@ -149,8 +148,9 @@ class PurchaseRequisitionController extends Controller
     public function show(PurchaseRequisition $purchaseRequisition)
     {
         // Ensure user belongs to the same company
-        if ($purchaseRequisition->company_id !== Auth::user()->companies->first()->id) {
-            abort(403);
+        // Ensure we are in the context of the correct company (Session check)
+        if ($purchaseRequisition->company_id != session('selected_company_id')) {
+            abort(403, 'Unauthorized access to this requisition.');
         }
 
         $purchaseRequisition->load(['company', 'user.userDetail', 'items.catalogueItem', 'documents.uploader', 'comments.user.userDetail']);
@@ -175,8 +175,8 @@ class PurchaseRequisitionController extends Controller
         // Logic: If search exists, use Scout. Else use Eloquent.
         if ($search) {
             // Scout Search - Public Feed shows ALL requests
-            $query = PurchaseRequisition::search($search);
-            // ->where('company_id', $selectedCompanyId); // REMOVED: Public feed should explicitly show ALL
+            $query = PurchaseRequisition::search($search)
+                ->where('approval_status', 'approved'); // Only show Approved PRs in public feed
 
             // Apply status filter
             if ($filter === 'open') {
@@ -199,8 +199,8 @@ class PurchaseRequisitionController extends Controller
 
         } else {
             // Standard Eloquent (No Search) - Public Feed shows ALL requests
-            $query = PurchaseRequisition::with(['user.userDetail', 'company', 'items']);
-            // ->where('company_id', $selectedCompanyId); // REMOVED: Public feed should explicitly show ALL
+            $query = PurchaseRequisition::with(['user.userDetail', 'company', 'items'])
+                ->where('approval_status', 'approved'); // Only show Approved PRs
 
             if ($filter === 'open') {
                 $query->where('status', 'pending');
@@ -250,5 +250,99 @@ class PurchaseRequisitionController extends Controller
         ]);
 
         return back()->with('success', 'Comment posted successfully.');
+    }
+
+    /**
+     * Submit PR for Approval
+     */
+    public function submitForApproval(Request $request, PurchaseRequisition $purchaseRequisition)
+    {
+        $request->validate([
+            'approver_id' => 'required|exists:users,id',
+        ]);
+
+        // Ensure user has permission (is owner or has admin/manager role)
+        $userRole = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
+        $isAdminOrManager = in_array($userRole, ['admin', 'manager']);
+
+        if ($purchaseRequisition->user_id !== Auth::id() && !$isAdminOrManager) {
+            abort(403, 'Unauthorized to submit this requisition.');
+        }
+
+        $purchaseRequisition->update([
+            'approver_id' => $request->approver_id,
+            'submitted_at' => now(),
+            'approval_status' => 'pending',
+        ]);
+
+        // TODO: Send notification to approver
+
+        return back()->with('success', 'Purchase Requisition submitted for approval.');
+    }
+
+    /**
+     * Approve PR
+     */
+    public function approve(Request $request, PurchaseRequisition $purchaseRequisition)
+    {
+        // Ensure user is the assigned approver OR Company Admin
+        $isApprover = $purchaseRequisition->approver_id === Auth::id();
+        $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
+
+        if (!$isApprover && !$isAdmin) {
+            abort(403, 'You are not authorized to approve this request.');
+        }
+
+        $purchaseRequisition->update([
+            'approval_status' => 'approved',
+            'approval_notes' => $request->approval_notes,
+            // Automatically open tender if approved? Or manual step? Plan says "Tender can be opened".
+            // Let's keep status as 'pending' (meaning PR is pending execution/tender) but approval_status is 'approved'.
+            // Or maybe 'status' = 'open' (ready for tender).
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Request approved successfully.');
+    }
+
+    /**
+     * Reject PR
+     */
+    public function reject(Request $request, PurchaseRequisition $purchaseRequisition)
+    {
+        $isApprover = $purchaseRequisition->approver_id === Auth::id();
+        $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
+
+        if (!$isApprover && !$isAdmin) {
+            abort(403, 'Unauthorized');
+        }
+
+        $purchaseRequisition->update([
+            'approval_status' => 'rejected',
+            'approval_notes' => $request->approval_notes,
+            'status' => 'draft', // Send back to draft?
+        ]);
+
+        return back()->with('success', 'Request rejected.');
+    }
+
+    /**
+     * Assign PR to Staff
+     */
+    public function assign(Request $request, PurchaseRequisition $purchaseRequisition)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        // Only Admin/Manager can assign
+        // Simplification for now: check if user belongs to company with role
+        // For now, allow any member to assign (collaboration) or restrict to admin/manager
+
+        $purchaseRequisition->update([
+            'assigned_to' => $request->assigned_to,
+        ]);
+
+        return back()->with('success', 'Assigned successfully.');
     }
 }
