@@ -128,23 +128,34 @@
 
             <!-- Signatures -->
             <div class="px-8 py-6 bg-gray-50">
-                <div class="grid grid-cols-3 gap-8 mt-4">
+                <div class="grid grid-cols-2 gap-8 mt-4">
+                    {{-- Vendor Company Representative (Delivering) --}}
                     <div class="text-center">
-                        <div class="border-t-2 border-gray-400 pt-2 mt-16">
-                            <p class="text-sm font-bold text-gray-700">Delivered By</p>
-                            <p class="text-xs text-gray-500">Vendor Representative</p>
+                        <div class="h-14 flex items-end justify-center mb-2">
+                            <p class="font-mono text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded bg-gray-50">
+                                {{ substr(md5($goodsReceipt->purchaseOrder->vendorCompany->user->email . $goodsReceipt->received_at), 0, 12) }}
+                            </p>
+                        </div>
+                        <div class="border-t-2 border-gray-400 pt-2">
+                            <p class="text-xs font-bold text-gray-700">Vendor Representative</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $goodsReceipt->purchaseOrder->vendorCompany->user->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $goodsReceipt->purchaseOrder->vendorCompany->name }}</p>
+                            <p class="text-xs text-gray-400">{{ $goodsReceipt->received_at->format('d M Y, H:i') }}</p>
                         </div>
                     </div>
+
+                    {{-- Buyer Company Representative (Receiving) --}}
                     <div class="text-center">
-                        <div class="border-t-2 border-gray-400 pt-2 mt-16">
-                            <p class="text-sm font-bold text-gray-700">Received By</p>
-                            <p class="text-xs text-gray-500">{{ $goodsReceipt->receivedBy->name }}</p>
+                        <div class="h-14 flex items-end justify-center mb-2">
+                            <p class="font-mono text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded bg-gray-50">
+                                {{ substr(md5($goodsReceipt->receivedBy->email . $goodsReceipt->received_at), 0, 12) }}
+                            </p>
                         </div>
-                    </div>
-                    <div class="text-center">
-                        <div class="border-t-2 border-gray-400 pt-2 mt-16">
-                            <p class="text-sm font-bold text-gray-700">Acknowledged By</p>
-                            <p class="text-xs text-gray-500">Warehouse Manager</p>
+                        <div class="border-t-2 border-gray-400 pt-2">
+                            <p class="text-xs font-bold text-gray-700">Buyer Representative</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $goodsReceipt->receivedBy->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $goodsReceipt->purchaseOrder->purchaseRequisition->company->name }}</p>
+                            <p class="text-xs text-gray-400">{{ $goodsReceipt->received_at->format('d M Y, H:i') }}</p>
                         </div>
                     </div>
                 </div>
