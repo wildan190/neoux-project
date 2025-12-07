@@ -130,16 +130,39 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-8 mt-8">
+                    {{-- Vendor Company Representative (Issuing Faktur) --}}
                     <div class="text-center">
-                        <div class="border-t-2 border-gray-400 pt-2 mt-16">
-                            <p class="text-sm font-bold text-gray-700">Authorized Buyer</p>
-                            <p class="text-xs text-gray-500">{{ $invoice->purchaseOrder->purchaseRequisition->company->name }}</p>
+                        <div class="h-16 flex items-end justify-center mb-2">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-400 italic mb-1">Digital Signature</p>
+                                <p class="font-mono text-sm text-gray-500 border border-gray-300 px-3 py-1 rounded bg-gray-50">
+                                    {{ md5($invoice->purchaseOrder->vendorCompany->user->email . $invoice->created_at) }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="border-t-2 border-gray-400 pt-2">
+                            <p class="text-sm font-bold text-gray-700">Vendor Representative (PKP)</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $invoice->purchaseOrder->vendorCompany->user->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $invoice->purchaseOrder->vendorCompany->name }}</p>
+                            <p class="text-xs text-gray-400">{{ $invoice->created_at->format('d M Y, H:i') }}</p>
                         </div>
                     </div>
+
+                    {{-- Buyer Company Representative --}}
                     <div class="text-center">
-                        <div class="border-t-2 border-gray-400 pt-2 mt-16">
-                            <p class="text-sm font-bold text-gray-700">Vendor Acknowledgment</p>
-                            <p class="text-xs text-gray-500">{{ $invoice->purchaseOrder->vendorCompany->name }}</p>
+                        <div class="h-16 flex items-end justify-center mb-2">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-400 italic mb-1">Digital Signature</p>
+                                <p class="font-mono text-sm text-gray-500 border border-gray-300 px-3 py-1 rounded bg-gray-50">
+                                    {{ md5($invoice->purchaseOrder->purchaseRequisition->user->email . $invoice->created_at) }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="border-t-2 border-gray-400 pt-2">
+                            <p class="text-sm font-bold text-gray-700">Buyer Representative</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $invoice->purchaseOrder->purchaseRequisition->user->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $invoice->purchaseOrder->purchaseRequisition->company->name }}</p>
+                            <p class="text-xs text-gray-400">Tax receipt confirmation</p>
                         </div>
                     </div>
                 </div>
