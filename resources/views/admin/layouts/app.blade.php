@@ -18,7 +18,7 @@
         <div id="admin-sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
 
         {{-- Main Content --}}
-        <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+        <div class="flex-1 flex flex-col overflow-hidden min-w-0 md:pl-64">
             {{-- Header --}}
             @include('admin.layouts.partials.header')
 
