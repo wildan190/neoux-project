@@ -1,5 +1,5 @@
 <aside id="admin-sidebar"
-    class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 shadow-2xl flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col">
+    class="fixed inset-y-0 left-0 z-50 w-64 h-screen bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 shadow-2xl flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col overflow-hidden">
     {{-- Logo & Brand --}}
     <div class="p-6 border-b border-gray-700/50">
         <div class="flex items-center space-x-3">
