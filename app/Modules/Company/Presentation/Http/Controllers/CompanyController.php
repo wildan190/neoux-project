@@ -58,6 +58,11 @@ class CompanyController extends Controller
 
     public function show(Company $company)
     {
+        // Security: Check if user owns this company
+        if ($company->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized. You do not have access to view this company.');
+        }
+
         $company->load(['documents', 'locations']);
 
         // History Stats
