@@ -37,7 +37,6 @@
         </div>
     </nav>
 
-
     {{-- HERO --}}
     <section class="pt-32 pb-24 px-6">
         <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
@@ -200,7 +199,8 @@
             </div>
 
             <div data-aos="fade-left" class="flex flex-col justify-center">
-                <h2 class="text-3xl font-bold mb-6">Mengapa Memilih <span class="text-primary-600">MyApp ERP?</span></h2>
+                <h2 class="text-3xl font-bold mb-6">Mengapa Memilih <span class="text-primary-600">MyApp ERP?</span>
+                </h2>
 
                 <ul class="space-y-4 text-gray-600 dark:text-gray-300 text-lg">
                     <li class="flex gap-3">

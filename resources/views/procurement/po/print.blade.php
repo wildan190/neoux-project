@@ -109,10 +109,25 @@
                         @endforeach
                     </tbody>
                     <tfoot>
-                        <tr class="bg-primary-50 border-t-2 border-primary-300">
-                            <td colspan="4" class="px-4 py-4 text-right text-sm font-bold text-gray-700 uppercase">Total Amount</td>
-                            <td class="px-4 py-4 text-right text-xl font-bold text-primary-600">{{ $purchaseOrder->formatted_total_amount }}</td>
+                        <tr class="bg-gray-50 border-t border-gray-300">
+                            <td colspan="4" class="px-4 py-3 text-right text-sm font-bold text-gray-700 uppercase">Subtotal</td>
+                            <td class="px-4 py-3 text-right text-lg font-bold text-gray-900">{{ $purchaseOrder->formatted_total_amount }}</td>
                         </tr>
+                        @if($purchaseOrder->has_deductions)
+                            <tr class="bg-red-50 border-t border-red-200">
+                                <td colspan="4" class="px-4 py-2 text-right text-sm font-medium text-red-700">Potongan Harga (Debit Note)</td>
+                                <td class="px-4 py-2 text-right text-lg font-bold text-red-600">- {{ $purchaseOrder->formatted_total_deduction }}</td>
+                            </tr>
+                            <tr class="bg-primary-50 border-t-2 border-primary-300">
+                                <td colspan="4" class="px-4 py-4 text-right text-sm font-bold text-primary-700 uppercase">Total Akhir</td>
+                                <td class="px-4 py-4 text-right text-xl font-bold text-primary-600">{{ $purchaseOrder->formatted_adjusted_total_amount }}</td>
+                            </tr>
+                        @else
+                            <tr class="bg-primary-50 border-t-2 border-primary-300">
+                                <td colspan="4" class="px-4 py-4 text-right text-sm font-bold text-gray-700 uppercase">Total Amount</td>
+                                <td class="px-4 py-4 text-right text-xl font-bold text-primary-600">{{ $purchaseOrder->formatted_total_amount }}</td>
+                            </tr>
+                        @endif
                     </tfoot>
                 </table>
             </div>

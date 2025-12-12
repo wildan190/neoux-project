@@ -39,17 +39,43 @@ class GoodsReceiptController extends Controller
         }
 
         // Check if PO is already fully received
-        $purchaseOrder->load(['items.purchaseRequisitionItem.catalogueItem', 'goodsReceipts.items']);
+        $purchaseOrder->load([
+            'items.purchaseRequisitionItem.catalogueItem',
+            'items.goodsReceiptItems.goodsReturnRequest',
+            'goodsReceipts.items.goodsReturnRequest'
+        ]);
 
         $totalOrdered = $purchaseOrder->items->sum('quantity_ordered');
         $totalReceived = $purchaseOrder->items->sum('quantity_received');
 
-        if ($totalReceived >= $totalOrdered) {
+        // Check if there are any pending replacements (allows GR even if "fully received")
+        $hasReplacementPending = false;
+        $replacementItems = [];
+        foreach ($purchaseOrder->goodsReceipts as $gr) {
+            foreach ($gr->items as $grItem) {
+                if (
+                    $grItem->goodsReturnRequest &&
+                    $grItem->goodsReturnRequest->resolution_type === 'replacement' &&
+                    $grItem->goodsReturnRequest->resolution_status === 'resolved'
+                ) {
+                    $hasReplacementPending = true;
+                    $replacementItems[] = [
+                        'grr' => $grItem->goodsReturnRequest,
+                        'item' => $grItem
+                    ];
+                }
+            }
+        }
+
+        // Block if fully received AND no replacement pending
+        if ($totalReceived >= $totalOrdered && !$hasReplacementPending) {
             return redirect()->route('procurement.po.show', $purchaseOrder)
                 ->with('error', 'All items have been fully received. No more goods receipt can be created.');
         }
 
-        return view('procurement.gr.create', compact('purchaseOrder'));
+        $isReplacement = $hasReplacementPending && $totalReceived >= $totalOrdered;
+
+        return view('procurement.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems'));
     }
 
     public function store(Request $request, PurchaseOrder $purchaseOrder)
@@ -78,20 +104,50 @@ class GoodsReceiptController extends Controller
             'items.*.condition' => 'nullable|string|max:255',
         ]);
 
-        // Additional validation: Check if receiving more than ordered
-        $purchaseOrder->load('items.purchaseRequisitionItem.catalogueItem');
+        // Additional validation: Check if receiving more than ordered (skip for replacement mode)
+        $isReplacement = $request->has('is_replacement') && $request->is_replacement == '1';
+
+        $purchaseOrder->load([
+            'items.purchaseRequisitionItem.catalogueItem',
+            'items.goodsReceiptItems.goodsReturnRequest'
+        ]);
+
         foreach ($request->items as $itemData) {
             $poItem = $purchaseOrder->items->where('id', $itemData['po_item_id'])->first();
             if (!$poItem) {
                 return back()->with('error', 'Invalid purchase order item.');
             }
 
-            $alreadyReceived = $poItem->quantity_received ?? 0;
             $nowReceiving = $itemData['quantity_received'];
-            $totalWillBeReceived = $alreadyReceived + $nowReceiving;
 
-            if ($totalWillBeReceived > $poItem->quantity_ordered) {
-                return back()->with('error', "Cannot receive {$nowReceiving} units of '{$poItem->purchaseRequisitionItem->catalogueItem->name}'. Only " . ($poItem->quantity_ordered - $alreadyReceived) . " units remaining.");
+            // Skip validation if no items to receive
+            if ($nowReceiving == 0)
+                continue;
+
+            if ($isReplacement) {
+                // For replacement mode, validate against replacement quantity from GRR
+                $maxReplacementQty = 0;
+                foreach ($poItem->goodsReceiptItems ?? [] as $grItem) {
+                    if (
+                        $grItem->goodsReturnRequest &&
+                        $grItem->goodsReturnRequest->resolution_type === 'replacement' &&
+                        $grItem->goodsReturnRequest->resolution_status === 'resolved'
+                    ) {
+                        $maxReplacementQty += $grItem->goodsReturnRequest->quantity_affected;
+                    }
+                }
+
+                if ($nowReceiving > $maxReplacementQty) {
+                    return back()->with('error', "Cannot receive {$nowReceiving} replacement units of '{$poItem->purchaseRequisitionItem->catalogueItem->name}'. Only {$maxReplacementQty} units pending replacement.");
+                }
+            } else {
+                // Normal mode: check against remaining quantity
+                $alreadyReceived = $poItem->quantity_received ?? 0;
+                $totalWillBeReceived = $alreadyReceived + $nowReceiving;
+
+                if ($totalWillBeReceived > $poItem->quantity_ordered) {
+                    return back()->with('error', "Cannot receive {$nowReceiving} units of '{$poItem->purchaseRequisitionItem->catalogueItem->name}'. Only " . ($poItem->quantity_ordered - $alreadyReceived) . " units remaining.");
+                }
             }
         }
 
@@ -111,15 +167,36 @@ class GoodsReceiptController extends Controller
 
             $allReceived = true;
             $anyReceived = false;
+            $issueCount = 0;
 
             foreach ($request->items as $itemData) {
                 if ($itemData['quantity_received'] > 0) {
-                    GoodsReceiptItem::create([
+                    $itemStatus = $itemData['item_status'] ?? 'good';
+                    $hasIssue = in_array($itemStatus, ['damaged', 'rejected']);
+
+                    $grItem = GoodsReceiptItem::create([
                         'goods_receipt_id' => $goodsReceipt->id,
                         'purchase_order_item_id' => $itemData['po_item_id'],
                         'quantity_received' => $itemData['quantity_received'],
                         'condition_notes' => $itemData['condition'] ?? null,
+                        'item_status' => $itemStatus,
+                        'has_issue' => $hasIssue,
                     ]);
+
+                    // If item has issue, auto-create GRR
+                    if ($hasIssue) {
+                        $issueType = $itemStatus === 'damaged' ? 'damaged' : 'rejected';
+
+                        \App\Modules\Procurement\Domain\Models\GoodsReturnRequest::create([
+                            'goods_receipt_item_id' => $grItem->id,
+                            'issue_type' => $issueType,
+                            'quantity_affected' => $itemData['quantity_received'],
+                            'issue_description' => $itemData['condition'] ?? null,
+                            'created_by' => Auth::id(),
+                        ]);
+
+                        $issueCount++;
+                    }
 
                     // Update PO Item quantity received
                     $poItem = $purchaseOrder->items()->find($itemData['po_item_id']);
@@ -142,8 +219,13 @@ class GoodsReceiptController extends Controller
 
             DB::commit();
 
+            $message = 'Goods Receipt created successfully!';
+            if ($issueCount > 0) {
+                $message .= " {$issueCount} item(s) reported with issues - GRR created automatically.";
+            }
+
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('success', 'Goods Receipt created successfully!');
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();

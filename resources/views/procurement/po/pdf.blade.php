@@ -275,11 +275,30 @@
             @endforeach
         </tbody>
         <tfoot>
-            <tr class="total-row">
-                <td colspan="4" class="text-right" style="padding: 15px;">TOTAL AMOUNT</td>
-                <td class="text-right total-amount" style="padding: 15px;">{{ $purchaseOrder->formatted_total_amount }}
-                </td>
+            <tr style="background: #f9f9f9; border-top: 1px solid #ddd;">
+                <td colspan="4" class="text-right" style="padding: 10px; font-weight: bold;">SUBTOTAL</td>
+                <td class="text-right" style="padding: 10px; font-weight: bold;">
+                    {{ $purchaseOrder->formatted_total_amount }}</td>
             </tr>
+            @if($purchaseOrder->has_deductions)
+                <tr style="background: #FFEBEE; border-top: 1px solid #FFCDD2;">
+                    <td colspan="4" class="text-right" style="padding: 8px; color: #C62828;">Potongan Harga (Debit Note)
+                    </td>
+                    <td class="text-right" style="padding: 8px; font-weight: bold; color: #C62828;">-
+                        {{ $purchaseOrder->formatted_total_deduction }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="4" class="text-right" style="padding: 15px; font-weight: bold;">TOTAL AKHIR</td>
+                    <td class="text-right total-amount" style="padding: 15px;">
+                        {{ $purchaseOrder->formatted_adjusted_total_amount }}</td>
+                </tr>
+            @else
+                <tr class="total-row">
+                    <td colspan="4" class="text-right" style="padding: 15px;">TOTAL AMOUNT</td>
+                    <td class="text-right total-amount" style="padding: 15px;">{{ $purchaseOrder->formatted_total_amount }}
+                    </td>
+                </tr>
+            @endif
         </tfoot>
     </table>
 

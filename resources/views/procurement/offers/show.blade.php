@@ -186,7 +186,7 @@
     @endif
 
     {{-- Actions --}}
-    @if($purchaseRequisition->user_id === Auth::id() && $offer->status === 'pending')
+    @if($isOwner && $offer->status === 'pending')
         <div
             class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between">
@@ -220,7 +220,7 @@
     @endif
 
     {{-- Generate PO Action --}}
-    @if($purchaseRequisition->user_id === Auth::id() && $offer->status === 'accepted')
+    @if($isOwner && $offer->status === 'accepted')
         <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between">
                 <div>
