@@ -37,13 +37,23 @@
                                 <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Item</th>
                                 <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Qty</th>
                                 <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Received</th>
+                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</th>
                                 <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Price</th>
                                 <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Total</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($purchaseOrder->items as $item)
-                                <tr>
+                                @php
+                                    // Check if any GR items have issues
+                                    $grItems = $item->goodsReceiptItems ?? collect();
+                                    $damagedCount = $grItems->where('item_status', 'damaged')->sum('quantity_received');
+                                    $rejectedCount = $grItems->where('item_status', 'rejected')->sum('quantity_received');
+                                    $goodCount = $grItems->where('item_status', 'good')->sum('quantity_received');
+                                    $hasIssue = $damagedCount > 0 || $rejectedCount > 0;
+                                    $grrCount = $grItems->filter(fn($gi) => $gi->goodsReturnRequest)->count();
+                                @endphp
+                                <tr class="{{ $hasIssue ? 'bg-red-50 dark:bg-red-900/10' : '' }}">
                                     <td class="px-6 py-4">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
                                             {{ $item->purchaseRequisitionItem->catalogueItem->name }}
@@ -59,6 +69,42 @@
                                         <span class="font-bold @if($item->quantity_received >= $item->quantity_ordered) text-green-600 dark:text-green-400 @else text-yellow-600 dark:text-yellow-400 @endif">
                                             {{ $item->quantity_received }}
                                         </span>
+                                        @if($hasIssue)
+                                            <div class="text-xs mt-1 space-y-0.5">
+                                                @if($goodCount > 0)
+                                                    <span class="text-green-600">✓ {{ $goodCount }} OK</span>
+                                                @endif
+                                                @if($damagedCount > 0)
+                                                    <span class="text-yellow-600 block">⚠ {{ $damagedCount }} rusak</span>
+                                                @endif
+                                                @if($rejectedCount > 0)
+                                                    <span class="text-red-600 block">✗ {{ $rejectedCount }} ditolak</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        @if($grrCount > 0)
+                                            <a href="{{ route('procurement.grr.index') }}" 
+                                               class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition">
+                                                <i data-feather="alert-triangle" class="w-3 h-3 mr-1"></i>
+                                                {{ $grrCount }} GRR
+                                            </a>
+                                        @elseif($hasIssue)
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                                Issue
+                                            </span>
+                                        @elseif($item->quantity_received >= $item->quantity_ordered)
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                ✓ Complete
+                                            </span>
+                                        @elseif($item->quantity_received > 0)
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                                Partial
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400">Pending</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm text-gray-700 dark:text-gray-300">
                                         {{ $item->formatted_unit_price }}
@@ -71,11 +117,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Total Amount</td>
-                                <td class="px-6 py-4 text-right text-lg font-bold text-primary-600 dark:text-primary-400">
+                                <td colspan="5" class="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase">Subtotal</td>
+                                <td class="px-6 py-4 text-right text-lg font-bold text-gray-900 dark:text-white">
                                     {{ $purchaseOrder->formatted_total_amount }}
                                 </td>
                             </tr>
+                            @if($purchaseOrder->has_deductions)
+                                <tr class="border-t border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
+                                    <td colspan="5" class="px-6 py-3 text-right text-sm font-medium text-red-700 dark:text-red-400">
+                                        <span class="flex items-center justify-end gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            Potongan Harga (Debit Note)
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 text-right text-lg font-bold text-red-600 dark:text-red-400">
+                                        - {{ $purchaseOrder->formatted_total_deduction }}
+                                    </td>
+                                </tr>
+                                <tr class="border-t-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20">
+                                    <td colspan="5" class="px-6 py-4 text-right text-sm font-bold text-primary-700 dark:text-primary-300 uppercase">Total Akhir</td>
+                                    <td class="px-6 py-4 text-right text-xl font-bold text-primary-600 dark:text-primary-400">
+                                        {{ $purchaseOrder->formatted_adjusted_total_amount }}
+                                    </td>
+                                </tr>
+                            @else
+                                <tr class="border-t border-gray-200 dark:border-gray-600">
+                                    <td colspan="5" class="px-6 py-4 text-right text-sm font-bold text-primary-700 dark:text-primary-300 uppercase">Total Amount</td>
+                                    <td class="px-6 py-4 text-right text-xl font-bold text-primary-600 dark:text-primary-400">
+                                        {{ $purchaseOrder->formatted_total_amount }}
+                                    </td>
+                                </tr>
+                            @endif
                         </tfoot>
                     </table>
                 </div>
@@ -89,17 +161,39 @@
                         $totalOrdered = $purchaseOrder->items->sum('quantity_ordered');
                         $totalReceived = $purchaseOrder->items->sum('quantity_received');
                         $isFullyReceived = $totalReceived >= $totalOrdered;
+                        
+                        // Check for any GRR that needs replacement
+                        $hasReplacementPending = false;
+                        foreach($purchaseOrder->goodsReceipts as $gr) {
+                            foreach($gr->items as $grItem) {
+                                if ($grItem->goodsReturnRequest && 
+                                    $grItem->goodsReturnRequest->resolution_type === 'replacement' &&
+                                    $grItem->goodsReturnRequest->resolution_status === 'resolved') {
+                                    $hasReplacementPending = true;
+                                    break 2;
+                                }
+                            }
+                        }
                     @endphp
-                    @if($isBuyer && $purchaseOrder->status !== 'completed' && $purchaseOrder->status !== 'cancelled' && !$isFullyReceived)
-                        <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" class="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
-                            + Receive Goods
-                        </a>
-                    @elseif($isFullyReceived)
-                        <span class="text-sm font-semibold text-green-600 dark:text-green-400">
-                            <i data-feather="check-circle" class="w-4 h-4 inline"></i>
-                            Fully Received
-                        </span>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        @if($hasReplacementPending)
+                            <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" 
+                               class="text-sm font-bold text-green-600 hover:text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                                <i data-feather="refresh-cw" class="w-3 h-3"></i>
+                                Receive Replacement
+                            </a>
+                        @endif
+                        @if($isBuyer && $purchaseOrder->status !== 'completed' && $purchaseOrder->status !== 'cancelled' && !$isFullyReceived)
+                            <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" class="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+                                + Receive Goods
+                            </a>
+                        @elseif($isFullyReceived && !$hasReplacementPending)
+                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">
+                                <i data-feather="check-circle" class="w-4 h-4 inline"></i>
+                                Fully Received
+                            </span>
+                        @endif
+                    </div>
                 </div>
                 <div class="p-6">
                     @if($purchaseOrder->goodsReceipts->isEmpty())
@@ -107,13 +201,34 @@
                     @else
                         <div class="space-y-4">
                             @foreach($purchaseOrder->goodsReceipts as $gr)
-                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                @php
+                                    $grGoodCount = $gr->items->where('item_status', 'good')->count();
+                                    $grDamagedCount = $gr->items->where('item_status', 'damaged')->count();
+                                    $grRejectedCount = $gr->items->where('item_status', 'rejected')->count();
+                                    $grHasIssue = $grDamagedCount > 0 || $grRejectedCount > 0;
+                                    $grGrrCount = $gr->items->filter(fn($i) => $i->goodsReturnRequest)->count();
+                                @endphp
+                                <div class="border {{ $grHasIssue ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700' }} rounded-lg p-4">
                                     <div class="flex justify-between items-start mb-2">
                                         <div class="flex-1">
-                                            <h4 class="font-bold text-gray-900 dark:text-white">{{ $gr->gr_number }}</h4>
+                                            <h4 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                {{ $gr->gr_number }}
+                                                @if($grHasIssue)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                                        <i data-feather="alert-triangle" class="w-3 h-3 mr-1"></i>
+                                                        Has Issues
+                                                    </span>
+                                                @endif
+                                            </h4>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ $gr->received_at->format('d M Y, H:i') }} by {{ $gr->receivedBy->name }}</p>
                                         </div>
                                         <div class="flex items-center gap-2">
+                                            @if($grGrrCount > 0)
+                                                <a href="{{ route('procurement.grr.index') }}" 
+                                                   class="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400">
+                                                    {{ $grGrrCount }} GRR
+                                                </a>
+                                            @endif
                                             <span class="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                                                 {{ $gr->items->sum('quantity_received') }} items
                                             </span>
@@ -125,9 +240,43 @@
                                     @if($gr->delivery_note_number)
                                         <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Ref: {{ $gr->delivery_note_number }}</p>
                                     @endif
+                                    
+                                    {{-- Item status breakdown --}}
+                                    @if($grHasIssue)
+                                        <div class="flex gap-3 mt-3 pt-3 border-t border-red-200 dark:border-red-800/50">
+                                            @if($grGoodCount > 0)
+                                                <span class="text-xs text-green-600 dark:text-green-400">
+                                                    ✓ {{ $grGoodCount }} OK
+                                                </span>
+                                            @endif
+                                            @if($grDamagedCount > 0)
+                                                <span class="text-xs text-yellow-600 dark:text-yellow-400">
+                                                    ⚠ {{ $grDamagedCount }} rusak
+                                                </span>
+                                            @endif
+                                            @if($grRejectedCount > 0)
+                                                <span class="text-xs text-red-600 dark:text-red-400">
+                                                    ✗ {{ $grRejectedCount }} ditolak
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
+                        
+                        {{-- Info banner for replacement --}}
+                        @if($hasReplacementPending)
+                            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <p class="text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
+                                    <i data-feather="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                                    <span>
+                                        <strong>Replacement Pending:</strong> Ada unit pengganti yang harus diterima. 
+                                        Klik tombol "Receive Replacement" di atas untuk mencatat penerimaan unit baru.
+                                    </span>
+                                </p>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

@@ -17,12 +17,22 @@ class OfferController extends Controller
 {
     /**
      * Display all offers for a purchase requisition
-     * Only PR creator can view
+     * Only users from the PR creator's company can view
      */
     public function index(PurchaseRequisition $purchaseRequisition)
     {
-        // Authorization: only PR creator
-        if ($purchaseRequisition->user_id !== Auth::id()) {
+        $selectedCompanyId = session('selected_company_id');
+
+        if (!$selectedCompanyId) {
+            $firstCompany = Auth::user()->companies()->first();
+            if ($firstCompany) {
+                $selectedCompanyId = $firstCompany->id;
+                session(['selected_company_id' => $selectedCompanyId]);
+            }
+        }
+
+        // Authorization: only users from the PR creator's company can view offers
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
             abort(403, 'Unauthorized to view offers for this requisition.');
         }
 
@@ -184,9 +194,10 @@ class OfferController extends Controller
     public function accept(PurchaseRequisitionOffer $offer)
     {
         $purchaseRequisition = $offer->purchaseRequisition;
+        $selectedCompanyId = session('selected_company_id');
 
-        // Authorization: only PR creator
-        if ($purchaseRequisition->user_id !== Auth::id()) {
+        // Authorization: only users from the PR creator's company
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
             abort(403, 'Unauthorized to accept offers for this requisition.');
         }
 
@@ -228,9 +239,10 @@ class OfferController extends Controller
     public function reject(PurchaseRequisitionOffer $offer)
     {
         $purchaseRequisition = $offer->purchaseRequisition;
+        $selectedCompanyId = session('selected_company_id');
 
-        // Authorization: only PR creator
-        if ($purchaseRequisition->user_id !== Auth::id()) {
+        // Authorization: only users from the PR creator's company
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
             abort(403, 'Unauthorized to reject offers for this requisition.');
         }
 

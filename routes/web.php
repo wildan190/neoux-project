@@ -6,6 +6,9 @@ use App\Modules\Procurement\Presentation\Http\Controllers\OfferController;
 use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseOrderController;
 use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
 use App\Modules\Procurement\Presentation\Http\Controllers\InvoiceController;
+use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReturnRequestController;
+use App\Modules\Procurement\Presentation\Http\Controllers\DebitNoteController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -108,6 +111,26 @@ Route::middleware('auth')->group(function () {
             Route::get('/{offer}', [OfferController::class, 'show'])->name('show');
             Route::post('/{offer}/accept', [OfferController::class, 'accept'])->name('accept');
             Route::post('/{offer}/reject', [OfferController::class, 'reject'])->name('reject');
+        });
+
+        // Goods Return Requests (GRR) - for damaged/rejected items
+        Route::prefix('grr')->name('grr.')->group(function () {
+            Route::get('/', [GoodsReturnRequestController::class, 'index'])->name('index');
+            Route::post('/', [GoodsReturnRequestController::class, 'store'])->name('store');
+            Route::get('/{goodsReturnRequest}', [GoodsReturnRequestController::class, 'show'])->name('show');
+            Route::put('/{goodsReturnRequest}/resolution', [GoodsReturnRequestController::class, 'updateResolution'])->name('update-resolution');
+            Route::post('/{goodsReturnRequest}/vendor-response', [GoodsReturnRequestController::class, 'vendorResponse'])->name('vendor-response');
+            Route::post('/{goodsReturnRequest}/resolve', [GoodsReturnRequestController::class, 'resolve'])->name('resolve');
+        });
+
+        // Debit Notes - for price adjustments
+        Route::prefix('debit-notes')->name('debit-notes.')->group(function () {
+            Route::get('/', [DebitNoteController::class, 'index'])->name('index');
+            Route::get('/create/{goodsReturnRequest}', [DebitNoteController::class, 'create'])->name('create');
+            Route::post('/store/{goodsReturnRequest}', [DebitNoteController::class, 'store'])->name('store');
+            Route::get('/{debitNote}', [DebitNoteController::class, 'show'])->name('show');
+            Route::get('/{debitNote}/print', [DebitNoteController::class, 'print'])->name('print');
+            Route::post('/{debitNote}/approve', [DebitNoteController::class, 'approve'])->name('approve');
         });
     });
 

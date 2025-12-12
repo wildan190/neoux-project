@@ -58,7 +58,15 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized to view this Purchase Order.');
         }
 
-        $purchaseOrder->load(['items.purchaseRequisitionItem.catalogueItem', 'vendorCompany', 'createdBy', 'goodsReceipts', 'invoices']);
+        $purchaseOrder->load([
+            'items.purchaseRequisitionItem.catalogueItem',
+            'items.goodsReceiptItems.goodsReturnRequest',
+            'vendorCompany',
+            'createdBy',
+            'goodsReceipts.items.goodsReturnRequest',
+            'goodsReceipts.receivedBy',
+            'invoices'
+        ]);
 
         return view('procurement.po.show', compact('purchaseOrder', 'isBuyer', 'isVendor'));
     }

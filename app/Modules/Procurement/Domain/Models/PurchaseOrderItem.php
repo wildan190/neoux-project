@@ -36,6 +36,11 @@ class PurchaseOrderItem extends Model
         return $this->belongsTo(PurchaseRequisitionItem::class);
     }
 
+    public function goodsReceiptItems()
+    {
+        return $this->hasMany(GoodsReceiptItem::class, 'purchase_order_item_id');
+    }
+
     public function getFormattedUnitPriceAttribute(): string
     {
         return 'Rp ' . number_format($this->unit_price, 2, ',', '.');

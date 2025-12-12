@@ -37,4 +37,53 @@
     --color-secondary-950: #441d0c;
 }
 
-/* Trigger rebuild for new partials */
+/* Print Styles - Hide sidebar, header, and non-printable elements */
+@media print {
+    /* Hide navigation elements */
+    aside,
+    nav,
+    header,
+    #sidebar,
+    #toggleSidebar,
+    #overlay,
+    #companySwitcher,
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Remove left padding from main content */
+    .md\:pl-64 {
+        padding-left: 0 !important;
+    }
+    
+    /* Remove shadows and borders for cleaner print */
+    .shadow-sm,
+    .shadow-lg,
+    .shadow {
+        box-shadow: none !important;
+    }
+    
+    /* Ensure content takes full width */
+    body {
+        background: white !important;
+    }
+    
+    .flex-1 {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    /* Ensure proper page breaks */
+    .page-break-before {
+        page-break-before: always;
+    }
+    
+    .page-break-after {
+        page-break-after: always;
+    }
+    
+    .avoid-break {
+        page-break-inside: avoid;
+    }
+}
+

@@ -105,7 +105,7 @@ class InvoiceController extends Controller
 
         DB::beginTransaction();
         try {
-            $totalAmount = 0;
+            $subtotalAmount = 0;
 
             // Generate Invoice Number (INV-YYYY-RANDOM)
             $invoiceNumber = 'INV-' . date('Y') . '-' . strtoupper(Str::random(6));
@@ -123,7 +123,7 @@ class InvoiceController extends Controller
             foreach ($request->items as $itemData) {
                 if ($itemData['quantity_invoiced'] > 0) {
                     $subtotal = $itemData['quantity_invoiced'] * $itemData['unit_price'];
-                    $totalAmount += $subtotal;
+                    $subtotalAmount += $subtotal;
 
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
@@ -135,7 +135,11 @@ class InvoiceController extends Controller
                 }
             }
 
-            $invoice->update(['total_amount' => $totalAmount]);
+            // Apply debit note deductions from PO
+            $totalDeduction = $purchaseOrder->total_deduction ?? 0;
+            $finalAmount = max(0, $subtotalAmount - $totalDeduction);
+
+            $invoice->update(['total_amount' => $finalAmount]);
 
             // Trigger 3-Way Matching
             $matchingService = new \App\Modules\Procurement\Domain\Services\ThreeWayMatchingService();
@@ -143,8 +147,13 @@ class InvoiceController extends Controller
 
             DB::commit();
 
+            $message = 'Invoice submitted successfully! Matching status: ' . ucfirst($invoice->fresh()->status);
+            if ($totalDeduction > 0) {
+                $message .= ' (Includes price adjustment: -Rp ' . number_format($totalDeduction, 0, ',', '.') . ')';
+            }
+
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('success', 'Invoice submitted successfully! Matching status: ' . ucfirst($invoice->fresh()->status));
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
