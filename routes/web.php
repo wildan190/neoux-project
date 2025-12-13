@@ -21,9 +21,7 @@ Route::post('/invitation/process', [\App\Modules\Company\Presentation\Http\Contr
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/select-company/{company}', [\App\Http\Controllers\DashboardController::class, 'selectCompany'])->name('dashboard.select-company');
-    Route::get('/company-dashboard', function () {
-        return view('company-dashboard');
-    })->name('company.dashboard');
+    Route::get('/company-dashboard', [\App\Modules\Company\Presentation\Http\Controllers\CompanyDashboardController::class, 'index'])->name('company.dashboard');
 
     Route::get('/companies', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/create', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'create'])->name('companies.create');

@@ -3,6 +3,7 @@
 namespace App\Modules\Company\Domain\Models;
 
 use App\Modules\User\Domain\Models\User;
+use App\Modules\Catalogue\Domain\Models\CatalogueItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -72,6 +73,11 @@ class Company extends Model
     public function purchaseRequisitions(): HasMany
     {
         return $this->hasMany(\App\Modules\Procurement\Domain\Models\PurchaseRequisition::class);
+    }
+
+    public function catalogueItems(): HasMany
+    {
+        return $this->hasMany(CatalogueItem::class);
     }
 
     public function activities()
