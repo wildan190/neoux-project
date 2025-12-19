@@ -64,7 +64,17 @@ class ImportCatalogueItemsJob implements ShouldQueue
             // Update status to processing
             $importJob->update(['status' => 'processing']);
 
-            Excel::import(new CatalogueImport($this->companyId, $importJob), $this->filePath);
+            // Count total rows before starting import
+            // Use 'local' disk and relative path
+            $rows = Excel::toArray(new \stdClass, $this->filePath, 'local');
+            $totalRows = isset($rows[0]) ? count($rows[0]) - 1 : 0; // Subtract header
+
+            if ($totalRows > 0) {
+                $importJob->update(['total_rows' => $totalRows]);
+            }
+
+            // Pass relative path and 'local' disk to Excel::import
+            Excel::import(new CatalogueImport($this->companyId, $importJob), $this->filePath, 'local');
 
             // Update status to completed
             $importJob->update([
@@ -72,8 +82,8 @@ class ImportCatalogueItemsJob implements ShouldQueue
                 'processed_rows' => $importJob->total_rows,
             ]);
 
-            // Delete file after successful import
-            Storage::delete($this->filePath);
+            // Delete file after successful import using local disk
+            Storage::disk('local')->delete($this->filePath);
         } catch (\Exception $e) {
             // Update status to failed
             $importJob->update([

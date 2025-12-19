@@ -16,7 +16,7 @@ class EnsureCompanySelected
     public function handle(Request $request, Closure $next): Response
     {
         // Check if user has selected a company
-        if (!session('selected_company_id')) {
+        if (! session('selected_company_id')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Please select a company first to access this feature.');
         }

@@ -40,7 +40,7 @@ class GoodsReturnRequest extends Model
 
         static::creating(function ($model) {
             if (empty($model->grr_number)) {
-                $model->grr_number = 'GRR-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+                $model->grr_number = 'GRR-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
             }
         });
     }

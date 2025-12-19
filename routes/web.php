@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController;
+use App\Modules\Procurement\Presentation\Http\Controllers\DebitNoteController;
+use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
+use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReturnRequestController;
+use App\Modules\Procurement\Presentation\Http\Controllers\InvoiceController;
 use App\Modules\Procurement\Presentation\Http\Controllers\OfferController;
 use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseOrderController;
-use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
-use App\Modules\Procurement\Presentation\Http\Controllers\InvoiceController;
-use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReturnRequestController;
-use App\Modules\Procurement\Presentation\Http\Controllers\DebitNoteController;
-
+use App\Modules\Procurement\Presentation\Http\Controllers\PurchaseRequisitionController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,20 +30,21 @@ Route::middleware('auth')->group(function () {
     Route::put('/companies/{company}', [\App\Modules\Company\Presentation\Http\Controllers\CompanyController::class, 'update'])->name('companies.update');
 
     Route::prefix('catalogue')->name('catalogue.')->middleware('company.selected')->group(function () {
-        Route::get('/import/template', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'downloadTemplate'])->name('import.template');
+        Route::get('/import/template', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'downloadTemplate'])->name('download-template');
         Route::post('/import/preview', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'previewImport'])->name('import.preview');
         Route::post('/import', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'import'])->name('import');
-        Route::get('/import/status', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'checkImportStatus'])->name('import.status');
+        Route::get('/import/status/{id}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'checkImportStatus'])->name('import.status');
 
         Route::post('/bulk-delete', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'bulkDelete'])->name('bulk-delete');
 
         Route::get('/', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'index'])->name('index');
         Route::get('/create', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'create'])->name('create');
         Route::post('/', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'store'])->name('store');
-        Route::get('/{item}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'show'])->name('show');
-        Route::get('/{item}/edit', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'edit'])->name('edit');
-        Route::put('/{item}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'update'])->name('update');
-        Route::delete('/{item}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'destroy'])->name('destroy');
+        Route::get('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'show'])->name('show');
+        Route::post('/{product}/sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'storeSku'])->name('store-sku');
+        Route::get('/{product}/edit', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'edit'])->name('edit');
+        Route::put('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'update'])->name('update');
+        Route::delete('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'destroy'])->name('destroy');
         Route::post('/generate-sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 
@@ -56,7 +56,18 @@ Route::middleware('auth')->group(function () {
         Route::put('/{user}/role', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'updateRole'])->name('update-role');
     });
 
+    // Warehouse Routes - Top Level for Sidebar Access
+    Route::middleware('company.selected')->group(function () {
+        Route::get('/warehouse', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseController::class, 'index'])->name('warehouse.index');
+        Route::get('/warehouse/scan', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseController::class, 'scan'])->name('warehouse.scan');
+        Route::post('/warehouse/scan', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseController::class, 'processScan'])->name('warehouse.process-scan');
+        Route::post('/warehouse/adjust', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseController::class, 'adjustStock'])->name('warehouse.adjust');
+        Route::get('/warehouse/report', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseReportController::class, 'index'])->name('warehouse.report');
+        Route::get('/warehouse/qr/{id}', [\App\Modules\Catalogue\Presentation\Http\Controllers\WarehouseController::class, 'generateQr'])->name('warehouse.generate-qr');
+    });
+
     Route::prefix('procurement')->name('procurement.')->middleware('company.selected')->group(function () {
+
         Route::prefix('pr')->name('pr.')->group(function () {
             Route::get('/', [PurchaseRequisitionController::class, 'index'])->name('index');
             Route::get('/my-requests', [PurchaseRequisitionController::class, 'myRequests'])->name('my-requests');
@@ -129,6 +140,16 @@ Route::middleware('auth')->group(function () {
             Route::get('/{debitNote}', [DebitNoteController::class, 'show'])->name('show');
             Route::get('/{debitNote}/print', [DebitNoteController::class, 'print'])->name('print');
             Route::post('/{debitNote}/approve', [DebitNoteController::class, 'approve'])->name('approve');
+        });
+
+        // Marketplace / Non-Tender Procurement
+        Route::prefix('marketplace')->name('marketplace.')->group(function () {
+            Route::get('/', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'index'])->name('index');
+            Route::get('/cart', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'viewCart'])->name('cart');
+            Route::post('/cart/add', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'addToCart'])->name('cart.add');
+            Route::post('/cart/remove', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'removeFromCart'])->name('cart.remove');
+            Route::post('/checkout', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'checkout'])->name('checkout');
+            Route::get('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\MarketplaceController::class, 'show'])->name('show');
         });
     });
 

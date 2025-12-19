@@ -2,7 +2,6 @@
 
 namespace App\Modules\Procurement\Domain\Models;
 
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionItem;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,11 +37,11 @@ class PurchaseRequisitionOfferItem extends Model
     // Accessor for formatted prices
     public function getFormattedUnitPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->unit_price, 2, ',', '.');
+        return 'Rp '.number_format($this->unit_price, 2, ',', '.');
     }
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return 'Rp ' . number_format($this->subtotal, 2, ',', '.');
+        return 'Rp '.number_format($this->subtotal, 2, ',', '.');
     }
 }

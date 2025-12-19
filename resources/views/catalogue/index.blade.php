@@ -10,10 +10,14 @@
 <div class="mb-6 flex justify-between items-center">
     <div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Product Catalogue</h2>
-        <p class="text-gray-600 dark:text-gray-400">Manage your product catalog</p>
+        <p class="text-gray-600 dark:text-gray-400">Manage your products and their variants</p>
     </div>
     <div class="flex gap-2">
-        <button onclick="openImportModal()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">
+        <a href="{{ route('catalogue.download-template') }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            <i data-feather="download" class="w-4 h-4"></i>
+            Template
+        </a>
+        <button onclick="openImportModal()" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
             <i data-feather="upload" class="w-4 h-4"></i>
             Import
         </button>
@@ -24,11 +28,157 @@
     </div>
 </div>
 
+@include('catalogue.partials.catalogue-import-modal')
+
+<script>
+    function openImportModal() {
+        document.getElementById('importModal').classList.remove('hidden');
+        resetImportForm();
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').classList.add('hidden');
+        resetImportForm();
+    }
+
+    function resetImportForm() {
+        document.getElementById('importForm').reset();
+        document.getElementById('filename-display').innerText = '';
+        document.getElementById('step-1').classList.remove('hidden');
+        document.getElementById('step-2').classList.add('hidden');
+        document.getElementById('btn-preview').classList.remove('hidden');
+        document.getElementById('btn-import').classList.add('hidden');
+        document.getElementById('import-progress').classList.add('hidden');
+        
+        // Clear table
+        const table = document.getElementById('preview-table');
+        table.querySelector('thead').innerHTML = '';
+        table.querySelector('tbody').innerHTML = '';
+    }
+
+    document.getElementById('file-upload').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            document.getElementById('filename-display').innerText = e.target.files[0].name;
+            // Auto preview could be enabled here if desired
+        }
+    });
+
+    async function previewImport() {
+        const fileInput = document.getElementById('file-upload');
+        if (fileInput.files.length === 0) {
+            Swal.fire('Error', 'Please select a file first.', 'error');
+            return;
+        }
+
+        const formData = new FormData(document.getElementById('importForm'));
+        const btn = document.getElementById('btn-preview');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+        try {
+            const response = await fetch('{{ route("catalogue.import.preview") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) throw new Error(result.message || 'Preview failed');
+
+            // Show Step 2
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            document.getElementById('btn-preview').classList.add('hidden');
+            document.getElementById('btn-import').classList.remove('hidden');
+
+            renderPreviewTable(result.preview);
+
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Preview Data';
+        }
+    }
+
+    function renderPreviewTable(data) {
+        const table = document.getElementById('preview-table');
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+        
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        if (data.length === 0) return;
+
+        // Headers (First row)
+        const headers = data[0]; 
+        let headerHtml = '<tr>';
+        headers.forEach(h => {
+             headerHtml += `<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">${h || ''}</th>`;
+        });
+        headerHtml += '</tr>';
+        thead.innerHTML = headerHtml;
+
+        // Body (Remaining rows)
+        // Skip first row if it's header, but here we just show all for simplicity or slice
+        const rows = data.slice(1); 
+        rows.forEach(row => {
+            let rowHtml = '<tr>';
+            row.forEach(cell => {
+                rowHtml += `<td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700">${cell || ''}</td>`;
+            });
+            rowHtml += '</tr>';
+            tbody.insertAdjacentHTML('beforeend', rowHtml);
+        });
+    }
+
+    async function submitImport() {
+        const formData = new FormData(document.getElementById('importForm'));
+        const btn = document.getElementById('btn-import');
+        const progressContainer = document.getElementById('import-progress');
+
+        btn.disabled = true;
+        btn.innerText = 'Uploading...';
+        progressContainer.classList.remove('hidden');
+
+        try {
+            const response = await fetch('{{ route("catalogue.import") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) throw new Error(result.message || 'Import failed');
+
+            btn.innerText = 'Processing...';
+            
+            // Poll for status
+            checkStatus(result.job_id);
+
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+            // resetImportForm(); // Don't reset completely so they can try again or see error
+            btn.disabled = false;
+            btn.innerText = 'Confirm & Import';
+        }
+    }
+</script>
+
+
 {{-- Filters --}}
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
     <form method="GET" class="flex gap-4">
         <div class="flex-1">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or SKU..." class="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products..." class="w-full rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         </div>
         <select name="category" class="rounded-lg border border-gray-300 px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <option value="">All Categories</option>
@@ -40,307 +190,86 @@
     </form>
 </div>
 
-{{-- Import Progress Bar --}}
-<div id="import-progress-container" class="hidden mb-6 bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-    <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Import Progress</span>
-        <span id="import-progress-text" class="text-sm text-gray-600 dark:text-gray-400">Processing...</span>
-    </div>
-    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-        <div id="import-progress-bar" class="bg-primary-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
-    </div>
-</div>
-
-{{-- Data Table View --}}
-<div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-    {{-- Bulk Actions Bar --}}
-    <div id="bulk-actions-bar" class="hidden px-6 py-3 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-200 dark:border-primary-800">
-        <div class="flex items-center justify-between">
-            <span id="selected-count" class="text-sm font-medium text-primary-900 dark:text-primary-100"></span>
-            <button onclick="bulkDelete()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition">
-                <i data-feather="trash-2" class="w-4 h-4 inline mr-1"></i>
-                Delete Selected
-            </button>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @forelse($products as $product)
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group border border-gray-100 dark:border-gray-700">
+            {{-- Image Thumbnail (First Item's image or placeholder) --}}
+            <div class="h-48 bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
+                @php
+                    $firstItem = $product->items->first();
+                    $image = $firstItem ? $firstItem->primaryImage : null;
+                @endphp
+                
+                @if($image)
+                     <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                @else
+                    <div class="flex items-center justify-center h-full text-gray-400">
+                        <i data-feather="image" class="w-12 h-12"></i>
+                    </div>
+                @endif
+                
+                <div class="absolute top-2 right-2">
+                     @if($product->is_active)
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full dark:bg-green-900 dark:text-green-300">Active</span>
+                    @else
+                        <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-full dark:bg-gray-700 dark:text-gray-300">Inactive</span>
+                    @endif
+                </div>
+            </div>
+            
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-xs text-primary-600 dark:text-primary-400 font-medium mb-1">{{ $product->category->name ?? 'Uncategorized' }}</p>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate" title="{{ $product->name }}">{{ $product->name }}</h3>
+                    </div>
+                </div>
+                
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 h-10">{{ $product->description }}</p>
+                
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                        <span class="font-semibold">{{ $product->items->count() }}</span> Variants
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{{ route('catalogue.edit', $product) }}" class="p-2 text-gray-500 hover:text-primary-600 bg-gray-50 hover:bg-primary-50 rounded-lg transition dark:bg-gray-700 dark:hover:bg-primary-900/30">
+                            <i data-feather="edit-2" class="w-4 h-4"></i>
+                        </a>
+                        <a href="{{ route('catalogue.show', $product) }}" class="px-3 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition flex items-center gap-1">
+                            Details <i data-feather="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left">
-                        <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" 
-                               class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">SKU</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Attributes</th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                @forelse($items as $item)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                        <td class="px-6 py-4">
-                            <input type="checkbox" class="item-checkbox w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
-                                   value="{{ $item->id }}" onchange="updateBulkActions()">
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $loop->iteration + ($items->currentPage() - 1) * $items->perPage() }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                                @if($item->primaryImage)
-                                    <img src="{{ asset('storage/' . $item->primaryImage->image_path) }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
-                                @else
-                                    <div class="flex items-center justify-center h-full">
-                                        <i data-feather="image" class="w-6 h-6 text-gray-400"></i>
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $item->sku }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->name }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{{ $item->description }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if($item->category)
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
-                                    {{ $item->category->name }}
-                                </span>
-                            @else
-                                <span class="text-sm text-gray-500">-</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex flex-wrap gap-1">
-                                @if($item->tags)
-                                    @foreach(array_slice($item->tags_array, 0, 2) as $tag)
-                                        <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded">{{ trim($tag) }}</span>
-                                    @endforeach
-                                    @if(count($item->tags_array) > 2)
-                                        <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">+{{ count($item->tags_array) - 2 }}</span>
-                                    @endif
-                                @else
-                                    <span class="text-sm text-gray-500">-</span>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex justify-end gap-2">
-                                <a href="{{ route('catalogue.show', $item) }}" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400" title="View">
-                                    <i data-feather="eye" class="w-5 h-5"></i>
-                                </a>
-                                <a href="{{ route('catalogue.edit', $item) }}" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" title="Edit">
-                                    <i data-feather="edit-2" class="w-5 h-5"></i>
-                                </a>
-                                <form action="{{ route('catalogue.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400" title="Delete">
-                                        <i data-feather="trash-2" class="w-5 h-5"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
-                            <i data-feather="inbox" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
-                            <p class="text-gray-500 dark:text-gray-400">No products found.</p>
-                            <a href="{{ route('catalogue.create') }}" class="mt-2 inline-block text-primary-600 hover:text-primary-500 font-medium">
-                                Add your first product
-                            </a>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+    @empty
+        <div class="col-span-full text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+                <i data-feather="package" class="w-8 h-8 text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">No products found</h3>
+            <p class="mt-1 text-gray-500 dark:text-gray-400">Get started by creating your first product.</p>
+            <div class="mt-6">
+                <a href="{{ route('catalogue.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                    <i data-feather="plus" class="-ml-1 mr-2 w-5 h-5"></i>
+                    Add Product
+                </a>
+            </div>
+        </div>
+    @endforelse
 </div>
 
 {{-- Pagination --}}
-@if($items->hasPages())
-    <div class="mt-6">
-        {{ $items->links() }}
+@if($products->hasPages())
+    <div class="mt-8">
+        {{ $products->links() }}
     </div>
 @endif
 
-@include('catalogue.partials.catalogue-importmodal')
-
-{{-- SweetAlert2 CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-{{-- Success Notification --}}
-@if(session('success'))
 <script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Import Started!',
-        text: '{{ session('success') }}',
-        showConfirmButton: true,
-        confirmButtonColor: '#4F46E5',
-        timer: 5000,
-        timerProgressBar: true
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
     });
-
-    // Start polling if import job ID exists
-    @if(session('import_job_id'))
-        const importJobId = {{ session('import_job_id') }};
-        startImportPolling(importJobId);
-    @endif
 </script>
-@endif
-
-{{-- Import Progress Polling Script --}}
-<script>
-let pollingInterval = null;
-
-function startImportPolling(importJobId) {
-    // Show progress bar
-    const progressContainer = document.getElementById('import-progress-container');
-    const progressBar = document.getElementById('import-progress-bar');
-    const progressText = document.getElementById('import-progress-text');
-    
-    progressContainer.classList.remove('hidden');
-
-    // Poll every 2 seconds
-    pollingInterval = setInterval(() => {
-        fetch(`{{ route('catalogue.import.status') }}?import_job_id=${importJobId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'processing') {
-                    progressBar.style.width = data.progress + '%';
-                    progressText.textContent = `Processing... ${data.processed_rows}/${data.total_rows} rows (${data.progress}%)`;
-                } else if (data.status === 'completed') {
-                    clearInterval(pollingInterval);
-                    progressBar.style.width = '100%';
-                    progressText.textContent = 'Import completed!';
-                    
-                    setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Import Completed!',
-                            text: `Successfully imported ${data.total_rows} products from ${data.file_name}`,
-                            confirmButtonColor: '#4F46E5'
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    }, 500);
-                } else if (data.status === 'failed') {
-                    clearInterval(pollingInterval);
-                    progressContainer.classList.add('hidden');
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Import Failed',
-                        text: data.error_message || 'An error occurred during import',
-                        confirmButtonColor: '#4F46E5'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Polling error:', error);
-            });
-    }, 2000);
-}
-
-// Bulk Delete Functions
-function toggleSelectAll(checkbox) {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
-    checkboxes.forEach(cb => {
-        cb.checked = checkbox.checked;
-    });
-    updateBulkActions();
-}
-
-function updateBulkActions() {
-    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-    const bulkBar = document.getElementById('bulk-actions-bar');
-    const selectedCount = document.getElementById('selected-count');
-    const selectAll = document.getElementById('select-all');
-    
-    if (checkboxes.length > 0) {
-        bulkBar.classList.remove('hidden');
-        selectedCount.textContent = `${checkboxes.length} item${checkboxes.length > 1 ? 's' : ''} selected`;
-        
-        // Update select-all checkbox state
-        const allCheckboxes = document.querySelectorAll('.item-checkbox');
-        selectAll.checked = checkboxes.length === allCheckboxes.length;
-        selectAll.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
-    } else {
-        bulkBar.classList.add('hidden');
-        selectAll.checked = false;
-        selectAll.indeterminate = false;
-    }
-    
-    if (typeof feather !== 'undefined') feather.replace();
-}
-
-function bulkDelete() {
-    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-    const ids = Array.from(checkboxes).map(cb => cb.value);
-    
-    if (ids.length === 0) return;
-    
-    Swal.fire({
-        title: 'Delete Selected Items?',
-        text: `Are you sure you want to delete ${ids.length} item${ids.length > 1 ? 's' : ''}? This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#EF4444',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Yes, delete!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch('{{ route('catalogue.bulk-delete') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ ids: ids })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: data.message || `${ids.length} item${ids.length > 1 ? 's' : ''} deleted successfully.`,
-                        confirmButtonColor: '#4F46E5'
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to delete items',
-                        confirmButtonColor: '#4F46E5'
-                    });
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred while deleting items',
-                    confirmButtonColor: '#4F46E5'
-                });
-            });
-        }
-    });
-}
-</script>
-
 @endsection

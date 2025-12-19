@@ -28,13 +28,13 @@ class DashboardController extends Controller
     {
         $company = auth()->user()->allCompanies()->firstWhere('id', $companyId);
 
-        if (!$company) {
+        if (! $company) {
             abort(404);
         }
 
         session(['selected_company_id' => $company->id]);
 
         return redirect()->route('company.dashboard')
-            ->with('success', 'Switched to workspace: ' . $company->name);
+            ->with('success', 'Switched to workspace: '.$company->name);
     }
 }

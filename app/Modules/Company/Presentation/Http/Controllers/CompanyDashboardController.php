@@ -4,10 +4,8 @@ namespace App\Modules\Company\Presentation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use App\Modules\Procurement\Domain\Models\Invoice;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use Carbon\Carbon;
 
 class CompanyDashboardController extends Controller
@@ -16,13 +14,13 @@ class CompanyDashboardController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         $company = Company::find($selectedCompanyId);
 
-        if (!$company) {
+        if (! $company) {
             return redirect()->route('dashboard')->with('error', 'Company not found.');
         }
 
@@ -76,9 +74,9 @@ class CompanyDashboardController extends Controller
                 'total_purchases' => $poTotalAmount,
                 'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0),
                 'active_orders' => $activePOs,
-                'orders_change' => '+' . rand(1, 10) . '%',
+                'orders_change' => '+'.rand(1, 10).'%',
                 'total_vendors' => $vendorsCount,
-                'vendors_change' => '+' . rand(1, 5) . '%',
+                'vendors_change' => '+'.rand(1, 5).'%',
                 'pending_pr' => $company->purchaseRequisitions()->where('status', 'pending')->count(),
                 'pending_change' => '0%',
             ];
@@ -105,13 +103,13 @@ class CompanyDashboardController extends Controller
 
             $stats = [
                 'total_sales' => $poTotalAmount,
-                'sales_change' => '+' . rand(5, 15) . '%',
+                'sales_change' => '+'.rand(5, 15).'%',
                 'active_orders' => $approvedPOs,
-                'orders_change' => '+' . rand(1, 10) . '%',
+                'orders_change' => '+'.rand(1, 10).'%',
                 'total_invoices' => $totalInvoices,
                 'invoice_amount' => $invoiceAmount,
                 'active_products' => $catalogueItems,
-                'products_change' => rand(-5, 10) . '%',
+                'products_change' => rand(-5, 10).'%',
             ];
         }
 
@@ -158,6 +156,7 @@ class CompanyDashboardController extends Controller
 
         $change = (($current - $previous) / $previous) * 100;
         $prefix = $change >= 0 ? '+' : '';
-        return $prefix . number_format($change, 1) . '%';
+
+        return $prefix.number_format($change, 1).'%';
     }
 }

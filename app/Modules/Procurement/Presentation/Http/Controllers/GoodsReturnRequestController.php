@@ -3,10 +3,8 @@
 namespace App\Modules\Procurement\Presentation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Procurement\Domain\Models\DebitNote;
 use App\Modules\Procurement\Domain\Models\GoodsReceiptItem;
 use App\Modules\Procurement\Domain\Models\GoodsReturnRequest;
-use App\Modules\Procurement\Domain\Models\ReplacementDelivery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +18,7 @@ class GoodsReturnRequestController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -92,7 +90,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to view this GRR.');
         }
 
@@ -160,7 +158,8 @@ class GoodsReturnRequestController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to create GRR: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to create GRR: '.$e->getMessage());
         }
     }
 
@@ -223,6 +222,7 @@ class GoodsReturnRequestController extends Controller
                     'resolution_status' => 'resolved',
                     'resolved_at' => now(),
                 ]);
+
                 return redirect()->route('procurement.grr.show', $goodsReturnRequest)
                     ->with('success', 'GRR approved for replacement. Please ship replacement items to buyer.');
             }
@@ -250,7 +250,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized.');
         }
 

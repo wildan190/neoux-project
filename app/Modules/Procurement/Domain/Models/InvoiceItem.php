@@ -36,11 +36,11 @@ class InvoiceItem extends Model
 
     public function getFormattedUnitPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->unit_price, 2, ',', '.');
+        return 'Rp '.number_format($this->unit_price, 2, ',', '.');
     }
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return 'Rp ' . number_format($this->subtotal, 2, ',', '.');
+        return 'Rp '.number_format($this->subtotal, 2, ',', '.');
     }
 }

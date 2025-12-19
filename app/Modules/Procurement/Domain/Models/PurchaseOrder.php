@@ -2,9 +2,8 @@
 
 namespace App\Modules\Procurement\Domain\Models;
 
-use App\Modules\User\Domain\Models\User;
 use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
+use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -96,7 +95,7 @@ class PurchaseOrder extends Model
      */
     public function getFormattedAdjustedTotalAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->adjusted_total_amount, 2, ',', '.');
+        return 'Rp '.number_format($this->adjusted_total_amount, 2, ',', '.');
     }
 
     /**
@@ -109,7 +108,7 @@ class PurchaseOrder extends Model
 
     public function getFormattedTotalAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_amount, 2, ',', '.');
+        return 'Rp '.number_format($this->total_amount, 2, ',', '.');
     }
 
     /**
@@ -117,6 +116,6 @@ class PurchaseOrder extends Model
      */
     public function getFormattedTotalDeductionAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_deduction, 2, ',', '.');
+        return 'Rp '.number_format($this->total_deduction, 2, ',', '.');
     }
 }
