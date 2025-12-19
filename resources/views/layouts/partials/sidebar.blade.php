@@ -118,6 +118,41 @@
             </a>
         @endif
 
+        {{-- Warehouse Menu (Same rule as Catalogue) --}}
+        @if($showCatalogue)
+            <a href="{{ route('warehouse.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('warehouse.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('warehouse.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M3 3v18h18"></path>
+                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Warehouse</span>
+            </a>
+        @endif
+
+        {{-- Marketplace Menu --}}
+        @if($showCatalogue)
+            <a href="{{ route('procurement.marketplace.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.marketplace.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.marketplace.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Marketplace</span>
+            </a>
+        @endif
+
         @if(session('selected_company_id'))
             {{-- Procurement Dropdown --}}
             <div x-data="{ open: {{ request()->routeIs('procurement.*') ? 'true' : 'false' }} }" class="space-y-1">

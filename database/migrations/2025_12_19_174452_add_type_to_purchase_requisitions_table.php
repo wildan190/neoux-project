@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('goods_return_requests', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('purchase_requisitions', function (Blueprint $table) {
+            $table->string('type')->default('tender')->after('status'); // tender, direct
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('goods_return_requests');
+        Schema::table('purchase_requisitions', function (Blueprint $table) {
+            $table->dropColumn('type');
+        });
     }
 };

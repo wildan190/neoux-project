@@ -66,9 +66,11 @@
                                      <option value="{{ $member->id }}">{{ $member->name }} ({{ ucfirst($member->pivot->role) }})</option>
                                  @endif
                              @endforeach
-                             {{-- Add Owner if valid role --}}
-                             @if($purchaseRequisition->company->user && $purchaseRequisition->company->user_id !== $purchaseRequisition->user_id)
-                                <option value="{{ $purchaseRequisition->company->user_id }}">{{ $purchaseRequisition->company->user->name }} (Owner)</option>
+                             {{-- Add Owner --}}
+                             @if($purchaseRequisition->company->user)
+                                <option value="{{ $purchaseRequisition->company->user_id }}" {{ $purchaseRequisition->company->user_id === $purchaseRequisition->user_id ? 'selected' : '' }}>
+                                    {{ $purchaseRequisition->company->user->name }} (Owner)
+                                </option>
                              @endif
                         </select>
                     </div>

@@ -60,6 +60,223 @@
         </div>
     @endif
 
+    {{-- System Recommendation & Comparison --}}
+    @if($offers->count() > 1 && !$purchaseRequisition->winningOffer)
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {{-- Recommendation Card --}}
+            @php
+                $recommendedOffer = $offers->where('is_recommended', true)->first();
+            @endphp
+            
+            <div class="lg:col-span-1">
+                @if($recommendedOffer)
+                    <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white h-full relative overflow-hidden shadow-lg">
+                        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
+                        <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-yellow-400 opacity-20 rounded-full blur-xl"></div>
+                        
+                        <div class="relative z-10 flex flex-col h-full">
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <i data-feather="thumbs-up" class="w-5 h-5 text-yellow-300"></i>
+                                </div>
+                                <span class="font-bold text-sm tracking-wider uppercase text-indigo-100">Top Choice</span>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold mb-1">{{ $recommendedOffer->company->name }}</h3>
+                            <div class="text-3xl font-extrabold text-white mb-4">{{ $recommendedOffer->formatted_total_price }}</div>
+                            
+                            <div class="space-y-3 mb-6 flex-1">
+                                <div class="flex items-center gap-2 text-sm text-indigo-100">
+                                    <i data-feather="target" class="w-4 h-4"></i>
+                                    <span>Rank Score: <strong>{{ $recommendedOffer->rank_score }}/100</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-indigo-100">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                    <span>Quantity Match: <strong>{{ number_format(($recommendedOffer->items->sum('quantity_offered') / max(1, $purchaseRequisition->items->sum('quantity'))) * 100) }}%</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-indigo-100">
+                                    <i data-feather="clock" class="w-4 h-4"></i>
+                                    <span>Response: <strong>{{ $recommendedOffer->created_at->diffForHumans($purchaseRequisition->created_at, true) }}</strong></span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/10 rounded-xl p-3 backdrop-blur-sm text-xs text-indigo-100 leading-relaxed mb-4">
+                                "This offer provides the best balance of price and reliability based on our scoring system."
+                            </div>
+
+                            <a href="#offer-{{ $recommendedOffer->id }}" class="w-full py-3 bg-white text-indigo-600 hover:bg-indigo-50 font-bold rounded-lg text-center transition shadow-sm">
+                                Review Offer
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 h-full border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                            <i data-feather="bar-chart-2" class="w-8 h-8 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Analysis In Progress</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            Comparing offers based on price, reliability, and history. No clear winner yet.
+                        </p>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Comparison Matrix --}}
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-feather="columns" class="w-4 h-4"></i>
+                        Side-by-Side Comparison (Top 3)
+                    </h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                                <th class="px-4 py-3 text-gray-500 font-medium w-1/4">Criteria</th>
+                                @foreach($offers->take(3) as $offer)
+                                    <th class="px-6 py-4 relative {{ $loop->first ? 'bg-yellow-50/50 dark:bg-yellow-900/10' : '' }}">
+                                        @if($loop->first)
+                                            <div class="absolute top-0 left-0 w-full h-1 bg-yellow-400"></div>
+                                        @endif
+                                        <div class="font-bold text-gray-900 dark:text-white text-base">{{ $offer->company->name }}</div>
+                                        <div class="text-xs text-gray-500 font-normal mt-1">Rank #{{ $loop->iteration }}</div>
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            {{-- Price Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Total Price</td>
+                                @php $minPrice = $offers->min('total_price'); @endphp
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        @if($offer->total_price == $minPrice)
+                                            <span class="text-green-600 dark:text-green-400 font-bold flex items-center gap-1">
+                                                {{ $offer->formatted_total_price }}
+                                                <i data-feather="check" class="w-3 h-3"></i>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-900 dark:text-gray-300">{{ $offer->formatted_total_price }}</span>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                            
+                            {{-- Score Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">System Score</td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-20">
+                                                <div class="bg-indigo-500 h-2 rounded-full" style="width: {{ $offer->rank_score }}%"></div>
+                                            </div>
+                                            <span class="font-bold text-xs">{{ $offer->rank_score }}</span>
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                            {{-- Quantity Match Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Quantity Match</td>
+                                @php 
+                                    $totalRequested = max(1, $purchaseRequisition->items->sum('quantity'));
+                                @endphp
+                                @foreach($offers->take(3) as $offer)
+                                    @php
+                                        $offeredQty = $offer->items->sum('quantity_offered');
+                                        $pct = min(100, round(($offeredQty / $totalRequested) * 100));
+                                    @endphp
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        @if($pct >= 100)
+                                            <span class="text-green-600 dark:text-green-400 font-bold text-xs flex items-center gap-1">
+                                                100% (Full)
+                                                <i data-feather="check-circle" class="w-3 h-3"></i>
+                                            </span>
+                                        @elseif($pct >= 80)
+                                            <span class="text-yellow-600 dark:text-yellow-400 font-semibold text-xs lowercase">
+                                                {{ $pct }}% (Partial)
+                                            </span>
+                                        @else
+                                            <span class="text-red-500 font-semibold text-xs lowercase">
+                                                {{ $pct }}% (Partial)
+                                            </span>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                            {{-- Reliability Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Vendor Reliability</td>
+                                @foreach($offers->take(3) as $offer)
+                                    @php
+                                        // Count past wins (excluding current if won) for this company
+                                        $wins = \App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer::where('company_id', $offer->company_id)
+                                            ->where('status', 'accepted')
+                                            ->count();
+                                    @endphp
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        @if($wins > 5)
+                                            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-bold">
+                                                <i data-feather="shield" class="w-3 h-3 fill-current"></i>
+                                                High Trust ({{ $wins }} Wins)
+                                            </div>
+                                        @elseif($wins > 0)
+                                            <span class="text-gray-700 dark:text-gray-300 text-xs">
+                                                {{ $wins }} Past Wins
+                                            </span>
+                                        @else
+                                            <span class="text-gray-500 dark:text-gray-400 text-xs italic">
+                                                New Vendor
+                                            </span>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                             {{-- Delivery/Time Row --}}
+                             <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Response Time</td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        <span class="text-gray-700 dark:text-gray-300">{{ $offer->created_at->diffForHumans($purchaseRequisition->created_at, true) }}</span>
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                            {{-- Action Row --}}
+                            <tr class="bg-gray-50/50 dark:bg-gray-900/30">
+                                <td class="px-4 py-3"></td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-4 {{ $loop->first ? 'bg-yellow-50/30 dark:bg-yellow-900/10' : '' }}">
+                                        @if($offer->status === 'pending')
+                                            <form action="{{ route('procurement.offers.accept', $offer) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" 
+                                                    onclick="return confirm('Accept this offer from {{ $offer->company->name }}?')"
+                                                    class="w-full py-2 px-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 rounded-lg text-sm font-semibold transition shadow-sm text-gray-600 dark:text-gray-300">
+                                                    Select Winner
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs font-bold uppercase text-gray-400">{{ $offer->status }}</span>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Offers List --}}
     @if($offers->isEmpty())
         <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-700">
@@ -70,7 +287,7 @@
     @else
         <div class="space-y-4">
             @foreach($offers as $offer)
-                <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border-2 
+                <div id="offer-{{ $offer->id }}" class="scroll-mt-24 bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border-2 
                                 @if($offer->is_recommended) border-primary-300 dark:border-primary-700
                                 @elseif($offer->status === 'accepted') border-green-300 dark:border-green-700
                                 @elseif($offer->status === 'rejected') border-gray-200 dark:border-gray-700 opacity-60

@@ -54,8 +54,8 @@ test('store company request accepts valid category values', function ($category)
         'business_category' => 'Technology',
         'category' => $category,
         'documents' => [
-            \Illuminate\Http\UploadedFile::fake()->create('doc.pdf', 100)
-        ]
+            \Illuminate\Http\UploadedFile::fake()->create('doc.pdf', 100),
+        ],
     ];
 
     $validator = validator($data, $rules);
@@ -73,8 +73,8 @@ test('store company request passes with valid data', function () {
         'email' => 'test@company.com',
         'phone' => '1234567890',
         'documents' => [
-            \Illuminate\Http\UploadedFile::fake()->create('doc.pdf', 100)
-        ]
+            \Illuminate\Http\UploadedFile::fake()->create('doc.pdf', 100),
+        ],
     ];
 
     $validator = validator($data, $rules);

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Company\Domain\Models;
 
+use App\Modules\Catalogue\Domain\Models\CatalogueItem;
 use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -74,6 +75,11 @@ class Company extends Model
         return $this->hasMany(\App\Modules\Procurement\Domain\Models\PurchaseRequisition::class);
     }
 
+    public function catalogueItems(): HasMany
+    {
+        return $this->hasMany(CatalogueItem::class);
+    }
+
     public function activities()
     {
         return $this->hasMany(\App\Modules\Admin\Domain\Models\CompanyActivity::class)->latest();
@@ -84,11 +90,11 @@ class Company extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
-        if (!$this->logo) {
+        if (! $this->logo) {
             return null;
         }
 
-        return asset('storage/' . $this->logo);
+        return asset('storage/'.$this->logo);
     }
 
     /**

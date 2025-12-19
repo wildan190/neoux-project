@@ -37,7 +37,7 @@ class ReplacementDelivery extends Model
 
         static::creating(function ($model) {
             if (empty($model->rd_number)) {
-                $model->rd_number = 'RD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+                $model->rd_number = 'RD-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
             }
         });
     }

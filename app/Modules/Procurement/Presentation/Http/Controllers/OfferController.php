@@ -3,15 +3,14 @@
 namespace App\Modules\Procurement\Presentation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferItem;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
+use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
+use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
+use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class OfferController extends Controller
 {
@@ -23,7 +22,7 @@ class OfferController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -63,7 +62,7 @@ class OfferController extends Controller
         // Get selected company from session
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -125,8 +124,8 @@ class OfferController extends Controller
             // Handle document uploads
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $fileName = time() . '_' . $file->getClientOriginalName();
-                    $filePath = $file->storeAs('procurement/offers/' . $offer->id, $fileName, 'public');
+                    $fileName = time().'_'.$file->getClientOriginalName();
+                    $filePath = $file->storeAs('procurement/offers/'.$offer->id, $fileName, 'public');
 
                     PurchaseRequisitionOfferDocument::create([
                         'offer_id' => $offer->id,
@@ -151,9 +150,10 @@ class OfferController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id(),
-                'pr_id' => $purchaseRequisition->id
+                'pr_id' => $purchaseRequisition->id,
             ]);
-            return back()->withErrors(['error' => 'Failed to submit offer: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to submit offer: '.$e->getMessage()]);
         }
     }
 
@@ -169,7 +169,7 @@ class OfferController extends Controller
         $isPROwner = $purchaseRequisition->company_id == $selectedCompanyId;
         $isOfferSubmitter = $offer->company_id == $selectedCompanyId;
 
-        if (!$isPROwner && !$isOfferSubmitter) {
+        if (! $isPROwner && ! $isOfferSubmitter) {
             abort(403, 'Unauthorized to view this offer.');
         }
 
@@ -177,7 +177,7 @@ class OfferController extends Controller
             'items.purchaseRequisitionItem.catalogueItem',
             'documents',
             'company',
-            'user.userDetail'
+            'user.userDetail',
         ]);
 
         $purchaseRequisition->load(['items', 'company']);
@@ -229,6 +229,7 @@ class OfferController extends Controller
                 ->with('success', 'Offer accepted successfully! The tender has been awarded. You can now generate a Purchase Order.');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->withErrors(['error' => 'Failed to accept offer. Please try again.']);
         }
     }
@@ -331,7 +332,7 @@ class OfferController extends Controller
         $topOffer = $offers->sortByDesc('rank_score')->first();
 
         // Reset all recommendations first
-        $offers->each(fn($o) => $o->update(['is_recommended' => false]));
+        $offers->each(fn ($o) => $o->update(['is_recommended' => false]));
 
         if ($topOffer && $topOffer->rank_score >= 70) {
             // Check if quantity match is at least 80%

@@ -38,7 +38,7 @@ class DebitNote extends Model
 
         static::creating(function ($model) {
             if (empty($model->dn_number)) {
-                $model->dn_number = 'DN-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+                $model->dn_number = 'DN-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
             }
         });
     }
@@ -64,7 +64,7 @@ class DebitNote extends Model
      */
     public function getFormattedOriginalAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->original_amount, 0, ',', '.');
+        return 'Rp '.number_format($this->original_amount, 0, ',', '.');
     }
 
     /**
@@ -72,7 +72,7 @@ class DebitNote extends Model
      */
     public function getFormattedAdjustedAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->adjusted_amount, 0, ',', '.');
+        return 'Rp '.number_format($this->adjusted_amount, 0, ',', '.');
     }
 
     /**
@@ -80,7 +80,7 @@ class DebitNote extends Model
      */
     public function getFormattedDeductionAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->deduction_amount, 0, ',', '.');
+        return 'Rp '.number_format($this->deduction_amount, 0, ',', '.');
     }
 
     /**
@@ -88,8 +88,10 @@ class DebitNote extends Model
      */
     public function getDeductionPercentageAttribute(): float
     {
-        if ($this->original_amount == 0)
+        if ($this->original_amount == 0) {
             return 0;
+        }
+
         return round(($this->deduction_amount / $this->original_amount) * 100, 2);
     }
 

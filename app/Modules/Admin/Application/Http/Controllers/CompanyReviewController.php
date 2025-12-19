@@ -50,7 +50,7 @@ class CompanyReviewController extends Controller
             'company_id' => $company->id,
             'admin_id' => auth('admin')->id(),
             'action' => 'approved',
-            'description' => 'Company application approved by ' . auth('admin')->user()->name,
+            'description' => 'Company application approved by '.auth('admin')->user()->name,
         ]);
 
         return back()->with('success', 'Company has been approved successfully.');
@@ -69,7 +69,7 @@ class CompanyReviewController extends Controller
             'company_id' => $company->id,
             'admin_id' => auth('admin')->id(),
             'action' => 'declined',
-            'description' => 'Company application declined by ' . auth('admin')->user()->name,
+            'description' => 'Company application declined by '.auth('admin')->user()->name,
         ]);
 
         return back()->with('success', 'Company has been declined.');

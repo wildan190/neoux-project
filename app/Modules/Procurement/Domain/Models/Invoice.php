@@ -52,6 +52,6 @@ class Invoice extends Model
 
     public function getFormattedTotalAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_amount, 2, ',', '.');
+        return 'Rp '.number_format($this->total_amount, 2, ',', '.');
     }
 }

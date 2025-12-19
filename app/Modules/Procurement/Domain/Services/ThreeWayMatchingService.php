@@ -3,7 +3,6 @@
 namespace App\Modules\Procurement\Domain\Services;
 
 use App\Modules\Procurement\Domain\Models\Invoice;
-use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 
 class ThreeWayMatchingService
 {
@@ -21,9 +20,10 @@ class ThreeWayMatchingService
         foreach ($invoice->items as $invoiceItem) {
             $poItem = $purchaseOrder->items->where('id', $invoiceItem->purchase_order_item_id)->first();
 
-            if (!$poItem) {
-                $matchResults['variances'][] = "Item in invoice not found in PO.";
+            if (! $poItem) {
+                $matchResults['variances'][] = 'Item in invoice not found in PO.';
                 $matchResults['status'] = 'mismatch';
+
                 continue;
             }
 
@@ -41,13 +41,13 @@ class ThreeWayMatchingService
                 }
             }
 
-            // Note: In a real scenario, we might match against specific GRs. 
+            // Note: In a real scenario, we might match against specific GRs.
             // Here we check if total invoiced so far + current invoice qty <= total received.
             // For simplicity, we just check if Invoice Qty <= Total Received (assuming one invoice per PO for now or cumulative check)
 
             $qtyMatch = $invoiceItem->quantity_invoiced <= $totalReceived;
 
-            if (!$priceMatch || !$qtyMatch) {
+            if (! $priceMatch || ! $qtyMatch) {
                 $matchResults['status'] = 'mismatch';
             }
 

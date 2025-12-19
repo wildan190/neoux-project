@@ -2,10 +2,8 @@
 
 namespace App\Modules\Procurement\Domain\Models;
 
-use App\Modules\User\Domain\Models\User;
 use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
+use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,7 +64,7 @@ class PurchaseRequisitionOffer extends Model
     // Accessor for formatted price
     public function getFormattedTotalPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_price, 2, ',', '.');
+        return 'Rp '.number_format($this->total_price, 2, ',', '.');
     }
 
     // Accessor for rank position

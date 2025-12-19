@@ -47,14 +47,33 @@ class CatalogueImport implements ToCollection, WithBatchInserts, WithChunkReadin
                         $categoryId = $category->id;
                     }
 
-                    // Create Item
+                    // Find or Create Product
+                    $product = \App\Modules\Catalogue\Domain\Models\CatalogueProduct::firstOrCreate(
+                        [
+                            'company_id' => $this->companyId,
+                            'name' => $row['name'],
+                        ],
+                        [
+                            'category_id' => $categoryId,
+                            'slug' => Str::slug($row['name']).'-'.Str::random(6),
+                            'description' => $row['description'] ?? null,
+                            'brand' => $row['brand'] ?? null,
+                            'is_active' => true,
+                        ]
+                    );
+
+                    // Create Item (SKU)
                     $item = CatalogueItem::create([
                         'company_id' => $this->companyId,
-                        'category_id' => $categoryId,
+                        'catalogue_product_id' => $product->id,
+                        'category_id' => $categoryId, // Deprecated but keeping for now
                         'sku' => $row['sku'],
-                        'name' => $row['name'],
+                        'name' => $row['name'], // Deprecated but keeping for now
                         'description' => $row['description'] ?? null,
                         'tags' => $row['tags'] ?? null,
+                        'price' => isset($row['price']) ? (float) str_replace(['.', ','], '', $row['price']) : 0,
+                        'stock' => isset($row['stock']) ? (int) $row['stock'] : 0,
+                        'unit' => $row['unit'] ?? 'Pcs',
                     ]);
 
                     // Create default image for imported products

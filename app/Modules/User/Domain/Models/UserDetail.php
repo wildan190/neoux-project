@@ -53,10 +53,10 @@ class UserDetail extends Model
      */
     public function getProfilePhotoUrlAttribute(): ?string
     {
-        if (!$this->profile_photo) {
+        if (! $this->profile_photo) {
             return null;
         }
 
-        return asset('storage/' . $this->profile_photo);
+        return asset('storage/'.$this->profile_photo);
     }
 }

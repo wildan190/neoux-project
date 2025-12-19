@@ -29,7 +29,7 @@ class ProfileController extends Controller
         $userDetail = $user->userDetail;
 
         // If user detail doesn't exist, create it with registered_date from user's created_at
-        if (!$userDetail) {
+        if (! $userDetail) {
             $validated['registered_date'] = $user->created_at;
             $user->userDetail()->create($validated);
         } else {
@@ -57,7 +57,7 @@ class ProfileController extends Controller
         $path = request()->file('profile_photo')->store('profile-photos', 'public');
 
         // Create or update user detail
-        if (!$userDetail) {
+        if (! $userDetail) {
             $user->userDetail()->create([
                 'profile_photo' => $path,
                 'registered_date' => $user->created_at,

@@ -2,10 +2,8 @@
 
 namespace App\Modules\Procurement\Domain\Models;
 
-use App\Modules\User\Domain\Models\User;
-use App\Modules\Catalogue\Domain\Models\CatalogueItem;
 use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
+use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +31,7 @@ class PurchaseRequisition extends Model
         'winning_offer_id',
         'tender_status',
         'po_generated_at',
+        'type',
     ];
 
     protected $casts = [
@@ -54,7 +53,6 @@ class PurchaseRequisition extends Model
         ];
     }
 
-
     public function approver()
     {
         return $this->belongsTo(\App\Modules\User\Domain\Models\User::class, 'approver_id');
@@ -74,7 +72,6 @@ class PurchaseRequisition extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 
     public function items(): HasMany
     {

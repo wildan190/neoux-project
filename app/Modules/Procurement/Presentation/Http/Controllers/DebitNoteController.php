@@ -18,7 +18,7 @@ class DebitNoteController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -123,7 +123,8 @@ class DebitNoteController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to create Debit Note: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to create Debit Note: '.$e->getMessage());
         }
     }
 
@@ -146,7 +147,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to view this Debit Note.');
         }
 
@@ -173,7 +174,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to print this Debit Note.');
         }
 
