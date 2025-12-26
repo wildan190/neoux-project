@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->foreignId('catalogue_item_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // Who did it
+            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete(); // Who did it
             $table->enum('type', ['in', 'out']); // in = addition, out = deduction
             $table->integer('quantity');
             $table->integer('previous_stock'); // Snapshot before change

@@ -8,6 +8,8 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionComment;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionDocument;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionItem;
+use App\Notifications\NewCommentAdded;
+use App\Notifications\PurchaseOrderReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -241,12 +243,16 @@ class PurchaseRequisitionController extends Controller
             'parent_id' => 'nullable|exists:purchase_requisition_comments,id',
         ]);
 
-        PurchaseRequisitionComment::create([
+        $comment = PurchaseRequisitionComment::create([
             'purchase_requisition_id' => $purchaseRequisition->id,
             'user_id' => Auth::id(),
             'parent_id' => $request->parent_id,
             'comment' => $request->comment,
         ]);
+
+        if ($comment && $purchaseRequisition->user_id !== Auth::id()) {
+            $purchaseRequisition->user->notify(new NewCommentAdded($comment));
+        }
 
         return back()->with('success', 'Comment posted successfully.');
     }
@@ -338,6 +344,12 @@ class PurchaseRequisitionController extends Controller
                     if ($catalogueItem) {
                         $catalogueItem->decrement('stock', $item->quantity);
                     }
+                }
+
+                // Notify Vendor Company Owner
+                $vendorCompany = \App\Modules\Company\Domain\Models\Company::find($vendorId);
+                if ($vendorCompany && $vendorCompany->user) {
+                    $vendorCompany->user->notify(new PurchaseOrderReceived($po));
                 }
 
                 // Send Email Notification to Vendor

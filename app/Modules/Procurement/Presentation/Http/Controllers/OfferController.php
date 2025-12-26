@@ -7,6 +7,8 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferItem;
+use App\Notifications\NewOfferReceived;
+use App\Notifications\OfferAccepted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -140,6 +142,11 @@ class OfferController extends Controller
             // Calculate ranking for all offers
             $this->calculateRankings($purchaseRequisition);
 
+            // Notify PR Creator
+            if ($purchaseRequisition->user) {
+                $purchaseRequisition->user->notify(new NewOfferReceived($offer));
+            }
+
             DB::commit();
 
             return redirect()->route('procurement.pr.show-public', $purchaseRequisition)
@@ -222,6 +229,11 @@ class OfferController extends Controller
                 ->where('id', '!=', $offer->id)
                 ->where('status', 'pending')
                 ->update(['status' => 'rejected']);
+
+            // Notify Winning Vendor
+            if ($offer->user) {
+                $offer->user->notify(new OfferAccepted($offer));
+            }
 
             DB::commit();
 

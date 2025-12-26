@@ -1,5 +1,5 @@
 @extends('layouts.app', [
-    'title' => 'Print PO: ' . $invoice->purchaseOrder->invoice_number,
+    'title' => 'Print Invoice: ' . $invoice->purchaseOrder->invoice_number,
 ])
 
 @section('content')
@@ -7,7 +7,7 @@
         <div class="mb-4 no-print">
             <button onclick="window.print()" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold shadow-sm">
                 <i data-feather="printer" class="w-4 h-4 inline mr-2"></i>
-                Print PO
+                Print Invoice
             </button>
             <a href="{{ route('procurement.po.download-pdf', $invoice->purchaseOrder) }}" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-sm ml-2 inline-block">
                 <i data-feather="download" class="w-4 h-4 inline mr-2"></i>
@@ -23,12 +23,19 @@
             <!-- Header Section -->
             <div class="bg-gradient-to-r from-primary-500 to-secondary-500 px-8 py-6 text-white">
                 <div class="flex justify-between items-start">
+                    @php
+                        $company = $invoice->purchaseOrder->vendorCompany;
+                    @endphp
                     <div>
-                        <img src="{{ asset('assets/img/logo.png') }}" alt="NeoUX Logo" class="h-12 mb-2 brightness-0 invert">
-                        <p class="text-sm opacity-90">Platform by HUNTR</p>
+                        @if($company->logo)
+                            <img src="{{ asset('storage/' . $company->logo) }}" alt="{{ $company->name }} Logo" class="h-12 mb-2 brightness-0 invert">
+                        @else
+                            <div class="text-xl font-bold mb-1">{{ $company->name }}</div>
+                        @endif
+                        <p class="text-sm opacity-90">Powered by HUNTR</p>
                     </div>
                     <div class="text-right">
-                        <h1 class="text-3xl font-bold mb-1">PURCHASE ORDER</h1>
+                        <h1 class="text-3xl font-bold mb-1">INVOICE</h1>
                         <p class="text-lg font-mono">{{ $invoice->purchaseOrder->invoice_number }}</p>
                     </div>
                 </div>
@@ -132,13 +139,8 @@
                 <div class="grid grid-cols-2 gap-8 mt-8">
                     {{-- Vendor Company Representative (Issuing Invoice) --}}
                     <div class="text-center">
-                        <div class="h-16 flex items-end justify-center mb-2">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-400 italic mb-1">Digital Signature</p>
-                                <p class="font-mono text-sm text-gray-500 border border-gray-300 px-3 py-1 rounded bg-gray-50">
-                                    {{ md5($invoice->purchaseOrder->vendorCompany->user->email . $invoice->created_at) }}
-                                </p>
-                            </div>
+                        <div class="h-24 flex items-center justify-center mb-2">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|VENDOR|' . $invoice->created_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Vendor Representative</p>
@@ -150,13 +152,8 @@
 
                     {{-- Buyer Company Representative --}}
                     <div class="text-center">
-                        <div class="h-16 flex items-end justify-center mb-2">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-400 italic mb-1">Digital Signature</p>
-                                <p class="font-mono text-sm text-gray-500 border border-gray-300 px-3 py-1 rounded bg-gray-50">
-                                    {{ md5($invoice->purchaseOrder->purchaseRequisition->user->email . $invoice->created_at) }}
-                                </p>
-                            </div>
+                        <div class="h-24 flex items-center justify-center mb-2">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|BUYER|' . $invoice->created_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Buyer Representative</p>
