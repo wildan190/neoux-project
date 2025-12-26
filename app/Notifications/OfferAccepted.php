@@ -28,7 +28,7 @@ class OfferAccepted extends Notification implements ShouldBroadcast, ShouldQueue
         return [
             'type' => 'offer_accepted',
             'title' => 'Bid Won!',
-            'message' => 'Your offer for PR ' . ($this->offer->purchaseRequisition->pr_number ?? '') . ' has been accepted.',
+            'message' => 'Your offer for PR '.($this->offer->purchaseRequisition->pr_number ?? '').' has been accepted.',
             'url' => route('procurement.offers.show', $this->offer->id),
             'action_text' => 'View Details',
             'offer_id' => $this->offer->id,

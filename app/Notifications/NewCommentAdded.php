@@ -28,7 +28,7 @@ class NewCommentAdded extends Notification implements ShouldBroadcast, ShouldQue
         return [
             'type' => 'new_comment',
             'title' => 'New Comment on PR',
-            'message' => 'New comment from ' . ($this->comment->user->name ?? 'someone') . ' on PR ' . ($this->comment->purchaseRequisition->pr_number ?? ''),
+            'message' => 'New comment from '.($this->comment->user->name ?? 'someone').' on PR '.($this->comment->purchaseRequisition->pr_number ?? ''),
             'url' => route('procurement.pr.show', $this->comment->purchase_requisition_id),
             'action_text' => 'View Comment',
             'comment_id' => $this->comment->id,
