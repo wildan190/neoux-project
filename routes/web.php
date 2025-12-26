@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/po/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('po.show');
         Route::get('/po/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('po.print');
         Route::get('/po/{purchaseOrder}/download-pdf', [PurchaseOrderController::class, 'downloadPdf'])->name('po.download-pdf');
+        Route::post('/po/{purchaseOrder}/confirm', [PurchaseOrderController::class, 'confirm'])->name('po.confirm');
         Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
 
         // Goods Receipts

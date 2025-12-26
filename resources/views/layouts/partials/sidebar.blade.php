@@ -41,10 +41,15 @@
 
     {{-- Navigation --}}
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        <a href="/dashboard"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('dashboard') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+        @php
+            $dashboardRoute = session('selected_company_id') ? route('company.dashboard') : route('dashboard');
+            $isDashboardActive = request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
+        @endphp
+
+        <a href="{{ $dashboardRoute }}"
+            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ $isDashboardActive ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
             <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('dashboard') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                class="w-9 h-9 rounded-lg flex items-center justify-center {{ $isDashboardActive ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="w-5 h-5">
@@ -54,24 +59,6 @@
             </div>
             <span class="ml-3">Dashboard</span>
         </a>
-
-        @if(session('selected_company_id'))
-            <a href="{{ route('company.dashboard') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('company.dashboard') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('company.dashboard') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                </div>
-                <span class="ml-3">Company Dashboard</span>
-            </a>
-        @endif
 
         <a href="{{ route('companies.index') }}"
             class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('companies.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
