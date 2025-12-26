@@ -161,6 +161,8 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    Route::get('/settings', [\App\Modules\User\Presentation\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/notifications', [\App\Modules\User\Presentation\Http\Controllers\SettingsController::class, 'updateNotifications'])->name('settings.notifications.update');
     Route::get('/profile', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile/details', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updateDetails'])->name('profile.details.update');
     Route::post('/profile/photo', [\App\Modules\User\Presentation\Http\Controllers\ProfileController::class, 'updatePhoto'])->name('profile.photo.update');

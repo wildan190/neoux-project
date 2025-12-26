@@ -282,10 +282,10 @@
             </a>
         @endif
 
-        <a href="/settings"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group text-gray-300 hover:bg-gray-700/50 hover:text-white">
+        <a href="{{ route('settings.index') }}"
+            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('settings.*') ? 'bg-primary-600/10 text-primary-500' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
             <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-700/50 group-hover:bg-gray-600/50 transition-colors">
+                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('settings.*') ? 'bg-primary-600/20 text-primary-500' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="w-5 h-5">

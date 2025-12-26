@@ -5,11 +5,12 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Modules\User\Application\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
 
 class NewCommentAdded extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable;
+    use Queueable, CheckNotificationSettings;
 
     protected $comment;
 
@@ -20,6 +21,10 @@ class NewCommentAdded extends Notification implements ShouldBroadcast, ShouldQue
 
     public function via(object $notifiable): array
     {
+        if (!$this->isNotificationEnabled($notifiable, 'comments')) {
+            return [];
+        }
+
         return ['database', 'broadcast'];
     }
 
@@ -28,7 +33,7 @@ class NewCommentAdded extends Notification implements ShouldBroadcast, ShouldQue
         return [
             'type' => 'new_comment',
             'title' => 'New Comment on PR',
-            'message' => 'New comment from '.($this->comment->user->name ?? 'someone').' on PR '.($this->comment->purchaseRequisition->pr_number ?? ''),
+            'message' => 'New comment from ' . ($this->comment->user->name ?? 'someone') . ' on PR ' . ($this->comment->purchaseRequisition->pr_number ?? ''),
             'url' => route('procurement.pr.show', $this->comment->purchase_requisition_id),
             'action_text' => 'View Comment',
             'comment_id' => $this->comment->id,

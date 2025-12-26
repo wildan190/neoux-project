@@ -6,11 +6,12 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Modules\User\Application\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
 
 class PurchaseOrderConfirmed extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable;
+    use Queueable, CheckNotificationSettings;
 
     protected $purchaseOrder;
 
@@ -21,6 +22,10 @@ class PurchaseOrderConfirmed extends Notification implements ShouldBroadcast, Sh
 
     public function via(object $notifiable): array
     {
+        if (!$this->isNotificationEnabled($notifiable, 'po_confirmed')) {
+            return [];
+        }
+
         return ['database', 'broadcast'];
     }
 
