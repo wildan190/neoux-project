@@ -102,6 +102,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's notification settings.
+     */
+    public function notificationSettings()
+    {
+        return $this->hasMany(\App\Modules\User\Domain\Models\UserNotificationSetting::class);
+    }
+
+    /**
      * Create a new factory instance for the model.
      */
     protected static function newFactory()

@@ -5,11 +5,12 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Modules\User\Application\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
 
 class NewOfferReceived extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable;
+    use Queueable, CheckNotificationSettings;
 
     protected $offer;
 
@@ -20,6 +21,10 @@ class NewOfferReceived extends Notification implements ShouldBroadcast, ShouldQu
 
     public function via(object $notifiable): array
     {
+        if (!$this->isNotificationEnabled($notifiable, 'new_offers')) {
+            return [];
+        }
+
         return ['database', 'broadcast'];
     }
 
@@ -28,7 +33,7 @@ class NewOfferReceived extends Notification implements ShouldBroadcast, ShouldQu
         return [
             'type' => 'new_offer',
             'title' => 'New Offer Received',
-            'message' => 'Your Purchase Requisition '.($this->offer->purchaseRequisition->pr_number ?? '').' received a new offer from '.($this->offer->company->name ?? 'a vendor'),
+            'message' => 'Your Purchase Requisition ' . ($this->offer->purchaseRequisition->pr_number ?? '') . ' received a new offer from ' . ($this->offer->company->name ?? 'a vendor'),
             'url' => route('procurement.pr.show', $this->offer->purchase_requisition_id),
             'action_text' => 'View Offer',
             'offer_id' => $this->offer->id,
