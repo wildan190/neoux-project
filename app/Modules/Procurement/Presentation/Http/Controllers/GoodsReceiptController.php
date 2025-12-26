@@ -7,6 +7,7 @@ use App\Modules\Procurement\Domain\Models\GoodsReceipt;
 use App\Modules\Procurement\Domain\Models\GoodsReceiptItem;
 use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use App\Notifications\GoodsReceiptCreated;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ class GoodsReceiptController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -26,7 +27,7 @@ class GoodsReceiptController extends Controller
             }
         }
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -37,6 +38,12 @@ class GoodsReceiptController extends Controller
         // Only Buyer can create GR
         if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
             abort(403, 'Unauthorized to create Goods Receipt.');
+        }
+
+        // Block if PO is not confirmed
+        if ($purchaseOrder->status === 'issued') {
+            return redirect()->route('procurement.po.show', $purchaseOrder)
+                ->with('error', 'Purchase Order must be confirmed by the vendor before receiving goods.');
         }
 
         // Check if PO is already fully received
@@ -69,7 +76,7 @@ class GoodsReceiptController extends Controller
         }
 
         // Block if fully received AND no replacement pending
-        if ($totalReceived >= $totalOrdered && ! $hasReplacementPending) {
+        if ($totalReceived >= $totalOrdered && !$hasReplacementPending) {
             return redirect()->route('procurement.po.show', $purchaseOrder)
                 ->with('error', 'All items have been fully received. No more goods receipt can be created.');
         }
@@ -83,7 +90,7 @@ class GoodsReceiptController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -93,6 +100,12 @@ class GoodsReceiptController extends Controller
 
         if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
             abort(403, 'Unauthorized to create Goods Receipt.');
+        }
+
+        // Block if PO is not confirmed
+        if ($purchaseOrder->status === 'issued') {
+            return redirect()->route('procurement.po.show', $purchaseOrder)
+                ->with('error', 'Purchase Order must be confirmed by the vendor before receiving goods.');
         }
 
         $request->validate([
@@ -115,7 +128,7 @@ class GoodsReceiptController extends Controller
 
         foreach ($request->items as $itemData) {
             $poItem = $purchaseOrder->items->where('id', $itemData['po_item_id'])->first();
-            if (! $poItem) {
+            if (!$poItem) {
                 return back()->with('error', 'Invalid purchase order item.');
             }
 
@@ -148,7 +161,7 @@ class GoodsReceiptController extends Controller
                 $totalWillBeReceived = $alreadyReceived + $nowReceiving;
 
                 if ($totalWillBeReceived > $poItem->quantity_ordered) {
-                    return back()->with('error', "Cannot receive {$nowReceiving} units of '{$poItem->purchaseRequisitionItem->catalogueItem->name}'. Only ".($poItem->quantity_ordered - $alreadyReceived).' units remaining.');
+                    return back()->with('error', "Cannot receive {$nowReceiving} units of '{$poItem->purchaseRequisitionItem->catalogueItem->name}'. Only " . ($poItem->quantity_ordered - $alreadyReceived) . ' units remaining.');
                 }
             }
         }
@@ -156,7 +169,7 @@ class GoodsReceiptController extends Controller
         DB::beginTransaction();
         try {
             // Generate GR Number
-            $grNumber = 'GR-'.date('Y').'-'.strtoupper(Str::random(6));
+            $grNumber = 'GR-' . date('Y') . '-' . strtoupper(Str::random(6));
 
             $goodsReceipt = GoodsReceipt::create([
                 'gr_number' => $grNumber,
@@ -243,7 +256,7 @@ class GoodsReceiptController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create Goods Receipt: '.$e->getMessage());
+            return back()->with('error', 'Failed to create Goods Receipt: ' . $e->getMessage());
         }
     }
 
@@ -251,7 +264,7 @@ class GoodsReceiptController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -266,7 +279,7 @@ class GoodsReceiptController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to print this Delivery Order.');
         }
 
@@ -284,7 +297,7 @@ class GoodsReceiptController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -299,7 +312,7 @@ class GoodsReceiptController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to download this Delivery Order.');
         }
 
@@ -310,8 +323,8 @@ class GoodsReceiptController extends Controller
             'receivedBy',
         ]);
 
-        $pdf = \PDF::loadView('procurement.gr.pdf', compact('goodsReceipt'));
+        $pdf = Pdf::loadView('procurement.gr.pdf', compact('goodsReceipt'));
 
-        return $pdf->download('DO-'.$goodsReceipt->gr_number.'.pdf');
+        return $pdf->download('DO-' . $goodsReceipt->gr_number . '.pdf');
     }
 }

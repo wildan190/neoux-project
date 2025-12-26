@@ -95,48 +95,47 @@
 
                                         <div class="max-h-[300px] overflow-y-auto p-2 space-y-1">
                                             @foreach($userCompanies as $company)
-                                                                            <form action="{{ route('dashboard.select-company', $company->id) }}"
-                                                                                method="POST">
-                                                                                @csrf
-                                                                                <button type="submit"
-                                                                                    class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id
-                                                ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
-                                                : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }}">
-                                                                                    <div
-                                                                                        class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id
-                                                ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }}">
-                                                                                        @if($company->id == $selectedCompany->id)
-                                                                                            <i data-feather="check" class="w-4 h-4"></i>
-                                                                                        @else
-                                                                                            <span
-                                                                                                class="text-xs font-bold">{{ substr($company->name, 0, 1) }}</span>
-                                                                                        @endif
-                                                                                    </div>
+                                                <form action="{{ route('dashboard.select-company', $company->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    <button type="submit"
+                                                        class="w-full flex items-center gap-3 p-2 rounded-xl transition
+                                                        {{ $company->id == $selectedCompany->id
+                                                            ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
+                                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
+                                                        }}">
+                                                        <div
+                                                            class="w-8 h-8 rounded-lg flex items-center justify-center
+                                                            {{ $company->id == $selectedCompany->id
+                                                                ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                                                            }}">
+                                                            @if($company->id == $selectedCompany->id)
+                                                                <i data-feather="check" class="w-4 h-4"></i>
+                                                            @else
+                                                                <span class="text-xs font-bold">{{ substr($company->name, 0, 1) }}</span>
+                                                            @endif
+                                                        </div>
 
-                                                                                    <div class="text-left flex-1 min-w-0">
-                                                                                        <p
-                                                                                            class="text-sm font-semibold truncate
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
-                                                                                            {{ $company->name }}
-                                                                                        </p>
-                                                                                        <div class="flex items-center gap-2">
-                                                                                            <span class="w-1.5 h-1.5 rounded-full
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ in_array($company->status, ['approved', 'active'])
-                                                ? 'bg-green-500'
-                                                : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
-                                                                                            </span>
-                                                                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                                                                {{ $company->status }}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </button>
-                                                                            </form>
+                                                        <div class="text-left flex-1 min-w-0">
+                                                            <p
+                                                                class="text-sm font-semibold truncate
+                                                                {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                {{ $company->name }}
+                                                            </p>
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="w-1.5 h-1.5 rounded-full
+                                                                    {{ in_array($company->status, ['approved', 'active'])
+                                                                        ? 'bg-green-500'
+                                                                        : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
+                                                                </span>
+                                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                                    {{ $company->status }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                </form>
                                             @endforeach
                                         </div>
 
@@ -208,13 +207,11 @@
     {{-- CLEAN FIXED JAVASCRIPT --}}
     {{-- ===================================================== --}}
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-
+        document.addEventListener("DOMContentLoaded", function() {
 
             /* ---------------------------
              * FEATHER ICONS
              * --------------------------- */
-            // Ensure DOM is fully loaded before replacing icons
             if (typeof feather !== 'undefined') {
                 feather.replace();
             }
@@ -222,44 +219,45 @@
             /* ---------------------------
              * DARK MODE SYSTEM
              * --------------------------- */
-            const htmlEl = document.documentElement;
-            const darkIcon = document.getElementById('darkIcon');
-            const darkToggle = document.getElementById('darkModeToggle');
+            var htmlEl = document.documentElement;
+            var darkIcon = document.getElementById('darkIcon');
+            var darkToggle = document.getElementById('darkModeToggle');
 
-            const savedTheme = localStorage.getItem('theme');
+            var savedTheme = localStorage.getItem('theme');
 
             if (savedTheme === 'dark') {
                 htmlEl.classList.add('dark');
-                darkIcon.dataset.feather = 'sun';
+                if (darkIcon) darkIcon.dataset.feather = 'sun';
             }
 
-            // Replace icons after theme is set
             if (typeof feather !== 'undefined') {
                 feather.replace();
             }
 
-            darkToggle.addEventListener('click', () => {
-                htmlEl.classList.toggle('dark');
-                const isDark = htmlEl.classList.contains('dark');
-
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-
-                darkIcon.dataset.feather = isDark ? 'sun' : 'moon';
-                if (typeof feather !== 'undefined') {
-                    feather.replace();
-                }
-            });
+            if (darkToggle) {
+                darkToggle.addEventListener('click', function() {
+                    htmlEl.classList.toggle('dark');
+                    var isDark = htmlEl.classList.contains('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    if (darkIcon) {
+                        darkIcon.dataset.feather = isDark ? 'sun' : 'moon';
+                    }
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                });
+            }
 
             /* ---------------------------
              * NOTIFICATION SYSTEM
              * --------------------------- */
-            const notifButton = document.getElementById('notificationButton');
-            const notifMenu = document.getElementById('notificationMenu');
-            const notifBadge = document.getElementById('notificationBadge');
-            const notifList = document.getElementById('notificationList');
+            var notifButton = document.getElementById('notificationButton');
+            var notifMenu = document.getElementById('notificationMenu');
+            var notifBadge = document.getElementById('notificationBadge');
+            var notifList = document.getElementById('notificationList');
 
             if (notifButton) {
-                notifButton.addEventListener('click', (e) => {
+                notifButton.addEventListener('click', function(e) {
                     e.stopPropagation();
                     notifMenu.classList.toggle('hidden');
                     if (!notifMenu.classList.contains('hidden')) {
@@ -268,233 +266,218 @@
                 });
             }
 
-            document.addEventListener('click', (e) => {
+            document.addEventListener('click', function(e) {
                 if (notifMenu && !notifMenu.contains(e.target) && !notifButton.contains(e.target)) {
                     notifMenu.classList.add('hidden');
                 }
             });
 
-            window.fetchLatestNotifications = async function () {
-                try {
-                    const res = await fetch('{{ route('notifications.latest') }}');
-                    const data = await res.json();
-                    renderNotifications(data.notifications);
-                } catch (err) {
-                    console.error('Failed to fetch notifications', err);
-                }
-            }
-
-            async function fetchLatestNotifications() {
-                return window.fetchLatestNotifications();
-            }
+            window.fetchLatestNotifications = function() {
+                fetch('{{ route('notifications.latest') }}')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        renderNotifications(data.notifications);
+                    })
+                    .catch(function(err) {
+                        console.error('Failed to fetch notifications', err);
+                    });
+            };
 
             function renderNotifications(notifications) {
                 if (!notifList) return;
 
                 if (notifications.length === 0) {
-                    notifList.innerHTML = '<div class="p-8 text-center"><div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3"><i data-feather="bell-off" class="w-6 h-6 text-gray-400"></i></div><p class="text-xs text-gray-500 dark:text-gray-400">No notifications yet</p></div>';
-                    feather.replace();
+                    notifList.innerHTML = '<div class="p-8 text-center">' +
+                        '<div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3">' +
+                        '<i data-feather="bell-off" class="w-6 h-6 text-gray-400"></i>' +
+                        '</div>' +
+                        '<p class="text-xs text-gray-500 dark:text-gray-400">No notifications yet</p>' +
+                        '</div>';
+                    if (typeof feather !== 'undefined') feather.replace();
                     return;
                 }
 
-                notifList.innerHTML = notifications.map(n => `
-                    <a href="/notifications/${n.id}/mark-as-read" class="block p-5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ${n.read_at ? 'opacity-60' : ''}" onclick="event.preventDefault(); markAsReadLocal('${n.id}', '${n.data.url}')">
-                        <div class="flex gap-4">
-                            <div class="w-2.5 h-2.5 ${n.read_at ? 'bg-transparent' : 'bg-primary-600'} rounded-full mt-1.5 flex-shrink-0"></div>
-                            <div class="min-w-0 flex-1">
-                                <div class="flex justify-between items-start gap-2">
-                                    <p class="text-[12px] font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">${n.data.title}</p>
-                                    <p class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">${new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                </div>
-                                <p class="text-[13px] text-gray-600 dark:text-gray-400 line-clamp-2 mt-1 leading-relaxed">${n.data.message}</p>
-                            </div>
-                        </div>
-                    </a>
-                `).join('');
+                notifList.innerHTML = notifications.map(function(n) {
+                    var title = n.data.title || '';
+                    var message = n.data.message || '';
+                    var url = n.data.url || '';
+                    var readClass = n.read_at ? 'opacity-60' : '';
+                    var dotClass = n.read_at ? 'bg-transparent' : 'bg-primary-600';
+                    var timeStr = new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    return '<a href="#" class="block p-5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ' + readClass + '" ' +
+                        'onclick="event.preventDefault(); markAsReadLocal(\'' + n.id + '\', \'' + url + '\')">' +
+                        '<div class="flex gap-4">' +
+                        '<div class="w-2.5 h-2.5 ' + dotClass + ' rounded-full mt-1.5 flex-shrink-0"></div>' +
+                        '<div class="min-w-0 flex-1">' +
+                        '<div class="flex justify-between items-start gap-2">' +
+                        '<p class="text-[12px] font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">' + title + '</p>' +
+                        '<p class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">' + timeStr + '</p>' +
+                        '</div>' +
+                        '<p class="text-[13px] text-gray-600 dark:text-gray-400 line-clamp-2 mt-1 leading-relaxed">' + message + '</p>' +
+                        '</div>' +
+                        '</div>' +
+                        '</a>';
+                }).join('');
             }
 
-            window.markAsReadLocal = async (id, url) => {
-                try {
-                    await fetch(`/notifications/${id}/mark-as-read`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    });
+            window.markAsReadLocal = function(id, url) {
+                fetch('/notifications/' + id + '/mark-as-read', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                }).finally(function() {
                     if (url && url !== 'null' && url !== 'undefined') {
                         window.location.href = url;
                     } else {
                         window.location.reload();
                     }
-                } catch (err) {
-                    if (url && url !== 'null' && url !== 'undefined') {
-                        window.location.href = url;
-                    } else {
-                        window.location.reload();
-                    }
-                }
+                });
             };
 
-            window.markAllNotificationsRead = async () => {
-                try {
-                    await fetch('{{ route('notifications.mark-all-as-read') }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    });
-                    fetchLatestNotifications();
-                    updateUnreadCount(false); // don't trigger toast
-                } catch (err) {
+            window.markAllNotificationsRead = function() {
+                fetch('{{ route('notifications.mark-all-as-read') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                }).then(function() {
+                    window.fetchLatestNotifications();
+                    window.updateUnreadCount(false);
+                }).catch(function(err) {
                     console.error('Failed to mark all as read', err);
-                }
+                });
             };
 
-            let lastUnreadCount = -1;
+            var lastUnreadCount = -1;
 
-            window.updateUnreadCount = async function (triggerToast = true) {
-                try {
-                    const res = await fetch('{{ route('notifications.unread-count') }}');
-                    const data = await res.json();
+            window.updateUnreadCount = function(triggerToast) {
+                if (typeof triggerToast === 'undefined') triggerToast = true;
 
-                    if (notifBadge) {
-                        if (data.count > 0) {
-                            notifBadge.classList.remove('hidden');
-                        } else {
-                            notifBadge.classList.add('hidden');
+                fetch('{{ route('notifications.unread-count') }}')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (notifBadge) {
+                            if (data.count > 0) {
+                                notifBadge.classList.remove('hidden');
+                            } else {
+                                notifBadge.classList.add('hidden');
+                            }
                         }
-                    }
 
-                    // Detection for new notifications (Toast)
-                    if (lastUnreadCount !== -1 && data.count > lastUnreadCount && triggerToast) {
-                        showToast('You have a new notification', 'success');
-                        // Optional: Refresh list if menu is open
-                        if (notifMenu && !notifMenu.classList.contains('hidden')) {
-                            window.fetchLatestNotifications();
+                        if (lastUnreadCount !== -1 && data.count > lastUnreadCount && triggerToast) {
+                            window.showToast('You have a new notification', 'success');
+                            if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                                window.fetchLatestNotifications();
+                            }
                         }
-                    }
+                        lastUnreadCount = data.count;
+                    })
+                    .catch(function(err) {
+                        console.error('Failed to fetch unread count', err);
+                    });
+            };
 
-                    lastUnreadCount = data.count;
-                } catch (err) {
-                    console.error('Failed to fetch unread count', err);
-                }
-            }
-
-            async function updateUnreadCount(triggerToast = true) {
-                return window.updateUnreadCount(triggerToast);
-            }
-
-            // Initial check
-            updateUnreadCount(false);
-
-            /* ---------------------------
-             * REAL-TIME NOTIFICATIONS (ECHO)
-             * --------------------------- */
-            // Centralized in echo.js
+            window.updateUnreadCount(false);
 
             /* ---------------------------
              * TOAST SYSTEM
              * --------------------------- */
-            const toastContainer = document.createElement('div');
-            toastContainer.id = 'toastContainer';
-            toastContainer.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
-            document.body.appendChild(toastContainer);
+            var toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
+                document.body.appendChild(toastContainer);
+            }
 
-            window.showToast = (message, type = 'success') => {
-                const toast = document.createElement('div');
-                toast.className = `p-4 px-6 rounded-2xl shadow-2xl transform transition-all duration-300 translate-y-12 opacity-0 flex items-center gap-4 bg-white dark:bg-gray-800 border ${type === 'success'
-                    ? 'border-green-100 dark:border-green-900/30'
-                    : 'border-red-100 dark:border-red-900/30'
-                    } pointer-events-auto`;
+            window.showToast = function(message, type) {
+                if (!type) type = 'success';
+                var toast = document.createElement('div');
+                var bgColorClass = type === 'success' ? 'border-green-100 dark:border-green-900/30' : 'border-red-100 dark:border-red-900/30';
+                var colorClass = type === 'success' ? 'text-green-500' : 'text-red-500';
+                var iconName = type === 'success' ? 'check-circle' : 'alert-circle';
 
-                const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-                const color = type === 'success' ? 'text-green-500' : 'text-red-500';
-
-                toast.innerHTML = `
-                    <div class="${color}">
-                        <i data-feather="${icon}" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-gray-900 dark:text-white">${message}</p>
-                    </div>
-                `;
+                toast.className = 'p-4 px-6 rounded-2xl shadow-2xl transform transition-all duration-300 translate-y-12 opacity-0 flex items-center gap-4 bg-white dark:bg-gray-800 border ' + bgColorClass + ' pointer-events-auto';
+                
+                toast.innerHTML = '<div class="' + colorClass + '">' +
+                    '<i data-feather="' + iconName + '" class="w-6 h-6"></i>' +
+                    '</div>' +
+                    '<div>' +
+                    '<p class="text-sm font-bold text-gray-900 dark:text-white">' + message + '</p>' +
+                    '</div>';
 
                 toastContainer.appendChild(toast);
                 if (typeof feather !== 'undefined') feather.replace();
 
-                // Entrance
-                requestAnimationFrame(() => {
+                requestAnimationFrame(function() {
                     toast.classList.remove('translate-y-12', 'opacity-0');
                     toast.classList.add('translate-y-0', 'opacity-100');
                 });
 
-                // Auto remove
-                setTimeout(() => {
+                setTimeout(function() {
                     toast.classList.remove('translate-y-0', 'opacity-100');
                     toast.classList.add('translate-x-12', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
+                    setTimeout(function() { toast.remove(); }, 300);
                 }, 4000);
             };
 
-            // Check for session messages
+            // Session messages
             @if(session('success'))
-                showToast('{{ session('success') }}', 'success');
+                window.showToast({{ Js::from(session('success')) }}, 'success');
             @endif
             @if(session('error'))
-                showToast('{{ session('error') }}', 'error');
+                window.showToast({{ Js::from(session('error')) }}, 'error');
             @endif
 
             /* ---------------------------
              * MOBILE SIDEBAR
              * --------------------------- */
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('overlay');
+            var toggleBtn = document.getElementById('toggleSidebar');
 
-            // Mobile default: hide sidebar
-            if (window.innerWidth < 768) {
+            if (sidebar && window.innerWidth < 768) {
                 sidebar.classList.add('-translate-x-full');
             }
 
-            // Open Sidebar
-            toggleBtn?.addEventListener('click', () => {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            });
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    if (sidebar) sidebar.classList.remove('-translate-x-full');
+                    if (overlay) overlay.classList.remove('hidden');
+                });
+            }
 
-            // Close when overlay clicked
-            overlay?.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            });
-
-            // Adjust on resize
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
-                    sidebar.classList.remove('-translate-x-full');
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    if (sidebar) sidebar.classList.add('-translate-x-full');
                     overlay.classList.add('hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                if (sidebar) {
+                    if (window.innerWidth >= 768) {
+                        sidebar.classList.remove('-translate-x-full');
+                        if (overlay) overlay.classList.add('hidden');
+                    } else {
+                        sidebar.classList.add('-translate-x-full');
+                    }
                 }
             });
 
-        });
-    </script>
-
-    @stack('scripts')
-
-    <!-- Global SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+            /* ---------------------------
+             * SWEETALERT2
+             * --------------------------- */
             // Success Message
             @if(session('success'))
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',
-                    text: "{{ session('success') }}",
+                    text: {{ Js::from(session('success')) }},
                     confirmButtonColor: '#4f46e5',
                     timer: 3000
                 });
@@ -505,28 +488,34 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: "{{ session('error') }}",
+                    text: {{ Js::from(session('error')) }},
                     confirmButtonColor: '#ef4444'
                 });
             @endif
 
             // Validation Errors
             @if($errors->any())
+                var errorHtml = '<ul class="text-left text-sm">';
+                @foreach($errors->all() as $error)
+                    errorHtml += '<li>• ' + {{ Js::from($error) }} + '</li>';
+                @endforeach
+                errorHtml += '</ul>';
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Validation Error',
-                    html: `
-                                                                    <ul class="text-left text-sm">
-                                                                        @foreach($errors->all() as $error)
-                                                                            <li>• {{ $error }}</li>
-                                                                        @endforeach
-                                                                    </ul>
-                                                                `,
+                    html: errorHtml,
                     confirmButtonColor: '#ef4444'
                 });
             @endif
+
         });
     </script>
+
+    @stack('scripts')
+
+    <!-- Global SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

@@ -23,10 +23,12 @@ class PurchaseOrder extends Model
         'created_by_user_id',
         'total_amount',
         'status',
+        'confirmed_at',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'confirmed_at' => 'datetime',
     ];
 
     public function purchaseRequisition(): BelongsTo
@@ -95,7 +97,7 @@ class PurchaseOrder extends Model
      */
     public function getFormattedAdjustedTotalAmountAttribute(): string
     {
-        return 'Rp '.number_format($this->adjusted_total_amount, 2, ',', '.');
+        return 'Rp ' . number_format($this->adjusted_total_amount, 2, ',', '.');
     }
 
     /**
@@ -108,7 +110,7 @@ class PurchaseOrder extends Model
 
     public function getFormattedTotalAmountAttribute(): string
     {
-        return 'Rp '.number_format($this->total_amount, 2, ',', '.');
+        return 'Rp ' . number_format($this->total_amount, 2, ',', '.');
     }
 
     /**
@@ -116,6 +118,6 @@ class PurchaseOrder extends Model
      */
     public function getFormattedTotalDeductionAttribute(): string
     {
-        return 'Rp '.number_format($this->total_deduction, 2, ',', '.');
+        return 'Rp ' . number_format($this->total_deduction, 2, ',', '.');
     }
 }

@@ -7,6 +7,8 @@ use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use App\Modules\Procurement\Domain\Models\PurchaseOrderItem;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
+use App\Notifications\PurchaseOrderConfirmed;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,7 +19,7 @@ class PurchaseOrderController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -53,7 +55,7 @@ class PurchaseOrderController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this Purchase Order.');
         }
 
@@ -70,6 +72,42 @@ class PurchaseOrderController extends Controller
         return view('procurement.po.show', compact('purchaseOrder', 'isBuyer', 'isVendor'));
     }
 
+    public function confirm(PurchaseOrder $purchaseOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+
+        // Only Vendor can confirm
+        if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
+            abort(403, 'Unauthorized to confirm this Purchase Order.');
+        }
+
+        if ($purchaseOrder->status !== 'issued') {
+            return back()->with('error', 'Purchase Order is already ' . $purchaseOrder->status);
+        }
+
+        DB::beginTransaction();
+        try {
+            $purchaseOrder->update([
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+            ]);
+
+            DB::commit();
+
+            // Notify Buyer (the user who created the PO)
+            if ($purchaseOrder->createdBy) {
+                $purchaseOrder->createdBy->notify(new PurchaseOrderConfirmed($purchaseOrder));
+                \Illuminate\Support\Facades\Log::info('PO Confirmation notification sent to: ' . $purchaseOrder->createdBy->email);
+            }
+
+            return redirect()->back()->with('success', 'Purchase Order confirmed successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Failed to confirm Purchase Order: ' . $e->getMessage());
+        }
+    }
+
     public function print(PurchaseOrder $purchaseOrder)
     {
         $selectedCompanyId = session('selected_company_id');
@@ -78,7 +116,7 @@ class PurchaseOrderController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to print this Purchase Order.');
         }
 
@@ -95,15 +133,15 @@ class PurchaseOrderController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to download this Purchase Order.');
         }
 
         $purchaseOrder->load(['items.purchaseRequisitionItem.catalogueItem', 'vendorCompany', 'createdBy', 'purchaseRequisition.company']);
 
-        $pdf = \PDF::loadView('procurement.po.pdf', compact('purchaseOrder'));
+        $pdf = Pdf::loadView('procurement.po.pdf', compact('purchaseOrder'));
 
-        return $pdf->download('PO-'.$purchaseOrder->po_number.'.pdf');
+        return $pdf->download('PO-' . $purchaseOrder->po_number . '.pdf');
     }
 
     public function generate(PurchaseRequisition $purchaseRequisition)
@@ -115,7 +153,7 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized to generate PO for this requisition.');
         }
 
-        if (! $purchaseRequisition->winning_offer_id) {
+        if (!$purchaseRequisition->winning_offer_id) {
             return back()->with('error', 'No winning offer selected for this requisition.');
         }
 
@@ -128,7 +166,7 @@ class PurchaseOrderController extends Controller
         DB::beginTransaction();
         try {
             // Generate PO Number (PO-YYYY-RANDOM)
-            $poNumber = 'PO-'.date('Y').'-'.strtoupper(Str::random(6));
+            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
 
             $purchaseOrder = PurchaseOrder::create([
                 'po_number' => $poNumber,
@@ -168,7 +206,7 @@ class PurchaseOrderController extends Controller
                 }
             } catch (\Exception $e) {
                 // Don't rollback if email fails, just log it
-                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: '.$e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
             }
 
             return redirect()->route('procurement.po.show', $purchaseOrder)
@@ -177,7 +215,7 @@ class PurchaseOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to generate Purchase Order: '.$e->getMessage());
+            return back()->with('error', 'Failed to generate Purchase Order: ' . $e->getMessage());
         }
     }
 }
