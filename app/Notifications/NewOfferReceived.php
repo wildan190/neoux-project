@@ -28,7 +28,7 @@ class NewOfferReceived extends Notification implements ShouldBroadcast, ShouldQu
         return [
             'type' => 'new_offer',
             'title' => 'New Offer Received',
-            'message' => 'Your Purchase Requisition ' . ($this->offer->purchaseRequisition->pr_number ?? '') . ' received a new offer from ' . ($this->offer->company->name ?? 'a vendor'),
+            'message' => 'Your Purchase Requisition '.($this->offer->purchaseRequisition->pr_number ?? '').' received a new offer from '.($this->offer->company->name ?? 'a vendor'),
             'url' => route('procurement.pr.show', $this->offer->purchase_requisition_id),
             'action_text' => 'View Offer',
             'offer_id' => $this->offer->id,
