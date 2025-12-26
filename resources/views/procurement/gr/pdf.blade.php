@@ -163,7 +163,7 @@
         .signature-line {
             border-top: 2px solid #333;
             padding-top: 10px;
-            margin-top: 60px;
+            margin-top: 15px;
         }
 
         .footer {
@@ -177,12 +177,26 @@
     </style>
 </head>
 
+@php
+    $company = $goodsReceipt->purchaseOrder->purchaseRequisition->company;
+    $logoPath = $company->logo ? public_path('storage/' . $company->logo) : null;
+    $logoData = "";
+    if ($logoPath && file_exists($logoPath)) {
+        $logoData = base64_encode(file_get_contents($logoPath));
+        $mimeType = mime_content_type($logoPath);
+    }
+@endphp
+
 <body>
     <div class="header">
         <div class="header-flex">
             <div class="header-left">
-                <div style="font-size: 18px; font-weight: bold;">NeoUX</div>
-                <div style="font-size: 10px; opacity: 0.9;">Platform by HUNTR</div>
+                @if($logoData)
+                    <img src="data:{{ $mimeType }};base64,{{ $logoData }}" class="logo">
+                @else
+                    <div style="font-size: 18px; font-weight: bold;">{{ $company->name }}</div>
+                @endif
+                <div style="font-size: 10px; opacity: 0.9;">Powered by HUNTR</div>
             </div>
             <div class="header-right">
                 <h1>DELIVERY ORDER</h1>
@@ -203,7 +217,8 @@
         <div class="info-box">
             <h3>To (Buyer)</h3>
             <p style="font-weight: bold; font-size: 13px;">
-                {{ $goodsReceipt->purchaseOrder->purchaseRequisition->company->name }}</p>
+                {{ $goodsReceipt->purchaseOrder->purchaseRequisition->company->name }}
+            </p>
             <p>{{ $goodsReceipt->purchaseOrder->purchaseRequisition->company->email }}</p>
             @if($goodsReceipt->purchaseOrder->purchaseRequisition->company->phone)
                 <p>{{ $goodsReceipt->purchaseOrder->purchaseRequisition->company->phone }}</p>
@@ -260,7 +275,8 @@
             <tr class="total-row">
                 <td colspan="3" class="text-right" style="padding: 15px;">TOTAL ITEMS DELIVERED</td>
                 <td class="text-center total-amount" style="padding: 15px;">
-                    {{ $goodsReceipt->items->sum('quantity_received') }}</td>
+                    {{ $goodsReceipt->items->sum('quantity_received') }}
+                </td>
                 <td></td>
             </tr>
         </tfoot>
@@ -275,18 +291,30 @@
 
     <div class="signatures">
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($goodsReceipt->gr_number . '|DELIVERED|' . $goodsReceipt->created_at, 50) }}"
+                    style="width: 50px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Delivered By</div>
                 <div style="font-size: 9px; color: #666;">Vendor Representative</div>
             </div>
         </div>
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($goodsReceipt->gr_number . '|RECEIVED|' . $goodsReceipt->created_at, 50) }}"
+                    style="width: 50px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Received By</div>
                 <div style="font-size: 9px; color: #666;">{{ $goodsReceipt->receivedBy->name }}</div>
             </div>
         </div>
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($goodsReceipt->gr_number . '|ACKNOWLEDGED|' . $goodsReceipt->created_at, 50) }}"
+                    style="width: 50px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Acknowledged By</div>
                 <div style="font-size: 9px; color: #666;">Warehouse Manager</div>

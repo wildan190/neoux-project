@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Modules\Procurement\Presentation\Http\Controllers\DebitNoteController;
 use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
 use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReturnRequestController;
@@ -18,6 +19,12 @@ Route::get('/invitation/{token}', [\App\Modules\Company\Presentation\Http\Contro
 Route::post('/invitation/process', [\App\Modules\Company\Presentation\Http\Controllers\TeamController::class, 'processAcceptInvitation'])->name('team.process-acceptance');
 
 Route::middleware('auth')->group(function () {
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::get('/notifications/latest', [NotificationController::class, 'getLatestNotifications'])->name('notifications.latest');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/select-company/{company}', [\App\Http\Controllers\DashboardController::class, 'selectCompany'])->name('dashboard.select-company');
     Route::get('/company-dashboard', [\App\Modules\Company\Presentation\Http\Controllers\CompanyDashboardController::class, 'index'])->name('company.dashboard');

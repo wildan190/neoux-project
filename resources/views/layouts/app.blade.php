@@ -99,16 +99,16 @@
                                                                                 @csrf
                                                                                 <button type="submit"
                                                                                     class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
                                                                                     <div
                                                                                         class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
                                                                                         @if($company->id == $selectedCompany->id)
                                                                                             <i data-feather="check" class="w-4 h-4"></i>
                                                                                         @else
@@ -120,12 +120,12 @@
                                                                                     <div class="text-left flex-1 min-w-0">
                                                                                         <p
                                                                                             class="text-sm font-semibold truncate
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                                             {{ $company->name }}
                                                                                         </p>
                                                                                         <div class="flex items-center gap-2">
                                                                                             <span class="w-1.5 h-1.5 rounded-full
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
                                                 ? 'bg-green-500'
                                                 : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
                                                                                             </span>
@@ -151,6 +151,36 @@
                                 </div>
                             @endif
 
+
+                            {{-- Notifications --}}
+                            <div class="relative" id="notificationDropdown">
+                                <button id="notificationButton"
+                                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition relative">
+                                    <i data-feather="bell" class="w-5 h-5 text-gray-600 dark:text-gray-300"></i>
+                                    <span id="notificationBadge"
+                                        class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden border-2 border-white dark:border-gray-800"></span>
+                                </button>
+
+                                <div id="notificationMenu"
+                                    class="absolute right-0 mt-3 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 hidden overflow-hidden z-50">
+                                    <div
+                                        class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                        <h3 class="font-bold text-gray-900 dark:text-white">Notifications</h3>
+                                        <button onclick="markAllNotificationsRead()"
+                                            class="text-xs text-primary-600 hover:text-primary-700 font-bold">Mark all
+                                            read</button>
+                                    </div>
+                                    <div id="notificationList" class="max-h-80 overflow-y-auto">
+                                        <div class="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">Loading...
+                                        </div>
+                                    </div>
+                                    <div class="p-3 border-t border-gray-100 dark:border-gray-700 text-center">
+                                        <a href="{{ route('notifications.index') }}"
+                                            class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">View
+                                            All</a>
+                                    </div>
+                                </div>
+                            </div>
 
                             {{-- Dark Mode --}}
                             <button id="darkModeToggle"
@@ -218,6 +248,191 @@
                     feather.replace();
                 }
             });
+
+            /* ---------------------------
+             * NOTIFICATION SYSTEM
+             * --------------------------- */
+            const notifButton = document.getElementById('notificationButton');
+            const notifMenu = document.getElementById('notificationMenu');
+            const notifBadge = document.getElementById('notificationBadge');
+            const notifList = document.getElementById('notificationList');
+
+            if (notifButton) {
+                notifButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifMenu.classList.toggle('hidden');
+                    if (!notifMenu.classList.contains('hidden')) {
+                        fetchLatestNotifications();
+                    }
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (notifMenu && !notifMenu.contains(e.target) && !notifButton.contains(e.target)) {
+                    notifMenu.classList.add('hidden');
+                }
+            });
+
+            async function fetchLatestNotifications() {
+                try {
+                    const res = await fetch('{{ route('notifications.latest') }}');
+                    const data = await res.json();
+                    renderNotifications(data.notifications);
+                } catch (err) {
+                    console.error('Failed to fetch notifications', err);
+                }
+            }
+
+            function renderNotifications(notifications) {
+                if (!notifList) return;
+
+                if (notifications.length === 0) {
+                    notifList.innerHTML = '<div class="p-8 text-center"><div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3"><i data-feather="bell-off" class="w-6 h-6 text-gray-400"></i></div><p class="text-xs text-gray-500 dark:text-gray-400">No notifications yet</p></div>';
+                    feather.replace();
+                    return;
+                }
+
+                notifList.innerHTML = notifications.map(n => `
+                    <a href="/notifications/${n.id}/mark-as-read" class="block p-5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ${n.read_at ? 'opacity-60' : ''}" onclick="event.preventDefault(); markAsReadLocal('${n.id}', '${n.data.url}')">
+                        <div class="flex gap-4">
+                            <div class="w-2.5 h-2.5 ${n.read_at ? 'bg-transparent' : 'bg-primary-600'} rounded-full mt-1.5 flex-shrink-0"></div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex justify-between items-start gap-2">
+                                    <p class="text-[12px] font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">${n.data.title}</p>
+                                    <p class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">${new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                                <p class="text-[13px] text-gray-600 dark:text-gray-400 line-clamp-2 mt-1 leading-relaxed">${n.data.message}</p>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+            }
+
+            window.markAsReadLocal = async (id, url) => {
+                try {
+                    await fetch(`/notifications/${id}/mark-as-read`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (url && url !== 'null' && url !== 'undefined') {
+                        window.location.href = url;
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    if (url && url !== 'null' && url !== 'undefined') {
+                        window.location.href = url;
+                    } else {
+                        window.location.reload();
+                    }
+                }
+            };
+
+            window.markAllNotificationsRead = async () => {
+                try {
+                    await fetch('{{ route('notifications.mark-all-as-read') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    fetchLatestNotifications();
+                    updateUnreadCount(false); // don't trigger toast
+                } catch (err) {
+                    console.error('Failed to mark all as read', err);
+                }
+            };
+
+            let lastUnreadCount = -1;
+
+            async function updateUnreadCount(triggerToast = true) {
+                try {
+                    const res = await fetch('{{ route('notifications.unread-count') }}');
+                    const data = await res.json();
+
+                    if (notifBadge) {
+                        if (data.count > 0) {
+                            notifBadge.classList.remove('hidden');
+                        } else {
+                            notifBadge.classList.add('hidden');
+                        }
+                    }
+
+                    // Detection for new notifications (Toast)
+                    if (lastUnreadCount !== -1 && data.count > lastUnreadCount && triggerToast) {
+                        showToast('You have a new notification', 'success');
+                        // Optional: Refresh list if menu is open
+                        if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                            fetchLatestNotifications();
+                        }
+                    }
+
+                    lastUnreadCount = data.count;
+                } catch (err) {
+                    console.error('Failed to fetch unread count', err);
+                }
+            }
+
+            // Initial check
+            updateUnreadCount(false);
+            // Polling
+            setInterval(updateUnreadCount, 60000);
+
+            /* ---------------------------
+             * TOAST SYSTEM
+             * --------------------------- */
+            const toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
+            document.body.appendChild(toastContainer);
+
+            window.showToast = (message, type = 'success') => {
+                const toast = document.createElement('div');
+                toast.className = `p-4 px-6 rounded-2xl shadow-2xl transform transition-all duration-300 translate-y-12 opacity-0 flex items-center gap-4 bg-white dark:bg-gray-800 border ${type === 'success'
+                    ? 'border-green-100 dark:border-green-900/30'
+                    : 'border-red-100 dark:border-red-900/30'
+                    } pointer-events-auto`;
+
+                const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+                const color = type === 'success' ? 'text-green-500' : 'text-red-500';
+
+                toast.innerHTML = `
+                    <div class="${color}">
+                        <i data-feather="${icon}" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">${message}</p>
+                    </div>
+                `;
+
+                toastContainer.appendChild(toast);
+                if (typeof feather !== 'undefined') feather.replace();
+
+                // Entrance
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-12', 'opacity-0');
+                    toast.classList.add('translate-y-0', 'opacity-100');
+                });
+
+                // Auto remove
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                    toast.classList.add('translate-x-12', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            };
+
+            // Check for session messages
+            @if(session('success'))
+                showToast('{{ session('success') }}', 'success');
+            @endif
+            @if(session('error'))
+                showToast('{{ session('error') }}', 'error');
+            @endif
 
             /* ---------------------------
              * MOBILE SIDEBAR
@@ -289,12 +504,12 @@
                     icon: 'error',
                     title: 'Validation Error',
                     html: `
-                                <ul class="text-left text-sm">
-                                    @foreach($errors->all() as $error)
-                                        <li>• {{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            `,
+                                                <ul class="text-left text-sm">
+                                                    @foreach($errors->all() as $error)
+                                                        <li>• {{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            `,
                     confirmButtonColor: '#ef4444'
                 });
             @endif

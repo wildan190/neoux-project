@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>PO - {{ $invoice->purchaseOrder->invoice_number }}</title>
+    <title>Invoice - {{ $invoice->purchaseOrder->invoice_number }}</title>
     <style>
         * {
             margin: 0;
@@ -182,7 +182,7 @@
         .signature-line {
             border-top: 2px solid #333;
             padding-top: 10px;
-            margin-top: 60px;
+            margin-top: 15px;
         }
 
         .footer {
@@ -196,16 +196,31 @@
     </style>
 </head>
 
+@php
+    $company = $invoice->purchaseOrder->vendorCompany;
+    $logoPath = $company->logo ? public_path('storage/' . $company->logo) : null;
+    $logoData = "";
+    if ($logoPath && file_exists($logoPath)) {
+        $logoData = base64_encode(file_get_contents($logoPath));
+        $mimeType = mime_content_type($logoPath);
+    }
+@endphp
+
 <body>
     <div class="header">
         <div class="header-flex">
             <div class="header-left">
-                <div style="font-size: 18px; font-weight: bold;">NeoUX</div>
-                <div style="font-size: 10px; opacity: 0.9;">Platform by HUNTR</div>
+                @if($logoData)
+                    <img src="data:{{ $mimeType }};base64,{{ $logoData }}" class="logo">
+                @else
+                    <div style="font-size: 18px; font-weight: bold;">{{ $company->name }}</div>
+                @endif
+                <div style="font-size: 10px; opacity: 0.9;">Powered by HUNTR</div>
             </div>
             <div class="header-right">
-                <h1>PURCHASE ORDER</h1>
-                <div style="font-size: 16px; font-family: monospace;">{{ $invoice->purchaseOrder->invoice_number }}</div>
+                <h1>INVOICE</h1>
+                <div style="font-size: 16px; font-family: monospace;">{{ $invoice->purchaseOrder->invoice_number }}
+                </div>
             </div>
         </div>
     </div>
@@ -221,7 +236,9 @@
         </div>
         <div class="info-box">
             <h3>Buyer</h3>
-            <p style="font-weight: bold; font-size: 13px;">{{ $invoice->purchaseOrder->purchaseRequisition->company->name }}</p>
+            <p style="font-weight: bold; font-size: 13px;">
+                {{ $invoice->purchaseOrder->purchaseRequisition->company->name }}
+            </p>
             <p>{{ $invoice->purchaseOrder->purchaseRequisition->company->email }}</p>
             @if($invoice->purchaseOrder->purchaseRequisition->company->phone)
                 <p>{{ $invoice->purchaseOrder->purchaseRequisition->company->phone }}</p>
@@ -277,7 +294,8 @@
         <tfoot>
             <tr class="total-row">
                 <td colspan="4" class="text-right" style="padding: 15px;">TOTAL AMOUNT</td>
-                <td class="text-right total-amount" style="padding: 15px;">{{ $invoice->purchaseOrder->formatted_total_amount }}
+                <td class="text-right total-amount" style="padding: 15px;">
+                    {{ $invoice->purchaseOrder->formatted_total_amount }}
                 </td>
             </tr>
         </tfoot>
@@ -295,12 +313,20 @@
 
     <div class="signatures">
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|BUYER|' . $invoice->created_at, 60) }}" style="width: 60px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Authorized Buyer</div>
-                <div style="font-size: 9px; color: #666;">{{ $invoice->purchaseOrder->purchaseRequisition->company->name }}</div>
+                <div style="font-size: 9px; color: #666;">
+                    {{ $invoice->purchaseOrder->purchaseRequisition->company->name }}
+                </div>
             </div>
         </div>
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|VENDOR|' . $invoice->created_at, 60) }}" style="width: 60px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Vendor Acknowledgment</div>
                 <div style="font-size: 9px; color: #666;">{{ $invoice->purchaseOrder->vendorCompany->name }}</div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Procurement\Domain\Models\GoodsReceipt;
 use App\Modules\Procurement\Domain\Models\GoodsReceiptItem;
 use App\Modules\Procurement\Domain\Models\PurchaseOrder;
+use App\Notifications\GoodsReceiptCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -222,6 +223,11 @@ class GoodsReceiptController extends Controller
                 $purchaseOrder->update(['status' => 'full_delivery']);
             } elseif ($totalReceived > 0) {
                 $purchaseOrder->update(['status' => 'partial_delivery']);
+            }
+
+            // Notify Vendor
+            if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
+                $purchaseOrder->vendorCompany->user->notify(new GoodsReceiptCreated($goodsReceipt));
             }
 
             DB::commit();

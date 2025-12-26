@@ -23,9 +23,16 @@
             <!-- Header Section -->
             <div class="bg-gradient-to-r from-green-600 to-green-500 px-8 py-6 text-white">
                 <div class="flex justify-between items-start">
+                    @php
+                        $company = $goodsReceipt->purchaseOrder->purchaseRequisition->company;
+                    @endphp
                     <div>
-                        <img src="{{ asset('assets/img/logo.png') }}" alt="NeoUX Logo" class="h-12 mb-2 brightness-0 invert">
-                        <p class="text-sm opacity-90">Platform by HUNTR</p>
+                        @if($company->logo)
+                            <img src="{{ asset('storage/' . $company->logo) }}" alt="{{ $company->name }} Logo" class="h-12 mb-2 brightness-0 invert">
+                        @else
+                            <div class="text-xl font-bold mb-1">{{ $company->name }}</div>
+                        @endif
+                        <p class="text-sm opacity-90">Powered by HUNTR</p>
                     </div>
                     <div class="text-right">
                         <h1 class="text-3xl font-bold mb-1">DELIVERY ORDER</h1>
@@ -131,10 +138,8 @@
                 <div class="grid grid-cols-2 gap-8 mt-4">
                     {{-- Vendor Company Representative (Delivering) --}}
                     <div class="text-center">
-                        <div class="h-14 flex items-end justify-center mb-2">
-                            <p class="font-mono text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded bg-gray-50">
-                                {{ substr(md5($goodsReceipt->purchaseOrder->vendorCompany->user->email . $goodsReceipt->received_at), 0, 12) }}
-                            </p>
+                        <div class="h-24 flex items-center justify-center mb-2">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($goodsReceipt->gr_number . '|DELIVERED|' . $goodsReceipt->received_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-xs font-bold text-gray-700">Vendor Representative</p>
@@ -146,10 +151,8 @@
 
                     {{-- Buyer Company Representative (Receiving) --}}
                     <div class="text-center">
-                        <div class="h-14 flex items-end justify-center mb-2">
-                            <p class="font-mono text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded bg-gray-50">
-                                {{ substr(md5($goodsReceipt->receivedBy->email . $goodsReceipt->received_at), 0, 12) }}
-                            </p>
+                        <div class="h-24 flex items-center justify-center mb-2">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($goodsReceipt->gr_number . '|RECEIVED|' . $goodsReceipt->received_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-xs font-bold text-gray-700">Buyer Representative</p>

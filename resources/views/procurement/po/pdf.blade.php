@@ -182,7 +182,7 @@
         .signature-line {
             border-top: 2px solid #333;
             padding-top: 10px;
-            margin-top: 60px;
+            margin-top: 15px;
         }
 
         .footer {
@@ -196,12 +196,26 @@
     </style>
 </head>
 
+@php
+    $company = $purchaseOrder->purchaseRequisition->company;
+    $logoPath = $company->logo ? public_path('storage/' . $company->logo) : null;
+    $logoData = "";
+    if ($logoPath && file_exists($logoPath)) {
+        $logoData = base64_encode(file_get_contents($logoPath));
+        $mimeType = mime_content_type($logoPath);
+    }
+@endphp
+
 <body>
     <div class="header">
         <div class="header-flex">
             <div class="header-left">
-                <div style="font-size: 18px; font-weight: bold;">NeoUX</div>
-                <div style="font-size: 10px; opacity: 0.9;">Platform by HUNTR</div>
+                @if($logoData)
+                    <img src="data:{{ $mimeType }};base64,{{ $logoData }}" class="logo">
+                @else
+                    <div style="font-size: 18px; font-weight: bold;">{{ $company->name }}</div>
+                @endif
+                <div style="font-size: 10px; opacity: 0.9;">Powered by HUNTR</div>
             </div>
             <div class="header-right">
                 <h1>PURCHASE ORDER</h1>
@@ -278,19 +292,22 @@
             <tr style="background: #f9f9f9; border-top: 1px solid #ddd;">
                 <td colspan="4" class="text-right" style="padding: 10px; font-weight: bold;">SUBTOTAL</td>
                 <td class="text-right" style="padding: 10px; font-weight: bold;">
-                    {{ $purchaseOrder->formatted_total_amount }}</td>
+                    {{ $purchaseOrder->formatted_total_amount }}
+                </td>
             </tr>
             @if($purchaseOrder->has_deductions)
                 <tr style="background: #FFEBEE; border-top: 1px solid #FFCDD2;">
                     <td colspan="4" class="text-right" style="padding: 8px; color: #C62828;">Potongan Harga (Debit Note)
                     </td>
                     <td class="text-right" style="padding: 8px; font-weight: bold; color: #C62828;">-
-                        {{ $purchaseOrder->formatted_total_deduction }}</td>
+                        {{ $purchaseOrder->formatted_total_deduction }}
+                    </td>
                 </tr>
                 <tr class="total-row">
                     <td colspan="4" class="text-right" style="padding: 15px; font-weight: bold;">TOTAL AKHIR</td>
                     <td class="text-right total-amount" style="padding: 15px;">
-                        {{ $purchaseOrder->formatted_adjusted_total_amount }}</td>
+                        {{ $purchaseOrder->formatted_adjusted_total_amount }}
+                    </td>
                 </tr>
             @else
                 <tr class="total-row">
@@ -314,12 +331,20 @@
 
     <div class="signatures">
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|BUYER|' . $purchaseOrder->created_at, 60) }}"
+                    style="width: 60px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Authorized Buyer</div>
                 <div style="font-size: 9px; color: #666;">{{ $purchaseOrder->purchaseRequisition->company->name }}</div>
             </div>
         </div>
         <div class="signature-box">
+            <div style="margin-bottom: 5px;">
+                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|VENDOR|' . $purchaseOrder->created_at, 60) }}"
+                    style="width: 60px;">
+            </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Vendor Acknowledgment</div>
                 <div style="font-size: 9px; color: #666;">{{ $purchaseOrder->vendorCompany->name }}</div>
