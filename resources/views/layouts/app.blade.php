@@ -9,10 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-id" content="{{ auth()->id() }}">
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
         rel="stylesheet">
 
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="{{ asset('js/feather.min.js') }}" defer></script>
     @stack('styles')
 </head>
@@ -99,16 +100,16 @@
                                                                                 @csrf
                                                                                 <button type="submit"
                                                                                     class="w-full flex items-center gap-3 p-2 rounded-xl transition
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
                                                 : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }}">
                                                                                     <div
                                                                                         class="w-8 h-8 rounded-lg flex items-center justify-center
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id
                                                 ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }}">
                                                                                         @if($company->id == $selectedCompany->id)
                                                                                             <i data-feather="check" class="w-4 h-4"></i>
                                                                                         @else
@@ -120,12 +121,12 @@
                                                                                     <div class="text-left flex-1 min-w-0">
                                                                                         <p
                                                                                             class="text-sm font-semibold truncate
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                                             {{ $company->name }}
                                                                                         </p>
                                                                                         <div class="flex items-center gap-2">
                                                                                             <span class="w-1.5 h-1.5 rounded-full
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ in_array($company->status, ['approved', 'active'])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ in_array($company->status, ['approved', 'active'])
                                                 ? 'bg-green-500'
                                                 : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
                                                                                             </span>
@@ -273,7 +274,7 @@
                 }
             });
 
-            async function fetchLatestNotifications() {
+            window.fetchLatestNotifications = async function () {
                 try {
                     const res = await fetch('{{ route('notifications.latest') }}');
                     const data = await res.json();
@@ -281,6 +282,10 @@
                 } catch (err) {
                     console.error('Failed to fetch notifications', err);
                 }
+            }
+
+            async function fetchLatestNotifications() {
+                return window.fetchLatestNotifications();
             }
 
             function renderNotifications(notifications) {
@@ -349,7 +354,7 @@
 
             let lastUnreadCount = -1;
 
-            async function updateUnreadCount(triggerToast = true) {
+            window.updateUnreadCount = async function (triggerToast = true) {
                 try {
                     const res = await fetch('{{ route('notifications.unread-count') }}');
                     const data = await res.json();
@@ -367,7 +372,7 @@
                         showToast('You have a new notification', 'success');
                         // Optional: Refresh list if menu is open
                         if (notifMenu && !notifMenu.classList.contains('hidden')) {
-                            fetchLatestNotifications();
+                            window.fetchLatestNotifications();
                         }
                     }
 
@@ -377,10 +382,17 @@
                 }
             }
 
+            async function updateUnreadCount(triggerToast = true) {
+                return window.updateUnreadCount(triggerToast);
+            }
+
             // Initial check
             updateUnreadCount(false);
-            // Polling
-            setInterval(updateUnreadCount, 60000);
+
+            /* ---------------------------
+             * REAL-TIME NOTIFICATIONS (ECHO)
+             * --------------------------- */
+            // Centralized in echo.js
 
             /* ---------------------------
              * TOAST SYSTEM
@@ -504,12 +516,12 @@
                     icon: 'error',
                     title: 'Validation Error',
                     html: `
-                                                <ul class="text-left text-sm">
-                                                    @foreach($errors->all() as $error)
-                                                        <li>• {{ $error }}</li>
-                                                    @endforeach
-                                                </ul>
-                                            `,
+                                                                    <ul class="text-left text-sm">
+                                                                        @foreach($errors->all() as $error)
+                                                                            <li>• {{ $error }}</li>
+                                                                        @endforeach
+                                                                    </ul>
+                                                                `,
                     confirmButtonColor: '#ef4444'
                 });
             @endif
