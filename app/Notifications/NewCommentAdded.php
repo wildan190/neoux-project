@@ -3,9 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class NewCommentAdded extends Notification
+class NewCommentAdded extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
 
@@ -18,7 +20,7 @@ class NewCommentAdded extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toArray(object $notifiable): array
@@ -26,7 +28,7 @@ class NewCommentAdded extends Notification
         return [
             'type' => 'new_comment',
             'title' => 'New Comment on PR',
-            'message' => 'New comment from '.($this->comment->user->name ?? 'someone').' on PR '.($this->comment->purchaseRequisition->pr_number ?? ''),
+            'message' => 'New comment from ' . ($this->comment->user->name ?? 'someone') . ' on PR ' . ($this->comment->purchaseRequisition->pr_number ?? ''),
             'url' => route('procurement.pr.show', $this->comment->purchase_requisition_id),
             'action_text' => 'View Comment',
             'comment_id' => $this->comment->id,

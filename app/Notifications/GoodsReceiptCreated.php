@@ -3,9 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class GoodsReceiptCreated extends Notification
+class GoodsReceiptCreated extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
 
@@ -26,7 +28,7 @@ class GoodsReceiptCreated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -39,7 +41,7 @@ class GoodsReceiptCreated extends Notification
         return [
             'type' => 'goods_receipt',
             'title' => 'Goods Receipt Created',
-            'message' => 'New Goods Receipt '.$this->goodsReceipt->gr_number.' has been created.',
+            'message' => 'New Goods Receipt ' . $this->goodsReceipt->gr_number . ' has been created.',
             'url' => route('procurement.po.show', $this->goodsReceipt->purchase_order_id), // Link to PO as GR is mostly accessed there
             'action_text' => 'View Receipt',
             'gr_id' => $this->goodsReceipt->id,

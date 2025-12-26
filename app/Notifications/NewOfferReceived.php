@@ -3,9 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class NewOfferReceived extends Notification
+class NewOfferReceived extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
 
@@ -18,7 +20,7 @@ class NewOfferReceived extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toArray(object $notifiable): array
@@ -26,7 +28,7 @@ class NewOfferReceived extends Notification
         return [
             'type' => 'new_offer',
             'title' => 'New Offer Received',
-            'message' => 'Your Purchase Requisition '.($this->offer->purchaseRequisition->pr_number ?? '').' received a new offer from '.($this->offer->company->name ?? 'a vendor'),
+            'message' => 'Your Purchase Requisition ' . ($this->offer->purchaseRequisition->pr_number ?? '') . ' received a new offer from ' . ($this->offer->company->name ?? 'a vendor'),
             'url' => route('procurement.pr.show', $this->offer->purchase_requisition_id),
             'action_text' => 'View Offer',
             'offer_id' => $this->offer->id,

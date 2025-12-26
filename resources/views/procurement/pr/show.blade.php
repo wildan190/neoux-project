@@ -29,7 +29,7 @@
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border-l-4 border-yellow-500 p-6 mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Approval Required</h3>
             <p class="text-gray-600 dark:text-gray-400 mb-4">This requisition is waiting for your approval.</p>
-            <form action="{{ route('procurement.pr.approve', $purchaseRequisition) }}" method="POST" class="inline-block">
+            <form action="{{ route('procurement.pr.approve', $purchaseRequisition) }}" method="POST" class="inline-block" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
@@ -49,7 +49,7 @@
     @if(($purchaseRequisition->approval_status === 'draft' || $purchaseRequisition->approval_status === 'rejected') && ($isCreator || $isAdmin))
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Submit for Approval</h3>
-            <form action="{{ route('procurement.pr.submit-approval', $purchaseRequisition) }}" method="POST" class="max-w-md">
+            <form action="{{ route('procurement.pr.submit-approval', $purchaseRequisition) }}" method="POST" class="max-w-md" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <div class="flex gap-4 items-end">
                     <div class="flex-1">
@@ -86,7 +86,7 @@
     @if($isAdmin || $isManager)
          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Task Assignment</h3>
-             <form action="{{ route('procurement.pr.assign', $purchaseRequisition) }}" method="POST" class="max-w-md">
+             <form action="{{ route('procurement.pr.assign', $purchaseRequisition) }}" method="POST" class="max-w-md" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <div class="flex gap-4 items-end">
                     <div class="flex-1">
@@ -330,7 +330,7 @@
                 <i data-feather="x" class="w-5 h-5"></i>
             </button>
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Reject Requisition</h3>
-            <form action="{{ route('procurement.pr.reject', $purchaseRequisition) }}" method="POST">
+            <form action="{{ route('procurement.pr.reject', $purchaseRequisition) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <div class="space-y-4">
                     <div>
@@ -342,5 +342,29 @@
             </form>
         </div>
     </div>
+@push('scripts')
+<script>
+    function handlePrFormSubmit(form) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Optional: Change text to show processing
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                </span>
+            `;
+        }
+        return true;
+    }
+</script>
+@endpush
 @endsection
 ```
