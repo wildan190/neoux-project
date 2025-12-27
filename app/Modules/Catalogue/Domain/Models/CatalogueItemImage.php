@@ -24,4 +24,18 @@ class CatalogueItemImage extends Model
     {
         return $this->belongsTo(CatalogueItem::class);
     }
+
+    /**
+     * Get the correct URL for the image.
+     * 
+     * @return string
+     */
+    public function getUrlAttribute()
+    {
+        if (str_contains($this->image_path, 'assets/img/products/')) {
+            return asset($this->image_path);
+        }
+
+        return asset('storage/' . $this->image_path);
+    }
 }

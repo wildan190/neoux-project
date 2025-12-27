@@ -83,11 +83,9 @@
                         @endphp
                         
                         @if($image)
-                             <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                             <img src="{{ $image->url }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='{{ asset('assets/img/products/default-product.png') }}'">
                         @else
-                            <div class="flex items-center justify-center h-full text-gray-300">
-                                <i data-feather="image" class="w-12 h-12"></i>
-                            </div>
+                            <img src="{{ asset('assets/img/products/default-product.png') }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-50">
                         @endif
                     </div>
                     

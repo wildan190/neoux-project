@@ -88,10 +88,10 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden">
                                     @if($item->primaryImage)
-                                        <img src="{{ asset('storage/' . $item->primaryImage->image_path) }}" class="w-full h-full object-cover">
+                                        <img src="{{ $item->primaryImage->url }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('assets/img/products/default-product.png') }}'">
                                     @else
-                                        <div class="flex items-center justify-center h-full text-gray-400">
-                                            <i data-feather="image" class="w-6 h-6"></i>
+                                        <div class="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-700">
+                                            <img src="{{ asset('assets/img/products/default-product.png') }}" class="w-8 h-8 object-contain opacity-30">
                                         </div>
                                     @endif
                                 </div>

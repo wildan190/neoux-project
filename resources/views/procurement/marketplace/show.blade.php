@@ -16,14 +16,12 @@
             <div id="main-image-container" class="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 mb-4">
                 @php
                      $firstItem = $product->items->first();
-                     $primaryImage = $firstItem && $firstItem->primaryImage ? $firstItem->primaryImage->image_path : null;
+                     $primaryImage = $firstItem ? $firstItem->primaryImage : null;
                 @endphp
                 @if($primaryImage)
-                    <img id="main-image" src="{{ asset('storage/' . $primaryImage) }}" class="w-full h-full object-cover">
+                    <img id="main-image" src="{{ $primaryImage->url }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('assets/img/products/default-product.png') }}'">
                 @else
-                    <div class="flex items-center justify-center h-full text-gray-400">
-                        <i data-feather="image" class="w-16 h-16"></i>
-                    </div>
+                    <img id="main-image" src="{{ asset('assets/img/products/default-product.png') }}" class="w-full h-full object-cover opacity-50">
                 @endif
             </div>
             {{-- Thumbnails could go here --}}
@@ -58,7 +56,7 @@
                                         onchange="selectVariant(this)"
                                         data-price="Rp {{ number_format($item->price, 0, ',', '.') }}"
                                         data-stock="{{ $item->stock }}"
-                                        data-image="{{ $item->primaryImage ? asset('storage/' . $item->primaryImage->image_path) : '' }}"
+                                        data-image="{{ $item->primaryImage ? $item->primaryImage->url : asset('assets/img/products/default-product.png') }}"
                                     >
                                     <div class="flex justify-between items-center">
                                         <div>
