@@ -692,6 +692,9 @@
                 const currentPath = urlObj.pathname;
                 const currentSearch = urlObj.search;
 
+                let bestMatch = null;
+                let maxPathLength = -1;
+
                 sidebarLinks.forEach(link => {
                     const href = link.getAttribute('href');
                     if (!href) return;
@@ -700,8 +703,6 @@
                     const linkPath = linkUrl.pathname;
                     const linkSearch = linkUrl.search;
 
-                    // Support nested routes (e.g., /procurement/po/123 matches /procurement/po)
-                    // If the link has search params (our role views), prioritize exact match with search
                     let isActive = false;
                     if (linkSearch) {
                         isActive = (currentPath === linkPath && currentSearch === linkSearch);
@@ -710,7 +711,18 @@
                     } else {
                         isActive = currentPath === '/';
                     }
-                    
+
+                    if (isActive) {
+                        // Most specific match wins (the one with the longest path)
+                        if (linkPath.length > maxPathLength) {
+                            maxPathLength = linkPath.length;
+                            bestMatch = link;
+                        }
+                    }
+                });
+
+                sidebarLinks.forEach(link => {
+                    const isActive = (link === bestMatch);
                     if (isActive) {
                         link.classList.add('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
                         link.classList.remove('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
