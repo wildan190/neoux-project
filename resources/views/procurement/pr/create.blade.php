@@ -134,8 +134,9 @@
         </div>
     </form>
 
-    @push('scripts')
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         let itemIndex = 0;
         const catalogueItems = @json($catalogueItems);
@@ -495,5 +496,5 @@
             });
         @endif
     </script>
-@endpush
+
 @endsection

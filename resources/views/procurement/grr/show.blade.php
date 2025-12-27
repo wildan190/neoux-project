@@ -300,15 +300,16 @@
             @endif
         </div>
     </div>
-@endsection
 
-@push('scripts')
+
     <script>
         // Initialize feather icons
-        feather.replace();
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
         
         // Simple function to handle resolution selection
-        function selectResolution(value, label) {
+        window.selectResolution = function(value, label) {
             // Reset all cards
             ['price_adjustment', 'replacement', 'return_refund'].forEach(function(type) {
                 var card = document.getElementById('card_' + type);
@@ -354,6 +355,6 @@
                 btn.classList.remove('bg-gray-300', 'cursor-not-allowed');
                 btn.classList.add('bg-primary-600', 'hover:bg-primary-700', 'cursor-pointer');
             }
-        }
+        };
     </script>
-@endpush
+@endsection

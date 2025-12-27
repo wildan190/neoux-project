@@ -214,6 +214,49 @@
                 @endif
             </a>
 
+            <a href="{{ route('procurement.grr.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.grr.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.grr.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Goods Return</span>
+                @if(isset($sidebarCounts['grr']) && $sidebarCounts['grr'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['grr'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.debit-notes.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <span class="ml-3">Debit Notes</span>
+                @if(isset($sidebarCounts['debit_notes']) && $sidebarCounts['debit_notes'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['debit_notes'] }}
+                    </span>
+                @endif
+            </a>
+
             {{-- Sales Section (Selling) --}}
             <div class="px-4 pt-6 pb-2 border-t border-gray-700/50 mt-4">
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sales (Selling)</p>

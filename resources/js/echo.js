@@ -1,3 +1,4 @@
+
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
@@ -20,54 +21,119 @@ const userId = document.querySelector('meta[name="user-id"]')?.getAttribute('con
 const notifTonePath = '/assets/tone/notification/notif-tone.mp3';
 
 // Audio element singleton
-let notifAudio = null;
+const notifAudio = new Audio(notifTonePath);
+notifAudio.preload = 'auto';
 
-function initAudio() {
-    if (notifAudio) return notifAudio;
-    notifAudio = new Audio(notifTonePath);
-    notifAudio.preload = 'auto';
-    return notifAudio;
-}
+// Debug: Check if audio loads
+notifAudio.addEventListener('canplaythrough', () => console.log('Notification tone loaded successfully.'));
+notifAudio.addEventListener('error', (e) => console.error('Error loading notification tone:', e));
 
-// "Unlock" audio on first user interaction to bypass browser autoplay policies
-function unlockAudio() {
-    const audio = initAudio();
-    audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        document.removeEventListener('click', unlockAudio);
-        document.removeEventListener('keydown', unlockAudio);
-        console.log('Audio unlocked for notifications');
-    }).catch(() => {
-        // Still blocked, will try again on next interaction
+// Unlock Audio Context on first interaction
+// Browsers require a user gesture to allow audio playback
+const unlockAudio = () => {
+    notifAudio.play().then(() => {
+        notifAudio.pause();
+        notifAudio.currentTime = 0;
+        console.log('Audio unlocked successfully.');
+    }).catch((e) => {
+        console.warn('Audio unlock failed (user interaction needed):', e);
     });
-}
+    
+    // Remove listeners once unlocked (or attempted)
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('keydown', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+};
 
+// Listen for any interaction
 document.addEventListener('click', unlockAudio);
-document.addEventListener('keydown', unlockAudio);
+document.addEventListener('keydown', unlockAudio); // Also listen for keys
+document.addEventListener('touchstart', unlockAudio);
 
-if (userId && window.Echo) {
-    window.Echo.private(`App.Modules.User.Domain.Models.User.${userId}`)
+// Expose for manual triggering
+window.unlockAudioManual = unlockAudio;
+
+// Helper to fetch latest count (as fallback/sync)
+const fetchUnreadCount = async () => {
+    try {
+        const response = await fetch('/notifications/unread-count', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        
+        // Use the global updater from app.blade.php if available to sync everything
+        if (typeof window.updateUnreadCount === 'function') {
+            window.updateUnreadCount(false);
+        }
+    } catch (error) {
+        console.error('Failed to fetch notification count:', error);
+    }
+};
+
+if (userId) {
+    window.Echo.private(`users.${userId}`)
         .notification((notification) => {
-            console.log('Real-time Notification:', notification);
+            console.log('Real-time Notification Received:', notification);
 
-            // Play Sound
-            const audio = initAudio();
-            audio.play().catch(e => {
-                console.warn('Audio playback blocked. Interract with the page to enable sound.', e);
-            });
+            // Play Sound with Autoplay Handling
+            const playSound = async () => {
+                try {
+                    // Resetting the audio helps if it got stuck
+                    notifAudio.currentTime = 0;
+                    const prom = notifAudio.play();
+                    
+                    if (prom !== undefined) {
+                        await prom;
+                    }
+                } catch (error) {
+                    console.warn('Autoplay prevented:', error);
+                    
+                    // Show a specific toast to encourage interaction
+                    if (typeof window.showToast === 'function') {
+                       if (typeof Swal !== 'undefined') {
+                           const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 5000,
+                                timerProgressBar: true
+                            });
+                            Toast.fire({
+                                icon: 'warning',
+                                title: 'Click here to enable sound',
+                                didOpen: (toast) => {
+                                    toast.addEventListener('click', () => {
+                                        unlockAudio();
+                                        notifAudio.play();
+                                    });
+                                }
+                            });
+                       }
+                    }
+                }
+            };
+            
+            // Allow testing from console or UI
+            window.testNotificationSound = playSound;
+            
+            playSound();
 
-            // Trigger Global UI Updates (if functions exist)
-            if (window.showToast) {
-                window.showToast(notification.title || 'New Notification', 'success');
+            // Trigger Global UI Updates
+            
+            // 1. Toast Notification
+            if (typeof window.showToast === 'function') {
+                window.showToast(notification.message || notification.title || 'New Notification', 'success');
             }
 
-            if (window.updateUnreadCount) {
-                window.updateUnreadCount(false); // Update badge without another toast
-            }
-
-            if (window.fetchLatestNotifications) {
+            // 2. Fetch fresh count & update badge
+            if (typeof window.fetchLatestNotifications === 'function') {
                 window.fetchLatestNotifications();
+            }
+            if (typeof window.updateUnreadCount === 'function') {
+                window.updateUnreadCount(false);
             }
         });
 }
