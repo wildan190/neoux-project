@@ -16,6 +16,21 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="{{ asset('js/feather.min.js') }}" defer></script>
     @stack('styles')
+    <style>
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+            background-size: 1000px 100%;
+        }
+        .dark .animate-shimmer {
+            background: linear-gradient(to right, #1f2937 8%, #374151 18%, #1f2937 33%);
+            background-size: 1000px 100%;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -44,10 +59,12 @@
                                 <i data-feather="menu" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                             </button>
 
-                            <div>
+                            <div id="header-content-area">
                                 @if(isset($title))
-                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $title }}</h1>
-                                    @include('layouts.partials.breadcrumbs')
+                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white" id="page-title">{{ $title }}</h1>
+                                    <div id="breadcrumb-area">
+                                        @include('layouts.partials.breadcrumbs')
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -194,9 +211,47 @@
                 </div>
             </header>
 
+            {{-- Skeleton Template (Hidden) --}}
+            <template id="skeleton-template">
+                <div class="animate-pulse space-y-8">
+                    {{-- Header Skeleton --}}
+                    <div class="flex items-center justify-between">
+                        <div class="h-8 w-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                        <div class="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                    </div>
+                    
+                    {{-- Banner/Card Skeleton --}}
+                    <div class="h-32 w-full bg-gray-100 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700"></div>
+                    
+                    {{-- Table Skeleton --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                            <div class="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            @for($i = 0; $i < 5; $i++)
+                                <div class="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700/50 last:border-0">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                                        <div class="space-y-2">
+                                            <div class="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                            <div class="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded"></div>
+                                        </div>
+                                    </div>
+                                    <div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            {{-- Progress Bar (at top of main) --}}
+            <div id="global-progress" class="fixed top-0 left-0 md:left-64 right-0 h-1 bg-primary-600 z-[60] transition-all duration-300 opacity-0" style="width: 0%"></div>
+
             {{-- Content --}}
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
-                <div class="w-full px-6 py-8">
+                <div class="w-full px-6 py-8" id="main-content-area">
                     @yield('content')
                 </div>
             </main>
@@ -508,6 +563,206 @@
                     confirmButtonColor: '#ef4444'
                 });
             @endif
+
+            /* ---------------------------
+             * PARTIAL PAGE RELOAD SYSTEM (SPA-ish)
+             * --------------------------- */
+            const mainContent = document.getElementById('main-content-area');
+            const headerContent = document.getElementById('header-content-area');
+            const skeletonTemplate = document.getElementById('skeleton-template');
+            const globalProgress = document.getElementById('global-progress');
+
+            function showLoader() {
+                // 1. Show Progress Bar
+                globalProgress.style.opacity = '1';
+                globalProgress.style.width = '30%';
+                
+                // 2. Clear title/breadcrumbs to prevent "old" data showing
+                headerContent.style.opacity = '0.3';
+                
+                // 3. Inject Skeleton into main content
+                if (skeletonTemplate && mainContent) {
+                    mainContent.style.opacity = '0.5';
+                    mainContent.innerHTML = skeletonTemplate.innerHTML;
+                    // Trigger a tiny fade in for the skeleton
+                    setTimeout(() => {
+                        mainContent.style.opacity = '1';
+                    }, 50);
+                }
+            }
+
+            function hideLoader() {
+                globalProgress.style.width = '100%';
+                headerContent.style.opacity = '1';
+                setTimeout(() => {
+                    globalProgress.style.opacity = '0';
+                    setTimeout(() => {
+                        globalProgress.style.width = '0%';
+                    }, 300);
+                }, 200);
+            }
+
+            async function loadPage(url, pushState = true) {
+                showLoader();
+                
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // 1. Update Document Title
+                    const newTitle = doc.querySelector('title');
+                    if (newTitle) {
+                        document.title = newTitle.innerText;
+                    }
+
+                    // 2. Update Header/Breadcrumbs
+                    const newHeader = doc.getElementById('header-content-area');
+                    if (newHeader) {
+                        headerContent.innerHTML = newHeader.innerHTML;
+                    }
+
+                    // 3. Update Main Content
+                    const newMain = doc.getElementById('main-content-area');
+                    if (newMain) {
+                        // Small fade out of skeleton
+                        mainContent.style.opacity = '0.7';
+                        
+                        setTimeout(() => {
+                            mainContent.innerHTML = newMain.innerHTML;
+                            mainContent.style.opacity = '1';
+                            
+                            // Execute scripts in the new main content
+                            const scripts = mainContent.querySelectorAll('script');
+                            scripts.forEach(oldScript => {
+                                const newScript = document.createElement('script');
+                                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                oldScript.parentNode.replaceChild(newScript, oldScript);
+                            });
+
+                            // Re-initialize Global UI Components
+                            reinitializeUI();
+                        }, 50);
+                    }
+
+                    // 4. Update Sidebar Active State
+                    updateSidebarActive(url);
+
+                    // 5. Update History
+                    if (pushState) {
+                        window.history.pushState({ url }, '', url);
+                    }
+
+                    // 6. Re-initialize Global UI Components
+                    reinitializeUI();
+
+                    // 7. Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+
+                } catch (error) {
+                    console.error('Partial load failed:', error);
+                    window.location.href = url;
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            function updateSidebarActive(currentUrl) {
+                const sidebarLinks = document.querySelectorAll('#sidebar a');
+                const urlObj = new URL(currentUrl, window.location.origin);
+                const currentPath = urlObj.pathname;
+                const currentSearch = urlObj.search;
+
+                sidebarLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (!href) return;
+                    
+                    const linkUrl = new URL(href, window.location.origin);
+                    const linkPath = linkUrl.pathname;
+                    const linkSearch = linkUrl.search;
+
+                    // Support nested routes (e.g., /procurement/po/123 matches /procurement/po)
+                    // If the link has search params (our role views), prioritize exact match with search
+                    let isActive = false;
+                    if (linkSearch) {
+                        isActive = (currentPath === linkPath && currentSearch === linkSearch);
+                    } else if (linkPath !== '/') {
+                        isActive = currentPath === linkPath || currentPath.startsWith(linkPath + '/');
+                    } else {
+                        isActive = currentPath === '/';
+                    }
+                    
+                    if (isActive) {
+                        link.classList.add('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
+                        link.classList.remove('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
+                        
+                        const iconBox = link.querySelector('div');
+                        if (iconBox) {
+                            iconBox.classList.add('bg-white/20');
+                            iconBox.classList.remove('bg-gray-700/50', 'group-hover:bg-gray-600/50');
+                        }
+                    } else {
+                        link.classList.remove('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
+                        link.classList.add('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
+                        
+                        const iconBox = link.querySelector('div');
+                        if (iconBox) {
+                            iconBox.classList.remove('bg-white/20');
+                            iconBox.classList.add('bg-gray-700/50', 'group-hover:bg-gray-600/50');
+                        }
+                    }
+                });
+            }
+
+            function reinitializeUI() {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+                bindPartialLinks();
+            }
+
+            function bindPartialLinks() {
+                const links = document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([data-no-pjax])');
+                links.forEach(link => {
+                    if (link.dataset.partialBound) return;
+                    
+                    link.addEventListener('click', function(e) {
+                        const href = this.getAttribute('href');
+                        if (href && (href.startsWith('/') || href.startsWith(window.location.origin))) {
+                            // Don't intercept if it's the same URL
+                            if (href === window.location.href || href === window.location.pathname + window.location.search) {
+                                e.preventDefault();
+                                return;
+                            }
+                            e.preventDefault();
+                            loadPage(href);
+                        }
+                    });
+                    
+                    link.dataset.partialBound = "true";
+                });
+            }
+
+            // Handle browser back/forward
+            window.addEventListener('popstate', function(e) {
+                if (e.state && e.state.url) {
+                    loadPage(e.state.url, false);
+                } else {
+                    window.location.reload();
+                }
+            });
+
+            // Initial bind
+            bindPartialLinks();
 
         });
     </script>

@@ -23,74 +23,101 @@ class SidebarComposer
 
         $counts = [
             'notifications' => $user->unreadNotifications()->count(),
+            // Buyer Counts
             'my_requisitions' => 0,
-            'purchase_orders' => 0,
-            'invoices' => 0,
-            'my_offers' => 0,
-            'return_requests' => 0,
-            'debit_notes' => 0,
+            'purchase_orders_buyer' => 0,
+            'invoices_buyer' => 0,
+            'return_requests_buyer' => 0,
+            'debit_notes_buyer' => 0,
+            // Vendor Counts
             'all_requests' => 0,
+            'my_offers' => 0,
+            'purchase_orders_vendor' => 0,
+            'invoices_vendor' => 0,
+            'return_requests_vendor' => 0,
+            'debit_notes_vendor' => 0,
         ];
 
         if ($selectedCompanyId) {
+            // === BUYER SIDE ===
+
             // My Requisitions - PRs belonging to company that are pending approval
             $counts['my_requisitions'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
                 ->where('approval_status', 'pending')
                 ->count();
 
-            // Purchase Orders - Actionable for both buyer and vendor
-            // Buyer: Status issued (waiting for confirmation)
-            // Vendor: Status issued (needs to confirm)
-            $counts['purchase_orders'] = PurchaseOrder::where(function ($query) use ($selectedCompanyId) {
-                $query->whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                    $q->where('company_id', $selectedCompanyId); // Current company is buyer
-                })->orWhere('vendor_company_id', $selectedCompanyId); // Current company is vendor
+            // Buyer POs - Confirmed (Ready to receive)
+            // Note: We count confirmed here as actionable for buyer to create GR
+            $counts['purchase_orders_buyer'] = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
             })
-                ->where('status', 'issued')
+                ->where('status', 'confirmed')
                 ->count();
 
-            // Invoices - Pending for both sides
-            $counts['invoices'] = Invoice::where(function ($query) use ($selectedCompanyId) {
-                $query->whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                    $q->where('company_id', $selectedCompanyId); // Buyer side
-                })->orWhere('vendor_company_id', $selectedCompanyId); // Vendor side
+            // Buyer Invoices - Pending Payment (Received from vendor)
+            $counts['invoices_buyer'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
             })
                 ->where('status', 'pending')
                 ->count();
 
-            // My Offers - Sent by company that are still pending
-            $counts['my_offers'] = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
-                ->where('status', 'pending')
-                ->count();
-
-            // Return Requests - Pending resolution
-            $counts['return_requests'] = GoodsReturnRequest::where(function ($query) use ($selectedCompanyId) {
-                $query->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                    $q->where('company_id', $selectedCompanyId); // Buyer side
-                })->orWhereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
-                    $q->where('vendor_company_id', $selectedCompanyId); // Vendor side
-                });
+            // Buyer Return Requests - Pending (Sent to vendor, waiting response)
+            // Maybe less actionable for buyer (waiting), but good to track
+            $counts['return_requests_buyer'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
             })
                 ->where('resolution_status', 'pending')
                 ->count();
 
-            // Debit Notes - Pending approval
-            $counts['debit_notes'] = DebitNote::where(function ($query) use ($selectedCompanyId) {
-                $query->where('purchase_order_id', '!=', null)
-                    ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
-                        $q->where('vendor_company_id', $selectedCompanyId); // Vendor needs to approve
-                    });
+            // Buyer Debit Notes - Received (checking if approved?)
+            // Usually buyer issues DN? No, in this system, GRR resolutions create DN.
+            // If Buyer returns goods -> Vendor issues Credit Note/Debit Note? 
+            // Model says "approved_by_vendor_at".
+            $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
             })
                 ->whereNull('approved_by_vendor_at')
                 ->count();
 
-            // All Requests (Marketplace Feed) - PRs from OTHER companies that are open for bids
-            // and current company hasn't bid on yet
+
+            // === VENDOR SIDE ===
+
+            // All Requests (Marketplace Feed) - PRs from OTHER companies
             $counts['all_requests'] = PurchaseRequisition::where('company_id', '!=', $selectedCompanyId)
                 ->where('tender_status', 'open')
                 ->whereDoesntHave('offers', function ($q) use ($selectedCompanyId) {
                     $q->where('company_id', $selectedCompanyId);
                 })
+                ->count();
+
+            // My Offers - Pending
+            $counts['my_offers'] = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
+                ->where('status', 'pending')
+                ->count();
+
+            // Vendor POs - Issued (Needs Confirmation)
+            $counts['purchase_orders_vendor'] = PurchaseOrder::where('vendor_company_id', $selectedCompanyId)
+                ->where('status', 'issued')
+                ->count();
+
+            // Vendor Invoices - Pending (Sent to buyer)
+            $counts['invoices_vendor'] = Invoice::where('vendor_company_id', $selectedCompanyId)
+                ->where('status', 'pending')
+                ->count();
+
+            // Vendor Return Requests - Pending (Received from buyer, needs action)
+            $counts['return_requests_vendor'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            })
+                ->where('resolution_status', 'pending')
+                ->count();
+
+            // Vendor Debit Notes - Pending Approval
+            $counts['debit_notes_vendor'] = DebitNote::where('purchase_order_id', '!=', null)
+                ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
+                    $q->where('vendor_company_id', $selectedCompanyId);
+                })
+                ->whereNull('approved_by_vendor_at')
                 ->count();
         }
 

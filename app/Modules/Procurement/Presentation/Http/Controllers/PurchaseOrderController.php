@@ -18,6 +18,7 @@ class PurchaseOrderController extends Controller
     public function index()
     {
         $selectedCompanyId = session('selected_company_id');
+        $currentView = request('view', 'buyer');
 
         if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
@@ -44,7 +45,7 @@ class PurchaseOrderController extends Controller
             ->latest()
             ->paginate(10, ['*'], 'vendor_page');
 
-        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'selectedCompanyId'));
+        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'selectedCompanyId', 'currentView'));
     }
 
     public function show(PurchaseOrder $purchaseOrder)
