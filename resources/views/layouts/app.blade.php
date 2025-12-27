@@ -377,6 +377,11 @@
             }
 
             window.markAsReadLocal = function(id, url) {
+                // Fix for absolute URLs pointing to localhost in database
+                if (url && url.includes('localhost:8000')) {
+                    url = url.replace(/https?:\/\/localhost:8000/, window.location.origin);
+                }
+
                 fetch('/notifications/' + id + '/mark-as-read', {
                     method: 'POST',
                     headers: {
@@ -385,7 +390,12 @@
                     }
                 }).finally(function() {
                     if (url && url !== 'null' && url !== 'undefined') {
-                        window.location.href = url;
+                        // Use the SPA loader if available, otherwise standard redirect
+                        if (typeof loadPage === 'function' && url.startsWith(window.location.origin)) {
+                            loadPage(url);
+                        } else {
+                            window.location.href = url;
+                        }
                     } else {
                         window.location.reload();
                     }

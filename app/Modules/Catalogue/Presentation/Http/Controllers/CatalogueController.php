@@ -203,6 +203,22 @@ class CatalogueController extends Controller
         return redirect()->back()->with('success', 'SKU added successfully.');
     }
 
+    public function destroySku(CatalogueItem $item)
+    {
+        if ($item->company_id !== session('selected_company_id')) {
+            abort(403);
+        }
+
+        // Cleanup images
+        foreach ($item->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+        }
+
+        $item->delete();
+
+        return redirect()->back()->with('success', 'Variant deleted successfully.');
+    }
+
     // Additional methods (import, etc) need update or removal of old dependencies.
     // For brevity, skipping import refactoring in this specific file write, will handle separately.
     public function generateSku(Request $request)

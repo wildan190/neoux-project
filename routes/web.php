@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{product}/edit', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'edit'])->name('edit');
         Route::put('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'update'])->name('update');
         Route::delete('/{product}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'destroy'])->name('destroy');
+        Route::delete('/sku/{item}', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'destroySku'])->name('destroy-sku');
         Route::post('/generate-sku', [\App\Modules\Catalogue\Presentation\Http\Controllers\CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 
