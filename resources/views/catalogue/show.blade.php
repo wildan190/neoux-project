@@ -129,11 +129,7 @@
                                         <i data-feather="trash-2" class="w-4 h-4"></i>
                                     </button>
                                     {{-- Delete Form (Hidden) --}}
-                                    <form id="delete-sku-{{ $item->id }}" action="{{ route('catalogue.destroy', $item->id) }}" method="POST" class="hidden"> 
-                                        {{-- Note: destroy route currently expects Product, need to check if we can delete Item directly or need separate Item route. --}}
-                                        {{-- We probably need a separate route for deleting individual SKUs if existing route expects Product --}}
-                                        {{-- For now let's assume we need to add that route or use existing destroy if it handles polymorphically (it doesn't). --}}
-                                        {{-- I will leave this non-functional or add a route for item deletion later. --}}
+                                    <form id="delete-sku-{{ $item->id }}" action="{{ route('catalogue.destroy-sku', $item->id) }}" method="POST" class="hidden"> 
                                         @csrf
                                         @method('DELETE')
                                     </form>
@@ -299,6 +295,23 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('modal-sku').value = data.sku;
+        });
+    }
+
+    function confirmDeleteSku(itemId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This variant and its images will be permanently deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-sku-' + itemId).submit();
+            }
         });
     }
 

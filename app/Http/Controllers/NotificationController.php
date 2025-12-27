@@ -22,9 +22,23 @@ class NotificationController extends Controller
             return response()->json(['status' => 'success']);
         }
 
-        $url = $notification->data['url'] ?? route('notifications.index');
+        $url = $this->sanitizeUrl($notification->data['url'] ?? route('notifications.index'));
 
         return redirect($url);
+    }
+
+    private function sanitizeUrl($url)
+    {
+        if (empty($url))
+            return route('notifications.index');
+
+        // If it starts with http://localhost:8000, replace with current APP_URL
+        $localhost = 'http://localhost:8000';
+        if (str_contains($url, $localhost)) {
+            return str_replace($localhost, config('app.url'), $url);
+        }
+
+        return $url;
     }
 
     public function markAllAsRead()
