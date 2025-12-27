@@ -174,49 +174,63 @@
                                 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SKU</label>
+                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">SKU</label>
                                         <div class="flex gap-2">
-                                            <input type="text" name="sku" id="modal-sku" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors" required>
-                                            <button type="button" onclick="generateSku()" class="mt-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+                                            <input type="text" name="sku" id="modal-sku" 
+                                                class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm px-4 py-2.5" 
+                                                required>
+                                            <button type="button" onclick="generateSku()" 
+                                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all font-bold text-xs uppercase tracking-tight">
                                                 Generate
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit</label>
-                                        <input type="text" name="unit" placeholder="Pcs, Box, Kg" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors" required>
+                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</label>
+                                        <input type="text" name="unit" placeholder="Pcs, Box, Kg" 
+                                            class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm px-4 py-2.5" 
+                                            required>
                                     </div>
                                 </div>
                                 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (IDR)</label>
-                                        <div class="relative mt-1">
-                                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400">Rp</span>
-                                            <input type="number" name="price" min="0" class="block w-full pl-10 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors" required>
+                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Price (IDR)</label>
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 pointer-events-none text-sm font-medium">Rp</span>
+                                            <input type="number" name="price" min="0" 
+                                                class="block w-full pl-10 pr-4 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm py-2.5" 
+                                                required>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Initial Stock</label>
-                                        <input type="number" name="stock" min="0" value="0" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors" required>
+                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Initial Stock</label>
+                                        <input type="number" name="stock" min="0" value="0" 
+                                            class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm px-4 py-2.5" 
+                                            required>
                                     </div>
                                 </div>
                                 
-                                {{-- Attributes --}}
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Attributes</label>
-                                        <button type="button" onclick="addModalAttribute()" class="text-xs text-primary-600 hover:text-primary-500">+ Add Attribute</button>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Attributes</label>
+                                        <button type="button" onclick="addModalAttribute()" 
+                                            class="text-xs font-bold text-primary-600 hover:text-primary-700 transition">
+                                            + Add Attribute
+                                        </button>
                                     </div>
-                                    <div id="modal-attributes-container" class="space-y-2">
+                                    <div id="modal-attributes-container" class="space-y-3 p-4 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-700/50">
                                         {{-- Attribute Rows --}}
                                     </div>
                                 </div>
 
-                                {{-- Images --}}
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Images</label>
-                                    <input type="file" name="images[]" multiple accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/30 dark:file:text-primary-300">
+                                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Images</label>
+                                    <div class="relative group">
+                                        <input type="file" name="images[]" multiple accept="image/*" 
+                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-primary-600 file:text-white hover:file:bg-primary-700 file:transition-all cursor-pointer">
+                                        <p class="mt-1.5 text-[10px] text-gray-400 italic">Select multiple images to highlight the variant.</p>
+                                    </div>
                                 </div>
 
                                 <div class="pt-4 flex justify-end gap-3">
@@ -251,17 +265,25 @@
     function addModalAttribute() {
         const container = document.getElementById('modal-attributes-container');
         const div = document.createElement('div');
-        div.className = 'grid grid-cols-2 gap-2 flex items-center';
+        div.className = 'grid grid-cols-2 gap-3 pb-3 border-b border-gray-200/50 dark:border-gray-700/50 last:border-0 last:pb-0';
         div.innerHTML = `
-            <input type="text" name="attributes[${modalAttributeIndex}][key]" placeholder="Key (e.g. Color)" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <div>
+                <input type="text" name="attributes[${modalAttributeIndex}][key]" placeholder="Key (e.g. Color)" 
+                    class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm px-4 py-2">
+            </div>
             <div class="flex gap-2">
-                <input type="text" name="attributes[${modalAttributeIndex}][value]" placeholder="Value (e.g. Red)" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <button type="button" onclick="this.closest('.grid').remove()" class="text-red-500 hover:text-red-700 p-1">
-                    &times;
+                <input type="text" name="attributes[${modalAttributeIndex}][value]" placeholder="Value (e.g. Red)" 
+                    class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm px-4 py-2">
+                <button type="button" onclick="this.closest('.grid').remove()" 
+                    class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <i data-feather="x" class="w-4 h-4"></i>
                 </button>
             </div>
         `;
         container.appendChild(div);
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
         modalAttributeIndex++;
     }
 
