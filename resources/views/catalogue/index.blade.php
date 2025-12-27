@@ -123,9 +123,6 @@
         });
         headerHtml += '</tr>';
         thead.innerHTML = headerHtml;
-
-        // Body (Remaining rows)
-        // Skip first row if it's header, but here we just show all for simplicity or slice
         const rows = data.slice(1); 
         rows.forEach(row => {
             let rowHtml = '<tr>';
@@ -201,11 +198,9 @@
                 @endphp
                 
                 @if($image)
-                     <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                     <img src="{{ $image->url }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='{{ asset('assets/img/products/default-product.png') }}'">
                 @else
-                    <div class="flex items-center justify-center h-full text-gray-400">
-                        <i data-feather="image" class="w-12 h-12"></i>
-                    </div>
+                    <img src="{{ asset('assets/img/products/default-product.png') }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-50">
                 @endif
                 
                 <div class="absolute top-2 right-2">
