@@ -147,182 +147,162 @@
         @endif
 
         @if(session('selected_company_id'))
-            {{-- Procurement Dropdown --}}
-            <div x-data="{ open: {{ request()->routeIs('procurement.*') ? 'true' : 'false' }} }" class="space-y-1">
-                <button @click="open = !open"
-                    class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.*') ? 'text-white' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                    <div class="flex items-center">
-                        <div
-                            class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                class="w-5 h-5">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                        </div>
-                        <span class="ml-3">Procurement</span>
-                        @php
-                            $procurementTotal = ($sidebarCounts['all_requests'] ?? 0) +
-                                ($sidebarCounts['my_requisitions'] ?? 0) +
-                                ($sidebarCounts['purchase_orders'] ?? 0) +
-                                ($sidebarCounts['invoices'] ?? 0) +
-                                ($sidebarCounts['my_offers'] ?? 0) +
-                                ($sidebarCounts['return_requests'] ?? 0) +
-                                ($sidebarCounts['debit_notes'] ?? 0);
-                        @endphp
-                        @if($procurementTotal > 0)
-                            <span
-                                class="ml-2 inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full"></span>
-                        @endif
-                    </div>
+            {{-- Procurement Section (Buying) --}}
+            <div class="px-4 pt-6 pb-2">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Procurement (Buying)</p>
+            </div>
+
+            <a href="{{ route('procurement.pr.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }">
-                        <polyline points="6 9 12 15 18 9"></polyline>
+                        class="w-5 h-5">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
-                </button>
-
-                <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 transform -translate-y-2"
-                    x-transition:enter-end="opacity-100 transform translate-y-0"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 transform translate-y-0"
-                    x-transition:leave-end="opacity-0 transform -translate-y-2"
-                    class="space-y-1 pl-3 border-l-2 border-gray-700 ml-8">
-
-                    <a href="{{ route('procurement.pr.public-feed') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.pr.public-feed') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                            <path
-                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                            </path>
-                        </svg>
-                        <span class="ml-3">All Requests</span>
-                        @if(isset($sidebarCounts['all_requests']) && $sidebarCounts['all_requests'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['all_requests'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.pr.index') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.pr.index') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <circle cx="9" cy="21" r="1"></circle>
-                            <circle cx="20" cy="21" r="1"></circle>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
-                        <span class="ml-3">My Requisitions</span>
-                        @if(isset($sidebarCounts['my_requisitions']) && $sidebarCounts['my_requisitions'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['my_requisitions'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.po.index') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.po.*') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg>
-                        <span class="ml-3">Purchase Orders</span>
-                        @if(isset($sidebarCounts['purchase_orders']) && $sidebarCounts['purchase_orders'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['purchase_orders'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.invoices.index') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.invoices.*') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                            <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg>
-                        <span class="ml-3">Invoices</span>
-                        @if(isset($sidebarCounts['invoices']) && $sidebarCounts['invoices'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['invoices'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.offers.my') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.offers.*') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                        </svg>
-                        <span class="ml-3">My Offers</span>
-                        @if(isset($sidebarCounts['my_offers']) && $sidebarCounts['my_offers'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['my_offers'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.grr.index') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.grr.*') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <path
-                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
-                            </path>
-                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                        </svg>
-                        <span class="ml-3">Return Requests</span>
-                        @if(isset($sidebarCounts['return_requests']) && $sidebarCounts['return_requests'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['return_requests'] }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('procurement.debit-notes.index') }}"
-                        class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('procurement.debit-notes.*') ? 'text-primary-400 bg-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-700/30' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-3">
-                            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-                            <line x1="18" y1="9" x2="12" y2="15"></line>
-                            <line x1="12" y1="9" x2="18" y2="15"></line>
-                        </svg>
-                        <span class="ml-3">Debit Notes</span>
-                        @if(isset($sidebarCounts['debit_notes']) && $sidebarCounts['debit_notes'] > 0)
-                            <span
-                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                                {{ $sidebarCounts['debit_notes'] }}
-                            </span>
-                        @endif
-                    </a>
                 </div>
+                <span class="ml-3">My Requisitions</span>
+                @if(isset($sidebarCounts['my_requisitions']) && $sidebarCounts['my_requisitions'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['my_requisitions'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.po.index', ['view' => 'buyer']) }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Purchase Orders</span>
+                @if(isset($sidebarCounts['purchase_orders_buyer']) && $sidebarCounts['purchase_orders_buyer'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['purchase_orders_buyer'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.invoices.index', ['view' => 'buyer']) }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                    </svg>
+                </div>
+                <span class="ml-3">Invoices (Pay)</span>
+                @if(isset($sidebarCounts['invoices_buyer']) && $sidebarCounts['invoices_buyer'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['invoices_buyer'] }}
+                    </span>
+                @endif
+            </a>
+
+            {{-- Sales Section (Selling) --}}
+            <div class="px-4 pt-6 pb-2 border-t border-gray-700/50 mt-4">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sales (Selling)</p>
             </div>
+
+            <a href="{{ route('procurement.pr.public-feed') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg>
+                </div>
+                <span class="ml-3">Opportunity Feed</span>
+                @if(isset($sidebarCounts['all_requests']) && $sidebarCounts['all_requests'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['all_requests'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.offers.my') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.offers.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.offers.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">My Offers</span>
+                @if(isset($sidebarCounts['my_offers']) && $sidebarCounts['my_offers'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['my_offers'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.po.index', ['view' => 'vendor']) }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <span class="ml-3">Incoming Orders</span>
+                @if(isset($sidebarCounts['purchase_orders_vendor']) && $sidebarCounts['purchase_orders_vendor'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['purchase_orders_vendor'] }}
+                    </span>
+                @endif
+            </a>
+
+            <a href="{{ route('procurement.invoices.index', ['view' => 'vendor']) }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <span class="ml-3">Sent Invoices</span>
+                @if(isset($sidebarCounts['invoices_vendor']) && $sidebarCounts['invoices_vendor'] > 0)
+                    <span
+                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                        {{ $sidebarCounts['invoices_vendor'] }}
+                    </span>
+                @endif
+            </a>
         @endif
 
         @if(session('selected_company_id'))
