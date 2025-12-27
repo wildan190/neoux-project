@@ -58,6 +58,12 @@
                 </svg>
             </div>
             <span class="ml-3">Dashboard</span>
+            @if(isset($sidebarCounts['notifications']) && $sidebarCounts['notifications'] > 0)
+                <span
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-lg shadow-lg">
+                    {{ $sidebarCounts['notifications'] }}
+                </span>
+            @endif
         </a>
 
         <a href="{{ route('companies.index') }}"
@@ -157,6 +163,19 @@
                             </svg>
                         </div>
                         <span class="ml-3">Procurement</span>
+                        @php
+                            $procurementTotal = ($sidebarCounts['all_requests'] ?? 0) +
+                                ($sidebarCounts['my_requisitions'] ?? 0) +
+                                ($sidebarCounts['purchase_orders'] ?? 0) +
+                                ($sidebarCounts['invoices'] ?? 0) +
+                                ($sidebarCounts['my_offers'] ?? 0) +
+                                ($sidebarCounts['return_requests'] ?? 0) +
+                                ($sidebarCounts['debit_notes'] ?? 0);
+                        @endphp
+                        @if($procurementTotal > 0)
+                            <span
+                                class="ml-2 inline-flex items-center justify-center w-2 h-2 bg-primary-500 rounded-full"></span>
+                        @endif
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -184,7 +203,13 @@
                                 d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
                             </path>
                         </svg>
-                        <span>All Requests</span>
+                        <span class="ml-3">All Requests</span>
+                        @if(isset($sidebarCounts['all_requests']) && $sidebarCounts['all_requests'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['all_requests'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.pr.index') }}"
@@ -196,7 +221,13 @@
                             <circle cx="20" cy="21" r="1"></circle>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                         </svg>
-                        <span>My Requisitions</span>
+                        <span class="ml-3">My Requisitions</span>
+                        @if(isset($sidebarCounts['my_requisitions']) && $sidebarCounts['my_requisitions'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['my_requisitions'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.po.index') }}"
@@ -210,7 +241,13 @@
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
-                        <span>Purchase Orders</span>
+                        <span class="ml-3">Purchase Orders</span>
+                        @if(isset($sidebarCounts['purchase_orders']) && $sidebarCounts['purchase_orders'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['purchase_orders'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.invoices.index') }}"
@@ -221,7 +258,13 @@
                             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                             <line x1="1" y1="10" x2="23" y2="10"></line>
                         </svg>
-                        <span>Invoices</span>
+                        <span class="ml-3">Invoices</span>
+                        @if(isset($sidebarCounts['invoices']) && $sidebarCounts['invoices'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['invoices'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.offers.my') }}"
@@ -232,7 +275,13 @@
                             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                         </svg>
-                        <span>My Offers</span>
+                        <span class="ml-3">My Offers</span>
+                        @if(isset($sidebarCounts['my_offers']) && $sidebarCounts['my_offers'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['my_offers'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.grr.index') }}"
@@ -246,7 +295,13 @@
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        <span>Return Requests</span>
+                        <span class="ml-3">Return Requests</span>
+                        @if(isset($sidebarCounts['return_requests']) && $sidebarCounts['return_requests'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['return_requests'] }}
+                            </span>
+                        @endif
                     </a>
 
                     <a href="{{ route('procurement.debit-notes.index') }}"
@@ -258,7 +313,13 @@
                             <line x1="18" y1="9" x2="12" y2="15"></line>
                             <line x1="12" y1="9" x2="18" y2="15"></line>
                         </svg>
-                        <span>Debit Notes</span>
+                        <span class="ml-3">Debit Notes</span>
+                        @if(isset($sidebarCounts['debit_notes']) && $sidebarCounts['debit_notes'] > 0)
+                            <span
+                                class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
+                                {{ $sidebarCounts['debit_notes'] }}
+                            </span>
+                        @endif
                     </a>
                 </div>
             </div>
