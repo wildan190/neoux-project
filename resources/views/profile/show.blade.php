@@ -126,7 +126,7 @@
                     {{-- Gender --}}
                     <div>
                         <label for="gender" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Gender</label>
-                        <select name="gender" id="gender" class="block w-full rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 bg-gray-50 dark:bg-gray-900/50 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all dark:text-white font-medium">
+                        <select name="gender" id="gender" class="appearance-none block w-full rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 bg-gray-50 dark:bg-gray-900/50 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all dark:text-white font-medium">
                             <option value="">Select Gender</option>  
                             <option value="male" {{ old('gender', $user->userDetail?->gender) === 'male' ? 'selected' : '' }}>Male</option>
                             <option value="female" {{ old('gender', $user->userDetail?->gender) === 'female' ? 'selected' : '' }}>Female</option>

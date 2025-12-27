@@ -23,5 +23,10 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Auth\Events\Verified::class,
             \App\Modules\Auth\Application\Listeners\SendWelcomeEmailListener::class,
         );
+
+        \Illuminate\Support\Facades\View::composer(
+            'layouts.partials.sidebar',
+            \App\Http\View\Composers\SidebarComposer::class
+        );
     }
 }
