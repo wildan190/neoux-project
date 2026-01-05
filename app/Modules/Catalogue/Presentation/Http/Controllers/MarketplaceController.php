@@ -43,7 +43,7 @@ class MarketplaceController extends Controller
 
     public function show(CatalogueProduct $product)
     {
-        if (! $product->is_active) {
+        if (!$product->is_active) {
             abort(404);
         }
 
@@ -57,21 +57,31 @@ class MarketplaceController extends Controller
         $request->validate([
             'sku_id' => 'required|exists:catalogue_items,id',
             'quantity' => 'required|integer|min:1',
+            'delivery_point' => 'required|string|max:255',
         ]);
 
         $item = CatalogueItem::findOrFail($request->sku_id);
 
         $cart = session()->get('marketplace_cart', []);
 
-        if (isset($cart[$item->id])) {
-            $cart[$item->id]['quantity'] += $request->quantity;
+        // Key by item ID + delivery point to allow different points for same item if needed, 
+        // or just keep it simple if it's per PR. 
+        // Flow says: Insert delivery point -> Add to cart. Usually per item or per cart? 
+        // Prompt says: 1. Choose items, 2. Insert Qty, 3. Insert delivery point, 4. Add to cart.
+        // This implies per item.
+
+        $cartKey = $item->id . '_' . Str::slug($request->delivery_point);
+
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]['quantity'] += $request->quantity;
         } else {
-            $cart[$item->id] = [
+            $cart[$cartKey] = [
                 'sku_id' => $item->id,
                 'quantity' => $request->quantity,
                 'price' => $item->price,
-                'name' => $item->product->name.' ('.$item->sku.')',
+                'name' => $item->product->name . ' (' . $item->sku . ')',
                 'image' => $item->primaryImage->image_path ?? null,
+                'delivery_point' => $request->delivery_point,
             ];
         }
 
@@ -109,35 +119,31 @@ class MarketplaceController extends Controller
         $user = auth()->user();
         $companyId = session('selected_company_id');
 
-        // Create Purchase Requisition (Direct Purchase)
+        // Generate PR Number
+        $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
+
+        // Create Purchase Requisition (B2B Tender)
         $pr = PurchaseRequisition::create([
-            'id' => Str::uuid(),
+            'pr_number' => $prNumber,
             'company_id' => $companyId,
             'user_id' => $user->id,
-            'title' => 'Direct Purchase - '.now()->format('d M Y'),
-            'description' => 'Direct purchase from Marketplace',
+            'title' => 'Tender Request - ' . now()->format('d M Y'),
+            'description' => 'Tender request from Marketplace',
             'status' => 'pending',
-            'type' => 'direct', // direct purchase / non-tender
-            'tender_status' => 'closed', // Since it's direct
+            'approval_status' => 'pending_head', // Initial approval state
+            'type' => 'tender',
+            'tender_status' => 'closed', // Will open after approval
+            'delivery_point' => $cart[array_key_first($cart)]['delivery_point'] ?? null, // Use first item's as general if needed
         ]);
 
         foreach ($cart as $id => $details) {
-            $item = CatalogueItem::find($id);
+            $item = CatalogueItem::find($details['sku_id']);
             if ($item) {
-                // Here we might need a PurchaseRequisitionItem model that supports linking to CatalogueItem directly
-                // Start with creating simple items.
-                // Assuming PR Items table structure.
-                // We'll insert it as a pending item.
-
-                // Note: Current PurchaseRequisitionItem might separate from CatalogueItem?
-                // Let's assume we copy details.
-                // Or if we have a direct link.
-
                 $pr->items()->create([
-                    // 'purchase_requisition_id' handled by relation
                     'quantity' => $details['quantity'],
-                    'price' => $details['price'], // Fixed: Mapped to 'price' column matches DB and Model
+                    'price' => $details['price'],
                     'catalogue_item_id' => $item->id,
+                    'delivery_point' => $details['delivery_point'] ?? null,
                 ]);
             }
         }

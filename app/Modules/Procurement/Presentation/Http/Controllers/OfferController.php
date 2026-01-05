@@ -24,7 +24,7 @@ class OfferController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -53,6 +53,9 @@ class OfferController extends Controller
         // Validation
         $request->validate([
             'notes' => 'nullable|string|max:2000',
+            'delivery_time' => 'required|string|max:255',
+            'warranty' => 'required|string|max:1000',
+            'payment_scheme' => 'required|string|max:1000',
             'items' => 'required|array|min:1',
             'items.*.item_id' => 'required|exists:purchase_requisition_items,id',
             'items.*.quantity_offered' => 'required|integer|min:1',
@@ -64,7 +67,7 @@ class OfferController extends Controller
         // Get selected company from session
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -88,8 +91,8 @@ class OfferController extends Controller
             ->where('company_id', $selectedCompanyId)
             ->first();
 
-        if ($existingOffer) {
-            return back()->withErrors(['error' => 'Your company has already submitted an offer for this requisition.']);
+        if ($existingOffer && !in_array($existingOffer->status, ['pending', 'negotiating'])) {
+            return back()->withErrors(['error' => 'You have already submitted an offer that has been processed.']);
         }
 
         DB::beginTransaction();
@@ -101,14 +104,34 @@ class OfferController extends Controller
             }
 
             // Create offer
-            $offer = PurchaseRequisitionOffer::create([
-                'purchase_requisition_id' => $purchaseRequisition->id,
-                'company_id' => $selectedCompanyId,
-                'user_id' => Auth::id(),
-                'status' => 'pending',
-                'total_price' => $totalPrice,
-                'notes' => $request->notes,
-            ]);
+            if ($existingOffer) {
+                $existingOffer->update([
+                    'status' => 'pending', // Reset to pending after update so buyer knows it's new
+                    'total_price' => $totalPrice,
+                    'notes' => $request->notes,
+                    'delivery_time' => $request->delivery_time,
+                    'warranty' => $request->warranty,
+                    'payment_scheme' => $request->payment_scheme,
+                ]);
+                $offer = $existingOffer;
+                // Delete old items and documents to replace them
+                $offer->items()->delete();
+                // Note: Keep documents or replace them? Usually replace for a fresh bid.
+                $offer->documents()->delete();
+            } else {
+                $offer = PurchaseRequisitionOffer::create([
+                    'purchase_requisition_id' => $purchaseRequisition->id,
+                    'company_id' => $selectedCompanyId,
+                    'user_id' => Auth::id(),
+                    'status' => 'pending',
+                    'total_price' => $totalPrice,
+                    'notes' => $request->notes,
+                    'delivery_time' => $request->delivery_time,
+                    'warranty' => $request->warranty,
+                    'payment_scheme' => $request->payment_scheme,
+                    'bidding_status' => 'pending',
+                ]);
+            }
 
             // Create offer items
             foreach ($request->items as $item) {
@@ -126,8 +149,8 @@ class OfferController extends Controller
             // Handle document uploads
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $fileName = time().'_'.$file->getClientOriginalName();
-                    $filePath = $file->storeAs('procurement/offers/'.$offer->id, $fileName, 'public');
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('procurement/offers/' . $offer->id, $fileName, 'public');
 
                     PurchaseRequisitionOfferDocument::create([
                         'offer_id' => $offer->id,
@@ -160,7 +183,7 @@ class OfferController extends Controller
                 'pr_id' => $purchaseRequisition->id,
             ]);
 
-            return back()->withErrors(['error' => 'Failed to submit offer: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to submit offer: ' . $e->getMessage()]);
         }
     }
 
@@ -176,7 +199,7 @@ class OfferController extends Controller
         $isPROwner = $purchaseRequisition->company_id == $selectedCompanyId;
         $isOfferSubmitter = $offer->company_id == $selectedCompanyId;
 
-        if (! $isPROwner && ! $isOfferSubmitter) {
+        if (!$isPROwner && !$isOfferSubmitter) {
             abort(403, 'Unauthorized to view this offer.');
         }
 
@@ -208,8 +231,51 @@ class OfferController extends Controller
             abort(403, 'Unauthorized to accept offers for this requisition.');
         }
 
-        if ($offer->status !== 'pending') {
+        if (!in_array($offer->status, ['pending', 'negotiating'])) {
             return back()->withErrors(['error' => 'This offer has already been processed.']);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Set offer as the selected winner (pending approval)
+            $offer->update(['status' => 'winning']);
+
+            // Update PR tender status
+            $purchaseRequisition->update([
+                'winning_offer_id' => $offer->id,
+                'tender_status' => 'pending_winner_approval',
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('procurement.offers.show', $offer)
+                ->with('success', 'Winner selected! Waiting for Purchasing Manager/Head approval.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to select winner.']);
+        }
+    }
+
+    /**
+     * Approve the selected winner (PM/Head only)
+     */
+    public function approveWinner(PurchaseRequisitionOffer $offer)
+    {
+        $purchaseRequisition = $offer->purchaseRequisition;
+
+        // Authorization: only Head Approver, Company Owner/Admin, or Admin
+        $selectedCompanyId = session('selected_company_id');
+        $isCompanyManager = Auth::user()->companies()
+            ->where('companies.id', $purchaseRequisition->company_id)
+            ->wherePivotIn('role', ['owner', 'admin'])
+            ->exists();
+
+        if (Auth::id() !== $purchaseRequisition->head_approver_id && !$isCompanyManager && !Auth::user()->is_admin) {
+            abort(403, 'Only the Head Approver, Company Owner/Admin, or Purchasing Manager can approve the winner.');
+        }
+
+        if ($offer->status !== 'winning') {
+            return back()->withErrors(['error' => 'This offer is not in winning status.']);
         }
 
         DB::beginTransaction();
@@ -219,15 +285,14 @@ class OfferController extends Controller
 
             // Update PR with winning offer and close the tender
             $purchaseRequisition->update([
-                'winning_offer_id' => $offer->id,
                 'tender_status' => 'awarded',
-                'status' => 'awarded', // Close the PR - tender awarded
+                'status' => 'awarded',
             ]);
 
-            // Reject all other pending offers
+            // Reject all other pending/negotiating offers
             PurchaseRequisitionOffer::where('purchase_requisition_id', $purchaseRequisition->id)
                 ->where('id', '!=', $offer->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'negotiating', 'winning'])
                 ->update(['status' => 'rejected']);
 
             // Notify Winning Vendor
@@ -238,11 +303,10 @@ class OfferController extends Controller
             DB::commit();
 
             return redirect()->route('procurement.offers.show', $offer)
-                ->with('success', 'Offer accepted successfully! The tender has been awarded. You can now generate a Purchase Order.');
+                ->with('success', 'Winner approved! Tender awarded and participants notified.');
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return back()->withErrors(['error' => 'Failed to accept offer. Please try again.']);
+            return back()->withErrors(['error' => 'Failed to approve winner.']);
         }
     }
 
@@ -259,13 +323,103 @@ class OfferController extends Controller
             abort(403, 'Unauthorized to reject offers for this requisition.');
         }
 
-        if ($offer->status !== 'pending') {
+        if ($offer->status !== 'pending' && $offer->status !== 'negotiating') {
             return back()->withErrors(['error' => 'This offer has already been processed.']);
         }
 
         $offer->update(['status' => 'rejected']);
 
         return back()->with('success', 'Offer rejected successfully.');
+    }
+
+
+
+    /**
+     * Submit Negotiation Proposal (Buyer Proposes New Terms)
+     */
+    public function submitNegotiation(Request $request, PurchaseRequisitionOffer $offer)
+    {
+        $purchaseRequisition = $offer->purchaseRequisition;
+        $selectedCompanyId = session('selected_company_id');
+
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'total_price' => 'required|numeric|min:0',
+            'delivery_time' => 'required|string',
+            'warranty' => 'required|string',
+            'payment_scheme' => 'required|string',
+            'notes' => 'nullable|string|max:2000',
+            'negotiation_message' => 'nullable|string|max:1000',
+        ]);
+
+        $offer->update([
+            'total_price' => $request->total_price,
+            'delivery_time' => $request->delivery_time,
+            'warranty' => $request->warranty,
+            'payment_scheme' => $request->payment_scheme,
+            'notes' => $request->notes,
+            'status' => 'negotiating', // Set status to negotiating
+            'negotiation_message' => $request->negotiation_message ?? 'Terms updated by Buyer.',
+        ]);
+
+        return back()->with('success', 'Negotiation proposal sent to Vendor.');
+    }
+
+    /**
+     * Vendor accepts the negotiation proposal
+     */
+    public function vendorAcceptNegotiation(PurchaseRequisitionOffer $offer)
+    {
+        // Ensure current user is the vendor or company owner
+        if ($offer->user_id !== Auth::id()) {
+            // Check if user is admin/member of that company OR the owner
+            $isMember = $offer->company->members()->where('users.id', Auth::id())->exists();
+            $isOwner = $offer->company->user_id === Auth::id();
+
+            if (!$isMember && !$isOwner) {
+                abort(403, 'Unauthorized.');
+            }
+        }
+
+        $offer->update([
+            'status' => 'pending', // Reset to pending (ready for award)
+            'negotiation_message' => null, // Clear negotiation status/message
+        ]);
+
+        return back()->with('success', 'You have accepted the new terms.');
+    }
+
+    /**
+     * Vendor rejects the negotiation proposal
+     */
+    public function vendorRejectNegotiation(PurchaseRequisitionOffer $offer)
+    {
+        // Ensure current user is the vendor or company owner
+        if ($offer->user_id !== Auth::id()) {
+            $isMember = $offer->company->members()->where('users.id', Auth::id())->exists();
+            $isOwner = $offer->company->user_id === Auth::id();
+
+            if (!$isMember && !$isOwner) {
+                abort(403, 'Unauthorized.');
+            }
+        }
+
+        // What status to set? 'rejected' might mean the whole offer is dead.
+        // Maybe we keep it as 'negotiating' but add a "Rejected by Vendor" flag?
+        // Or simply revert to 'rejected' status for the whole offer?
+        // Let's set it to 'rejected' for now as per "Reject Negotiation" usually means deal off.
+        // Or we can add a specific status 'negotiation_rejected' if needed.
+        // For simplicity: 'rejected'.
+
+        $offer->update([
+            'status' => 'rejected',
+            'negotiation_message' => 'Vendor rejected the proposed terms.',
+        ]);
+
+        return back()->with('success', 'You have rejected the negotiation proposal.');
     }
 
     /**
@@ -312,26 +466,40 @@ class OfferController extends Controller
         foreach ($offers as $offer) {
             $score = 0;
 
-            // 1. Price Score (40%) - Lower price = higher score
+            // 1. Price Score (30%) - Lower price = higher score
             if ($maxPrice > 0) {
-                $priceScore = (1 - ($offer->total_price / $maxPrice)) * 40;
+                $priceScore = (1 - ($offer->total_price / $maxPrice)) * 30;
                 $score += $priceScore;
             }
 
-            // 2. Quantity Match Score (30%)
+            // 2. Quantity Match Score (20%)
             $totalOfferedQuantity = $offer->items->sum('quantity_offered');
             if ($totalRequestedQuantity > 0) {
-                $quantityScore = min(1, $totalOfferedQuantity / $totalRequestedQuantity) * 30;
+                $quantityScore = min(1, $totalOfferedQuantity / $totalRequestedQuantity) * 20;
                 $score += $quantityScore;
             }
 
-            // 3. Win History Score (20%) - Based on past tender wins
-            // Cap at 10 wins for max score to avoid skewing
+            // 3. Delivery Time (10%) - Simple presence check for now
+            if (!empty($offer->delivery_time)) {
+                $score += 10;
+            }
+
+            // 4. Warranty (10%) - Simple presence check for now
+            if (!empty($offer->warranty)) {
+                $score += 10;
+            }
+
+            // 5. Payment Scheme (10%) - Simple presence check for now
+            if (!empty($offer->payment_scheme)) {
+                $score += 10;
+            }
+
+            // 6. Win History Score (10%) - Based on past tender wins
             $wins = $winCounts->get($offer->company_id, 0);
-            $winScore = min(1, $wins / 10) * 20;
+            $winScore = min(1, $wins / 10) * 10;
             $score += $winScore;
 
-            // 4. Response Time Score (10%) - How quick to submit
+            // 7. Response Time Score (10%) - How quick to submit
             $hoursSincePR = $offer->created_at->diffInHours($purchaseRequisition->created_at);
             $timeScore = max(0, (1 - ($hoursSincePR / 168))) * 10; // 168 hours = 1 week
             $score += $timeScore;
@@ -344,7 +512,7 @@ class OfferController extends Controller
         $topOffer = $offers->sortByDesc('rank_score')->first();
 
         // Reset all recommendations first
-        $offers->each(fn ($o) => $o->update(['is_recommended' => false]));
+        $offers->each(fn($o) => $o->update(['is_recommended' => false]));
 
         if ($topOffer && $topOffer->rank_score >= 70) {
             // Check if quantity match is at least 80%

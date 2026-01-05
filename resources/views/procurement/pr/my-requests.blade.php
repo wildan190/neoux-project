@@ -75,10 +75,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full 
-                                @if($pr->status === 'approved') bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
-                                @elseif($pr->status === 'rejected') bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
-                                @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
-                                {{ ucfirst($pr->status) }}
+                                @if($pr->approval_status === 'approved') bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+                                @elseif($pr->approval_status === 'rejected') bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
+                                @elseif(str_starts_with($pr->approval_status, 'pending')) bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                                @else bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 @endif">
+                                {{ strtoupper(str_replace('_', ' ', $pr->approval_status)) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

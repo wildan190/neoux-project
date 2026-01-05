@@ -40,13 +40,29 @@ class PurchaseOrderItem extends Model
         return $this->hasMany(GoodsReceiptItem::class, 'purchase_order_item_id');
     }
 
+    public function deliveryOrderItems()
+    {
+        return $this->hasMany(DeliveryOrderItem::class, 'purchase_order_item_id');
+    }
+
+    public function getQuantityShippedAttribute(): float
+    {
+        // Only count shipped or pending DOs? 
+        // Usually we count anything that is assigned to a DO (not cancelled)
+        return $this->deliveryOrderItems()
+            ->whereHas('deliveryOrder', function ($q) {
+                $q->where('status', '!=', 'cancelled');
+            })
+            ->sum('quantity_shipped');
+    }
+
     public function getFormattedUnitPriceAttribute(): string
     {
-        return 'Rp '.number_format($this->unit_price, 2, ',', '.');
+        return 'Rp ' . number_format($this->unit_price, 2, ',', '.');
     }
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return 'Rp '.number_format($this->subtotal, 2, ',', '.');
+        return 'Rp ' . number_format($this->subtotal, 2, ',', '.');
     }
 }

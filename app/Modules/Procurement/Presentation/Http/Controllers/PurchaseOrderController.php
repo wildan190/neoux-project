@@ -9,6 +9,7 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
 use App\Notifications\PurchaseOrderConfirmed;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -158,11 +159,15 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'No winning offer selected for this requisition.');
         }
 
+        $offer = PurchaseRequisitionOffer::with('items')->findOrFail($purchaseRequisition->winning_offer_id);
+
+        if ($offer->status !== 'accepted') {
+            return back()->with('error', 'The selected winner has not been approved by the Purchasing Manager/Head yet.');
+        }
+
         if ($purchaseRequisition->purchaseOrder) {
             return back()->with('error', 'Purchase Order already exists for this requisition.');
         }
-
-        $offer = PurchaseRequisitionOffer::with('items')->findOrFail($purchaseRequisition->winning_offer_id);
 
         DB::beginTransaction();
         try {
@@ -176,17 +181,26 @@ class PurchaseOrderController extends Controller
                 'vendor_company_id' => $offer->company_id,
                 'created_by_user_id' => Auth::id(),
                 'total_amount' => $offer->total_price,
-                'status' => 'issued',
+                'status' => 'pending_vendor_acceptance',
             ]);
 
+            // Calculate negotiation ratio if total price differs from sum of items
+            $originalTotal = $offer->items->sum('subtotal');
+            $negotiatedTotal = $offer->total_price;
+            $ratio = ($originalTotal > 0) ? ($negotiatedTotal / $originalTotal) : 1;
+
             foreach ($offer->items as $offerItem) {
+                // Adjust unit price and subtotal based on negotiation
+                $adjustedUnitPrice = $offerItem->unit_price * $ratio;
+                $adjustedSubtotal = $offerItem->subtotal * $ratio;
+
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchaseOrder->id,
                     'purchase_requisition_item_id' => $offerItem->purchase_requisition_item_id,
                     'quantity_ordered' => $offerItem->quantity_offered,
                     'quantity_received' => 0,
-                    'unit_price' => $offerItem->unit_price,
-                    'subtotal' => $offerItem->subtotal,
+                    'unit_price' => $adjustedUnitPrice,
+                    'subtotal' => $adjustedSubtotal,
                 ]);
             }
 
@@ -218,5 +232,41 @@ class PurchaseOrderController extends Controller
 
             return back()->with('error', 'Failed to generate Purchase Order: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Vendor acceptance of PO
+     */
+    public function vendorAccept(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
+            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
+        }
+
+        $purchaseOrder->update([
+            'status' => 'issued', // Official issuance after vendor acceptance
+            'vendor_accepted_at' => now(),
+            'vendor_notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'You have accepted the Purchase Order. You can now prepare the delivery.');
+    }
+
+    /**
+     * Vendor rejection of PO
+     */
+    public function vendorReject(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
+            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
+        }
+
+        $purchaseOrder->update([
+            'status' => 'rejected_by_vendor',
+            'vendor_rejected_at' => now(),
+            'vendor_notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'Purchase Order has been rejected.');
     }
 }

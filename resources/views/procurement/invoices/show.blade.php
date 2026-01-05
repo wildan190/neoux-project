@@ -26,11 +26,11 @@
         <div class="flex items-center gap-3">
             {{-- Status Badge --}}
             <span class="px-3 py-1 text-sm font-bold rounded-full 
-                @if($invoice->status === 'approved' || $invoice->status === 'paid') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+                @if($invoice->status === 'purchasing_approved' || $invoice->status === 'paid' || $invoice->status === 'approved') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
                 @elseif($invoice->status === 'mismatch' || $invoice->status === 'rejected') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
-                @elseif($invoice->status === 'matched') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
-                @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
-                {{ ucfirst($invoice->status) }}
+                @elseif($invoice->status === 'matched' || $invoice->status === 'vendor_approved') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif font-mono">
+                {{ strtoupper(str_replace('_', ' ', $invoice->status)) }}
             </span>
 
             {{-- Action Buttons --}}
@@ -181,6 +181,63 @@
                 </a>
             </div>
 
+            {{-- Approval Actions Card --}}
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+                <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-4">Approval Actions</h3>
+                
+                <div class="space-y-3">
+                    @if($isVendor && ($invoice->status === 'matched' || $invoice->status === 'pending'))
+                        <form action="{{ route('procurement.invoices.vendor-approve', $invoice) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                                <i data-feather="check-circle" class="w-4 h-4"></i>
+                                Approve (Vendor Head)
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($isBuyer && $invoice->status === 'vendor_approved')
+                        <form action="{{ route('procurement.invoices.purchasing-approve', $invoice) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                                <i data-feather="shield" class="w-4 h-4"></i>
+                                Approve (Purchasing)
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($isBuyer && $invoice->status === 'purchasing_approved')
+                        <form action="{{ route('procurement.invoices.finance-approve', $invoice) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2">
+                                <i data-feather="credit-card" class="w-4 h-4"></i>
+                                Approve & Pay (Finance)
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($isBuyer && ($invoice->status !== 'paid' && $invoice->status !== 'rejected'))
+                        <form action="{{ route('procurement.invoices.reject', $invoice) }}" method="POST" onsubmit="return confirm('Please provide a reason for rejection.')">
+                            @csrf
+                            <div class="mt-2">
+                                <input type="text" name="reason" placeholder="Rejection reason..." class="w-full text-xs border-gray-300 rounded mb-2" required>
+                                <button type="submit" class="w-full px-4 py-2 bg-red-100 text-red-700 font-bold rounded-lg hover:bg-red-200 transition">
+                                    Reject Invoice
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+
+                @if($invoice->status === 'paid')
+                    <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
+                        <i data-feather="check-circle" class="w-8 h-8 text-green-600 dark:text-green-400 mx-auto mb-2"></i>
+                        <p class="text-sm font-bold text-green-900 dark:text-green-100">Transaction Completed</p>
+                        <p class="text-xs text-green-700 dark:text-green-300 mt-1">Invoice is fully approved and paid.</p>
+                    </div>
+                @endif
+            </div>
+
             {{-- Tax Invoice Section (Vendor Only) --}}
             @if($isVendor)
                 <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
@@ -213,7 +270,7 @@
                                 Download Faktur PDF
                             </a>
                         </div>
-                    @else
+                    @elseif($invoice->status === 'vendor_approved' || $invoice->status === 'purchasing_approved' || $invoice->status === 'paid')
                         {{-- Issue Tax Invoice Button --}}
                         <form action="{{ route('procurement.invoices.issue-tax-invoice', $invoice) }}" method="POST">
                             @csrf
@@ -224,6 +281,8 @@
                             </button>
                         </form>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">Generate Faktur Pajak</p>
+                    @else
+                        <p class="text-xs text-gray-500 italic text-center">Faktur pajak dapat diterbitkan setelah invoice disetujui Vendor Head.</p>
                     @endif
                 </div>
             @endif

@@ -242,6 +242,45 @@
 
                              {{-- Delivery/Time Row --}}
                              <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Delivery Time</td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        <div class="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                                            <i data-feather="truck" class="w-3 h-3 text-primary-500"></i>
+                                            {{ $offer->delivery_time ?? 'N/A' }}
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                            {{-- Warranty Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Warranty</td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        <div class="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                                            <i data-feather="shield" class="w-3 h-3 text-primary-500"></i>
+                                            {{ $offer->warranty ?? 'N/A' }}
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                            {{-- Payment Scheme Row --}}
+                            <tr>
+                                <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Payment Scheme</td>
+                                @foreach($offers->take(3) as $offer)
+                                    <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
+                                        <div class="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                                            <i data-feather="credit-card" class="w-3 h-3 text-primary-500"></i>
+                                            {{ $offer->payment_scheme ?? 'N/A' }}
+                                        </div>
+                                    </td>
+                                @endforeach
+                            </tr>
+
+                             {{-- Response Time Row --}}
+                             <tr>
                                 <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-medium">Response Time</td>
                                 @foreach($offers->take(3) as $offer)
                                     <td class="px-6 py-3 {{ $loop->first ? 'bg-yellow-50/20 dark:bg-yellow-900/5' : '' }}">
@@ -326,6 +365,18 @@
                                                 <i data-feather="check-circle" class="w-3 h-3"></i>
                                                 Accepted
                                             </span>
+                                        @elseif($offer->status === 'winning')
+                                            <span
+                                                class="px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-bold rounded-full inline-flex items-center gap-1">
+                                                <i data-feather="clock" class="w-3 h-3"></i>
+                                                Winning (Pending Approval)
+                                            </span>
+                                        @elseif($offer->status === 'negotiating')
+                                            <span
+                                                class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold rounded-full inline-flex items-center gap-1">
+                                                <i data-feather="message-circle" class="w-3 h-3"></i>
+                                                Negotiating
+                                            </span>
                                         @elseif($offer->status === 'rejected')
                                             <span
                                                 class="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold rounded-full">
@@ -389,14 +440,42 @@
 
                         {{-- Actions --}}
                         <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4 flex items-center justify-between">
-                            <a href="{{ route('procurement.offers.show', $offer) }}"
-                                class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 inline-flex items-center gap-1">
-                                View Full Details
-                                <i data-feather="arrow-right" class="w-3 h-3"></i>
-                            </a>
+                            <div class="flex flex-col items-end gap-2">
+                                <a href="{{ route('procurement.offers.show', $offer) }}"
+                                    class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 inline-flex items-center gap-1">
+                                    View Full Details
+                                    <i data-feather="arrow-right" class="w-3 h-3"></i>
+                                </a>
 
-                            @if($offer->status === 'pending')
+                                @if($offer->status === 'winning')
+                                    <span class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                                        Waiting for approval from <strong>{{ $purchaseRequisition->headApprover->name ?? 'Head Approver' }}</strong>
+                                    </span>
+                                @elseif($offer->status === 'negotiating')
+                                    <span class="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                        Waiting for <strong>{{ $offer->company->name }}</strong> to update their bid
+                                    </span>
+                                @endif
+                            </div>
+
+                            @php
+                                $isCompanyManager = Auth::user()->companies()->where('companies.id', $purchaseRequisition->company_id)->wherePivotIn('role', ['owner', 'admin'])->exists();
+                                $isApprover = (Auth::id() === $purchaseRequisition->head_approver_id || Auth::user()->is_admin || $isCompanyManager);
+                            @endphp
+
+                            @if($offer->status === 'pending' || $offer->status === 'negotiating')
                                 <div class="flex gap-2">
+                                    @if($offer->status === 'pending')
+                                        <form action="{{ route('procurement.offers.negotiate', $offer) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" onclick="return confirm('Invite this vendor to stage 2 negotiation?')"
+                                                class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-lg transition">
+                                                <i data-feather="message-circle" class="w-4 h-4 inline mr-1"></i>
+                                                Negotiate
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <form action="{{ route('procurement.offers.reject', $offer) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" onclick="return confirm('Reject this offer?')"
@@ -409,10 +488,31 @@
                                     <form action="{{ route('procurement.offers.accept', $offer) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit"
-                                            onclick="return confirm('Accept this offer as the winner? This will reject all other offers.')"
+                                            onclick="return confirm('Select this offer as the potential winner? This will require final approval from the Purchasing Manager/Head.')"
                                             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition shadow-sm">
                                             <i data-feather="check-circle" class="w-4 h-4 inline mr-1"></i>
-                                            Accept Offer
+                                            Select Winner
+                                        </button>
+                                    </form>
+                                </div>
+                            @elseif($offer->status === 'winning' && $isApprover)
+                                <div class="flex gap-2">
+                                    <form action="{{ route('procurement.offers.approve-winner', $offer) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                            onclick="return confirm('Give final approval to award this tender to {{ $offer->company->name }}?')"
+                                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition shadow-sm">
+                                            <i data-feather="check-square" class="w-4 h-4 inline mr-1"></i>
+                                            Approve Winner
+                                        </button>
+                                    </form>
+                                    
+                                    <form action="{{ route('procurement.offers.reject', $offer) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" onclick="return confirm('Reject this winning selection?')"
+                                            class="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-sm font-semibold rounded-lg transition">
+                                            <i data-feather="x" class="w-4 h-4 inline mr-1"></i>
+                                            Reject
                                         </button>
                                     </form>
                                 </div>

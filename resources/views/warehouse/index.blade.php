@@ -14,7 +14,10 @@
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Warehouse Dashboard</h1>
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-400">Manage inventory, scan items, and track stock.</p>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex flex-wrap gap-2">
+            <a href="{{ route('procurement.warehouse.index') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
+                <i data-feather="settings" class="w-4 h-4 mr-2"></i> Manage Locations
+            </a>
             <a href="{{ route('warehouse.scan') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
                 <i data-feather="maximize" class="w-4 h-4 mr-2"></i> Scan QR
             </a>

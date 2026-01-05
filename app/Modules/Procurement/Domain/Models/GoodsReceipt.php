@@ -17,9 +17,11 @@ class GoodsReceipt extends Model
     protected $fillable = [
         'gr_number',
         'purchase_order_id',
+        'warehouse_id',
         'received_by_user_id',
         'received_at',
         'delivery_note_number',
+        'delivery_order_id',
         'notes',
     ];
 
@@ -32,6 +34,11 @@ class GoodsReceipt extends Model
         return $this->belongsTo(PurchaseOrder::class);
     }
 
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Company\Domain\Models\Warehouse::class);
+    }
+
     public function receivedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by_user_id');
@@ -40,5 +47,10 @@ class GoodsReceipt extends Model
     public function items(): HasMany
     {
         return $this->hasMany(GoodsReceiptItem::class);
+    }
+
+    public function deliveryOrder(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryOrder::class);
     }
 }

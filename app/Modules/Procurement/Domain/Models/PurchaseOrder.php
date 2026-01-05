@@ -24,6 +24,9 @@ class PurchaseOrder extends Model
         'total_amount',
         'status',
         'confirmed_at',
+        'vendor_accepted_at',
+        'vendor_rejected_at',
+        'vendor_notes',
     ];
 
     protected $casts = [
@@ -64,6 +67,11 @@ class PurchaseOrder extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class);
     }
 
     /**

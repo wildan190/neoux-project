@@ -23,6 +23,10 @@ class PurchaseRequisitionOffer extends Model
         'notes',
         'rank_score',
         'is_recommended',
+        'delivery_time',
+        'warranty',
+        'payment_scheme',
+        'bidding_status',
     ];
 
     protected $casts = [
@@ -64,7 +68,7 @@ class PurchaseRequisitionOffer extends Model
     // Accessor for formatted price
     public function getFormattedTotalPriceAttribute(): string
     {
-        return 'Rp '.number_format($this->total_price, 2, ',', '.');
+        return 'Rp ' . number_format($this->total_price, 2, ',', '.');
     }
 
     // Accessor for rank position

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\NotificationController;
 use App\Modules\Procurement\Presentation\Http\Controllers\DebitNoteController;
+use App\Modules\Procurement\Presentation\Http\Controllers\DeliveryOrderController;
 use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReceiptController;
 use App\Modules\Procurement\Presentation\Http\Controllers\GoodsReturnRequestController;
 use App\Modules\Procurement\Presentation\Http\Controllers\InvoiceController;
@@ -100,11 +101,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/po/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('po.print');
         Route::get('/po/{purchaseOrder}/download-pdf', [PurchaseOrderController::class, 'downloadPdf'])->name('po.download-pdf');
         Route::post('/po/{purchaseOrder}/confirm', [PurchaseOrderController::class, 'confirm'])->name('po.confirm');
+        Route::post('/po/{purchaseOrder}/vendor-accept', [PurchaseOrderController::class, 'vendorAccept'])->name('po.vendor-accept');
+        Route::post('/po/{purchaseOrder}/vendor-reject', [PurchaseOrderController::class, 'vendorReject'])->name('po.vendor-reject');
         Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
 
         // Goods Receipts
         Route::get('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'create'])->name('gr.create');
         Route::post('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'store'])->name('gr.store');
+
+        // Delivery Orders (Vendor side)
+        Route::prefix('do')->name('do.')->group(function () {
+            Route::get('/po/{purchaseOrder}/create', [DeliveryOrderController::class, 'create'])->name('create');
+            Route::post('/po/{purchaseOrder}', [DeliveryOrderController::class, 'store'])->name('store');
+            Route::post('/{deliveryOrder}/ship', [DeliveryOrderController::class, 'markAsShipped'])->name('ship');
+        });
         Route::get('/gr/{id}/print', [GoodsReceiptController::class, 'print'])->name('gr.print');
         Route::get('/gr/{id}/download-pdf', [GoodsReceiptController::class, 'downloadPdf'])->name('gr.download-pdf');
 
@@ -119,6 +129,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/{invoice}/tax-invoice-pdf', [InvoiceController::class, 'downloadTaxInvoicePdf'])->name('tax-invoice-pdf');
             Route::get('po/{purchaseOrder}/create-invoice', [InvoiceController::class, 'create'])->name('create');
             Route::post('po/{purchaseOrder}/create-invoice', [InvoiceController::class, 'store'])->name('store');
+            Route::post('/{invoice}/vendor-approve', [InvoiceController::class, 'vendorApprove'])->name('vendor-approve');
+            Route::post('/{invoice}/purchasing-approve', [InvoiceController::class, 'purchasingApprove'])->name('purchasing-approve');
+            Route::post('/{invoice}/finance-approve', [InvoiceController::class, 'financeApprove'])->name('finance-approve');
+            Route::post('/{invoice}/reject', [InvoiceController::class, 'reject'])->name('reject');
         });
 
         // Offers
@@ -129,6 +143,23 @@ Route::middleware('auth')->group(function () {
             Route::get('/{offer}', [OfferController::class, 'show'])->name('show');
             Route::post('/{offer}/accept', [OfferController::class, 'accept'])->name('accept');
             Route::post('/{offer}/reject', [OfferController::class, 'reject'])->name('reject');
+            // Negotiation Routes
+            Route::post('/{offer}/submit-negotiation', [OfferController::class, 'submitNegotiation'])->name('submit-negotiation');
+            Route::post('/{offer}/vendor-accept-negotiation', [OfferController::class, 'vendorAcceptNegotiation'])->name('vendor-accept-negotiation');
+            Route::post('/{offer}/vendor-reject-negotiation', [OfferController::class, 'vendorRejectNegotiation'])->name('vendor-reject-negotiation');
+
+            Route::post('/{offer}/approve-winner', [OfferController::class, 'approveWinner'])->name('approve-winner');
+        });
+
+        // Warehouse Management
+        Route::prefix('warehouses')->name('warehouse.')->group(function () {
+            Route::get('/', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'create'])->name('create');
+            Route::post('/', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'store'])->name('store');
+            Route::get('/{warehouse}', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'show'])->name('show'); // Added show route
+            Route::get('/{warehouse}/edit', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'edit'])->name('edit');
+            Route::put('/{warehouse}', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'update'])->name('update');
+            Route::delete('/{warehouse}', [\App\Modules\Company\Presentation\Http\Controllers\WarehouseController::class, 'destroy'])->name('destroy');
         });
 
         // Goods Return Requests (GRR) - for damaged/rejected items

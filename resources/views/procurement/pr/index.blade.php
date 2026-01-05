@@ -102,16 +102,16 @@
                             @else
                                 {{-- Show Approval Status for open items --}}
                                 @if($pr->approval_status === 'approved')
-                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                         Approved
                                     </span>
                                 @elseif($pr->approval_status === 'rejected')
                                     <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
                                         Rejected
                                     </span>
-                                @elseif($pr->approval_status === 'pending')
+                                @elseif(str_starts_with($pr->approval_status, 'pending'))
                                     <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                                        Waiting Approval
+                                        {{ str_replace('_', ' ', strtoupper($pr->approval_status)) }}
                                     </span>
                                 @else
                                     <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
