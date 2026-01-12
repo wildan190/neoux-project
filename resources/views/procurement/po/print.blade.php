@@ -24,7 +24,7 @@
             <div class="bg-gradient-to-r from-primary-500 to-secondary-500 px-8 py-6 text-white">
                 <div class="flex justify-between items-start">
                     @php
-                        $company = $purchaseOrder->purchaseRequisition->company;
+                        $company = $purchaseOrder->purchaseRequisition?->company ?? $purchaseOrder->buyerCompany;
                     @endphp
                     <div>
                         @if($company->logo)
@@ -47,9 +47,9 @@
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Vendor</h3>
                     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <p class="font-bold text-lg text-gray-900">{{ $purchaseOrder->vendorCompany->name }}</p>
-                        <p class="text-sm text-gray-600 mt-1">{{ $purchaseOrder->vendorCompany->email }}</p>
-                        @if($purchaseOrder->vendorCompany->phone)
+                        <p class="font-bold text-lg text-gray-900">{{ $purchaseOrder->vendorCompany?->name ?? $purchaseOrder->historical_vendor_name ?? 'N/A' }}</p>
+                        <p class="text-sm text-gray-600 mt-1">{{ $purchaseOrder->vendorCompany?->email ?? 'N/A' }}</p>
+                        @if($purchaseOrder->vendorCompany?->phone)
                             <p class="text-sm text-gray-600">{{ $purchaseOrder->vendorCompany->phone }}</p>
                         @endif
                     </div>
@@ -59,10 +59,10 @@
                 <div>
                     <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Buyer</h3>
                     <div class="bg-primary-50 p-4 rounded-lg border border-primary-200">
-                        <p class="font-bold text-lg text-gray-900">{{ $purchaseOrder->purchaseRequisition->company->name }}</p>
-                        <p class="text-sm text-gray-600 mt-1">{{ $purchaseOrder->purchaseRequisition->company->email }}</p>
-                        @if($purchaseOrder->purchaseRequisition->company->phone)
-                            <p class="text-sm text-gray-600">{{ $purchaseOrder->purchaseRequisition->company->phone }}</p>
+                        <p class="font-bold text-lg text-gray-900">{{ $company->name }}</p>
+                        <p class="text-sm text-gray-600 mt-1">{{ $company->email }}</p>
+                        @if($company->phone)
+                            <p class="text-sm text-gray-600">{{ $company->phone }}</p>
                         @endif
                     </div>
                 </div>
@@ -76,7 +76,7 @@
                 </div>
                 <div>
                     <p class="text-gray-500 font-semibold">PR Number</p>
-                    <p class="text-gray-900 font-bold">{{ $purchaseOrder->purchaseRequisition->pr_number }}</p>
+                    <p class="text-gray-900 font-bold">{{ $purchaseOrder->purchaseRequisition?->pr_number ?? 'Manual/Import' }}</p>
                 </div>
                 <div>
                     <p class="text-gray-500 font-semibold">Status</p>
@@ -106,8 +106,8 @@
                             <tr class="border-b border-gray-200">
                                 <td class="px-4 py-3 text-sm text-gray-700">{{ $index + 1 }}</td>
                                 <td class="px-4 py-3">
-                                    <p class="text-sm font-semibold text-gray-900">{{ $item->purchaseRequisitionItem->catalogueItem->name }}</p>
-                                    <p class="text-xs text-gray-500">SKU: {{ $item->purchaseRequisitionItem->catalogueItem->sku }}</p>
+                                    <p class="text-sm font-semibold text-gray-900">{{ $item->purchaseRequisitionItem?->catalogueItem->name ?? $item->item_name ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-500">SKU: {{ $item->purchaseRequisitionItem?->catalogueItem->sku ?? 'N/A' }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-center text-sm font-semibold text-gray-900">{{ $item->quantity_ordered }}</td>
                                 <td class="px-4 py-3 text-right text-sm text-gray-700">{{ $item->formatted_unit_price }}</td>
@@ -159,8 +159,8 @@
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Buyer Representative</p>
-                            <p class="text-xs font-semibold text-gray-900">{{ $purchaseOrder->purchaseRequisition->user->name }}</p>
-                            <p class="text-xs text-gray-500">{{ $purchaseOrder->purchaseRequisition->company->name }}</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $purchaseOrder->purchaseRequisition?->user->name ?? $purchaseOrder->createdBy->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $company->name }}</p>
                             <p class="text-xs text-gray-400">{{ $purchaseOrder->created_at->format('d M Y, H:i') }}</p>
                         </div>
                     </div>
@@ -172,8 +172,8 @@
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Vendor Representative</p>
-                            <p class="text-xs font-semibold text-gray-900">{{ $purchaseOrder->vendorCompany->user->name }}</p>
-                            <p class="text-xs text-gray-500">{{ $purchaseOrder->vendorCompany->name }}</p>
+                            <p class="text-xs font-semibold text-gray-900">{{ $purchaseOrder->vendorCompany?->user?->name ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">{{ $purchaseOrder->vendorCompany?->name ?? $purchaseOrder->historical_vendor_name ?? 'N/A' }}</p>
                             <p class="text-xs text-gray-400">To be signed upon receipt</p>
                         </div>
                     </div>

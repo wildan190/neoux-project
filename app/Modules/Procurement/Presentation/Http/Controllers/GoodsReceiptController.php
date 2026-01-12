@@ -3,6 +3,7 @@
 namespace App\Modules\Procurement\Presentation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Procurement\Domain\Models\DeliveryOrder;
 use App\Modules\Procurement\Domain\Models\GoodsReceipt;
 use App\Modules\Procurement\Domain\Models\GoodsReceiptItem;
 use App\Modules\Procurement\Domain\Models\PurchaseOrder;
@@ -15,7 +16,7 @@ use Illuminate\Support\Str;
 
 class GoodsReceiptController extends Controller
 {
-    public function create(PurchaseOrder $purchaseOrder)
+    public function create(PurchaseOrder $purchaseOrder, Request $request)
     {
         $selectedCompanyId = session('selected_company_id');
 
@@ -40,10 +41,19 @@ class GoodsReceiptController extends Controller
             abort(403, 'Unauthorized to create Goods Receipt.');
         }
 
-        // Block if PO is not confirmed
-        if ($purchaseOrder->status === 'issued') {
+        // Block if PO is not yet accepted by vendor
+        if ($purchaseOrder->status === 'pending_vendor_acceptance') {
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('error', 'Purchase Order must be confirmed by the vendor before receiving goods.');
+                ->with('error', 'Purchase Order must be accepted by the vendor before receiving goods.');
+        }
+
+        // Check for Delivery Order if provided
+        $deliveryOrder = null;
+        if ($request->has('do_id')) {
+            $deliveryOrder = DeliveryOrder::with('items')->find($request->do_id);
+            if ($deliveryOrder && $deliveryOrder->purchase_order_id != $purchaseOrder->id) {
+                $deliveryOrder = null;
+            }
         }
 
         // Check if PO is already fully received
@@ -83,7 +93,11 @@ class GoodsReceiptController extends Controller
 
         $isReplacement = $hasReplacementPending && $totalReceived >= $totalOrdered;
 
-        return view('procurement.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems'));
+        $warehouses = \App\Modules\Company\Domain\Models\Warehouse::where('company_id', $selectedCompanyId)
+            ->where('is_active', true)
+            ->get();
+
+        return view('procurement.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems', 'deliveryOrder', 'warehouses'));
     }
 
     public function store(Request $request, PurchaseOrder $purchaseOrder)
@@ -102,19 +116,24 @@ class GoodsReceiptController extends Controller
             abort(403, 'Unauthorized to create Goods Receipt.');
         }
 
-        // Block if PO is not confirmed
-        if ($purchaseOrder->status === 'issued') {
+        // Block if PO is not yet accepted by vendor
+        if ($purchaseOrder->status === 'pending_vendor_acceptance') {
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('error', 'Purchase Order must be confirmed by the vendor before receiving goods.');
+                ->with('error', 'Purchase Order must be accepted by the vendor before receiving goods.');
         }
 
         $request->validate([
             'received_at' => 'required|date',
+            'warehouse_id' => 'required|exists:warehouses,id',
             'delivery_note' => 'nullable|string|max:255',
+            'delivery_order_id' => 'nullable|exists:delivery_orders,id',
             'notes' => 'nullable|string|max:1000',
             'items' => 'required|array',
             'items.*.po_item_id' => 'required|exists:purchase_order_items,id',
             'items.*.quantity_received' => 'required|integer|min:0',
+            'items.*.quantity_good' => 'required|integer|min:0',
+            'items.*.quantity_rejected' => 'required|integer|min:0',
+            'items.*.rejected_reason' => 'nullable|string|max:255',
             'items.*.condition' => 'nullable|string|max:255',
         ]);
 
@@ -133,6 +152,13 @@ class GoodsReceiptController extends Controller
             }
 
             $nowReceiving = $itemData['quantity_received'];
+            $goodQty = $itemData['quantity_good'];
+            $rejectedQty = $itemData['quantity_rejected'];
+
+            // Validate sum
+            if ($goodQty + $rejectedQty != $nowReceiving) {
+                return back()->with('error', "Item '{$poItem->purchaseRequisitionItem->catalogueItem->name}': Good + Rejected quantity must equal Total Received.");
+            }
 
             // Skip validation if no items to receive
             if ($nowReceiving == 0) {
@@ -174,6 +200,8 @@ class GoodsReceiptController extends Controller
             $goodsReceipt = GoodsReceipt::create([
                 'gr_number' => $grNumber,
                 'purchase_order_id' => $purchaseOrder->id,
+                'warehouse_id' => $request->warehouse_id,
+                'delivery_order_id' => $request->delivery_order_id,
                 'received_by_user_id' => Auth::id(),
                 'received_at' => $request->received_at,
                 'delivery_note_number' => $request->delivery_note,
@@ -186,42 +214,72 @@ class GoodsReceiptController extends Controller
 
             foreach ($request->items as $itemData) {
                 if ($itemData['quantity_received'] > 0) {
-                    $itemStatus = $itemData['item_status'] ?? 'good';
-                    $hasIssue = in_array($itemStatus, ['damaged', 'rejected']);
+                    $goodQty = $itemData['quantity_good'];
+                    $rejectedQty = $itemData['quantity_rejected'];
+                    $hasIssue = $rejectedQty > 0;
+                    $itemStatus = $hasIssue ? 'rejected' : 'good'; // Simple status for backward compatibility
 
                     $grItem = GoodsReceiptItem::create([
                         'goods_receipt_id' => $goodsReceipt->id,
                         'purchase_order_item_id' => $itemData['po_item_id'],
                         'quantity_received' => $itemData['quantity_received'],
+                        'quantity_good' => $goodQty,
+                        'quantity_rejected' => $rejectedQty,
+                        'rejected_reason' => $itemData['rejected_reason'] ?? null,
                         'condition_notes' => $itemData['condition'] ?? null,
                         'item_status' => $itemStatus,
                         'has_issue' => $hasIssue,
                     ]);
 
-                    // If item has issue, auto-create GRR
-                    if ($hasIssue) {
-                        $issueType = $itemStatus === 'damaged' ? 'damaged' : 'rejected';
-
+                    // If item has rejected quantity, auto-create GRR
+                    if ($rejectedQty > 0) {
                         \App\Modules\Procurement\Domain\Models\GoodsReturnRequest::create([
                             'goods_receipt_item_id' => $grItem->id,
-                            'issue_type' => $issueType,
-                            'quantity_affected' => $itemData['quantity_received'],
-                            'issue_description' => $itemData['condition'] ?? null,
+                            'issue_type' => 'rejected', // Or 'damaged' if we distinguished, but rejected covers both for QC
+                            'quantity_affected' => $rejectedQty,
+                            'issue_description' => ($itemData['rejected_reason'] ?? 'QC Rejected') . ($itemData['condition'] ? ' - ' . $itemData['condition'] : ''),
                             'created_by' => Auth::id(),
                         ]);
 
                         $issueCount++;
                     }
 
-                    // Update PO Item quantity received
+                    // Update PO Item quantity received (Total Received, regardless of quality)
                     $poItem = $purchaseOrder->items()->find($itemData['po_item_id']);
                     $poItem->increment('quantity_received', $itemData['quantity_received']);
 
-                    // Automatic Stock Update (Disabled)
-                    // The stock update now happens only via Warehouse Scan for security.
-                    // if (!$hasIssue && $itemStatus === 'good') {
-                    //    // Stock decrement/increment logic removed
-                    // }
+                    // Automatic Stock Update - Only for GOOD items
+                    if ($goodQty > 0) {
+                        $catalogueItem = $poItem->purchaseRequisitionItem->catalogueItem;
+                        if ($catalogueItem) {
+                            // Update multi-warehouse stock
+                            $whStock = \App\Modules\Catalogue\Domain\Models\WarehouseStock::firstOrCreate([
+                                'warehouse_id' => $request->warehouse_id,
+                                'catalogue_item_id' => $catalogueItem->id,
+                            ]);
+                            $whStock->increment('quantity', $goodQty);
+
+                            // Update total stock in catalogue_items
+                            $catalogueItem->update([
+                                'stock' => \App\Modules\Catalogue\Domain\Models\WarehouseStock::where('catalogue_item_id', $catalogueItem->id)->sum('quantity')
+                            ]);
+
+                            // Log Movement
+                            \App\Modules\Catalogue\Domain\Models\StockMovement::create([
+                                'company_id' => $selectedCompanyId,
+                                'catalogue_item_id' => $catalogueItem->id,
+                                'warehouse_id' => $request->warehouse_id,
+                                'user_id' => Auth::id(),
+                                'type' => 'in',
+                                'quantity' => $goodQty,
+                                'previous_stock' => $whStock->quantity - $goodQty,
+                                'current_stock' => $whStock->quantity,
+                                'reference_type' => 'goods_receipt',
+                                'reference_id' => $goodsReceipt->id,
+                                'notes' => 'Received from GR: ' . $grNumber . ' (QC Passed)',
+                            ]);
+                        }
+                    }
 
                     $anyReceived = true;
                 }
@@ -247,7 +305,7 @@ class GoodsReceiptController extends Controller
 
             $message = 'Goods Receipt created successfully!';
             if ($issueCount > 0) {
-                $message .= " {$issueCount} item(s) reported with issues - GRR created automatically.";
+                $message .= " {$issueCount} item(s) had rejected quantities - Return Requests created automatically.";
             }
 
             return redirect()->route('procurement.po.show', $purchaseOrder)

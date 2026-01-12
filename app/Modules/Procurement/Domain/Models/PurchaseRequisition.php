@@ -26,12 +26,14 @@ class PurchaseRequisition extends Model
         'approval_status',
         'approval_notes',
         'approver_id',
+        'head_approver_id',
         'assigned_to',
         'submitted_at',
         'winning_offer_id',
         'tender_status',
         'po_generated_at',
         'type',
+        'delivery_point',
     ];
 
     protected $casts = [
@@ -56,6 +58,11 @@ class PurchaseRequisition extends Model
     public function approver()
     {
         return $this->belongsTo(\App\Modules\User\Domain\Models\User::class, 'approver_id');
+    }
+
+    public function headApprover()
+    {
+        return $this->belongsTo(\App\Modules\User\Domain\Models\User::class, 'head_approver_id');
     }
 
     public function assignee()

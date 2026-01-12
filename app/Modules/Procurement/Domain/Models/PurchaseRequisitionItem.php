@@ -17,6 +17,7 @@ class PurchaseRequisitionItem extends Model
         'catalogue_item_id',
         'quantity',
         'price',
+        'delivery_point',
     ];
 
     public function requisition(): BelongsTo

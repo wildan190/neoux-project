@@ -94,12 +94,9 @@
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1 group-hover:text-primary-600 transition-colors h-[40px]">{{ $product->name }}</h3>
                         
                         <div class="mt-auto">
+                            {{-- Price removed as per user request --}}
                             <div class="text-base font-bold text-gray-900 dark:text-white">
-                                @if($minPrice)
-                                    Rp {{ number_format($minPrice, 0, ',', '.') }}
-                                @else
-                                    <span class="text-xs text-gray-500">Check Detail</span>
-                                @endif
+                                <span class="text-xs text-gray-500">View Details</span>
                             </div>
                             
                             {{-- Location / Brand Mockup like Tokopedia --}}

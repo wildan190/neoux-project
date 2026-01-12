@@ -186,6 +186,10 @@
                                         <button onclick="markAllNotificationsRead()"
                                             class="text-xs text-primary-600 hover:text-primary-700 font-bold">Mark all
                                             read</button>
+                                        <button onclick="if(window.testNotificationSound) window.testNotificationSound()"
+                                            class="ml-2 text-xs text-gray-400 hover:text-gray-600" title="Test Sound">
+                                            <i data-feather="volume-2" class="w-3 h-3"></i>
+                                        </button>
                                     </div>
                                     <div id="notificationList" class="max-h-80 overflow-y-auto">
                                         <div class="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">Loading...

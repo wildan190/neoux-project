@@ -163,6 +163,76 @@ class InvoiceController extends Controller
         }
     }
 
+    /**
+     * Vendor Head Approval
+     */
+    public function vendorApprove(Invoice $invoice)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        if ($invoice->vendor_company_id != $selectedCompanyId) {
+            abort(403);
+        }
+
+        if ($invoice->status !== 'matched' && $invoice->status !== 'pending') {
+            return back()->with('error', 'Invoice cannot be approved at this stage.');
+        }
+
+        $invoice->update(['status' => 'vendor_approved']);
+
+        return back()->with('success', 'Invoice approved by Vendor Head. Waiting for Purchasing approval.');
+    }
+
+    /**
+     * Purchasing Approval
+     */
+    public function purchasingApprove(Invoice $invoice)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        if ($invoice->purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+            abort(403);
+        }
+
+        if ($invoice->status !== 'vendor_approved') {
+            return back()->with('error', 'Invoice must be approved by Vendor Head first.');
+        }
+
+        $invoice->update(['status' => 'purchasing_approved']);
+
+        return back()->with('success', 'Invoice approved by Purchasing. Waiting for Finance payment.');
+    }
+
+    /**
+     * Finance Approval / Payment
+     */
+    public function financeApprove(Invoice $invoice)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        // In a real app, check for Finance role
+        if ($invoice->purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+            abort(403);
+        }
+
+        if ($invoice->status !== 'purchasing_approved') {
+            return back()->with('error', 'Invoice must be approved by Purchasing first.');
+        }
+
+        $invoice->update(['status' => 'paid']);
+
+        return back()->with('success', 'Invoice marked as Paid. Transaction completed.');
+    }
+
+    /**
+     * Reject Invoice
+     */
+    public function reject(Request $request, Invoice $invoice)
+    {
+        $invoice->update([
+            'status' => 'rejected',
+            'match_status' => array_merge($invoice->match_status ?? [], ['rejection_reason' => $request->reason])
+        ]);
+
+        return back()->with('success', 'Invoice has been rejected.');
+    }
     public function show(Invoice $invoice)
     {
         $selectedCompanyId = session('selected_company_id');

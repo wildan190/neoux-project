@@ -180,21 +180,34 @@
                          $selectedCompanyId != $purchaseRequisition->company_id &&
                          $purchaseRequisition->tender_status === 'open';
         
-        $hasExistingOffer = Auth::check() && 
-                           $selectedCompanyId &&
-                           $purchaseRequisition->offers()
-                               ->where('company_id', $selectedCompanyId)
-                               ->exists();
+        $hasExistingOffer = (bool)$myOffer;
+        $isNegotiating = $myOffer && $myOffer->status === 'negotiating';
+        // Show form if:
+        // 1. Can submit and hasn't submitted yet
+        // 2. Has submitted but is in negotiation phase (Revise Offer)
+        $showForm = ($canSubmitOffer && !$hasExistingOffer) || ($isNegotiating);
     @endphp
 
-    @if($canSubmitOffer && !$hasExistingOffer)
+    @if($showForm)
         <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
             <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-primary-50/50 dark:bg-primary-900/10">
                 <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white">
                     <i data-feather="tag" class="w-5 h-5 inline mr-2 text-primary-600 dark:text-primary-400"></i>
-                    Submit Your Offer
+                    @if($isNegotiating) Update Your Offer (Negotiation) @else Submit Your Offer @endif
                 </h3>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Provide your pricing and quantities for this procurement request</p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    @if($isNegotiating) 
+                        You have been invited to negotiate. You can update your pricing and terms below. 
+                        @if($myOffer->negotiation_message)
+                             <div class="mt-2 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-3 rounded-md">
+                                 <p class="text-sm text-yellow-800 dark:text-yellow-200 font-bold mb-1">Buyer's Message:</p>
+                                 <p class="text-sm text-yellow-700 dark:text-yellow-300 italic">"{{ $myOffer->negotiation_message }}"</p>
+                             </div>
+                        @endif
+                    @else 
+                        Provide your pricing and quantities for this procurement request 
+                    @endif
+                </p>
             </div>
 
             <form action="{{ route('procurement.offers.store', $purchaseRequisition) }}" method="POST" id="offerForm" enctype="multipart/form-data">
@@ -231,6 +244,11 @@
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($purchaseRequisition->items as $index => $item)
+                                    @php
+                                        $offeredItem = $myOffer ? $myOffer->items->where('purchase_requisition_item_id', $item->id)->first() : null;
+                                        $offeredQty = old('items.'.$index.'.quantity_offered', $offeredItem ? $offeredItem->quantity_offered : $item->quantity);
+                                        $offeredPrice = old('items.'.$index.'.unit_price', $offeredItem ? $offeredItem->unit_price : '');
+                                    @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 offer-item-row">
                                         <td class="px-4 py-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->catalogueItem->name }}</div>
@@ -245,7 +263,7 @@
                                                    name="items[{{ $index }}][quantity_offered]" 
                                                    class="offer-quantity block w-24 rounded-lg border @error('items.'.$index.'.quantity_offered') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
                                                    min="1" 
-                                                   value="{{ old('items.'.$index.'.quantity_offered', $item->quantity) }}"
+                                                   value="{{ $offeredQty }}"
                                                    required
                                                    data-row="{{ $index }}">
                                             @error('items.'.$index.'.quantity_offered')
@@ -259,7 +277,7 @@
                                                    min="0" 
                                                    step="0.01"
                                                    placeholder="0.00"
-                                                   value="{{ old('items.'.$index.'.unit_price') }}"
+                                                   value="{{ $offeredPrice }}"
                                                    required
                                                    data-row="{{ $index }}">
                                             @error('items.'.$index.'.unit_price')
@@ -309,6 +327,58 @@
                         <div id="filePreview" class="mt-3 space-y-2 hidden"></div>
                     </div>
 
+                    {{-- Bidding Details --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label for="delivery_time" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                <i data-feather="truck" class="w-4 h-4 inline mr-1"></i>
+                                Delivery Time
+                            </label>
+                            <input type="text" 
+                                   name="delivery_time" 
+                                   id="delivery_time" 
+                                   placeholder="e.g. 7-10 working days"
+                                   class="block w-full rounded-lg border @error('delivery_time') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
+                                   value="{{ old('delivery_time', $myOffer ? $myOffer->delivery_time : '') }}"
+                                   required>
+                            @error('delivery_time')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="warranty" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                <i data-feather="shield" class="w-4 h-4 inline mr-1"></i>
+                                Warranty
+                            </label>
+                            <input type="text" 
+                                   name="warranty" 
+                                   id="warranty" 
+                                   placeholder="e.g. 1 year factory warranty"
+                                   class="block w-full rounded-lg border @error('warranty') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
+                                   value="{{ old('warranty', $myOffer ? $myOffer->warranty : '') }}"
+                                   required>
+                            @error('warranty')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="payment_scheme" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                <i data-feather="credit-card" class="w-4 h-4 inline mr-1"></i>
+                                Payment Scheme
+                            </label>
+                            <input type="text" 
+                                   name="payment_scheme" 
+                                   id="payment_scheme" 
+                                   placeholder="e.g. Net 30 days"
+                                   class="block w-full rounded-lg border @error('payment_scheme') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
+                                   value="{{ old('payment_scheme', $myOffer ? $myOffer->payment_scheme : '') }}"
+                                   required>
+                            @error('payment_scheme')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     {{-- Proposal Notes --}}
                     <div class="mb-6">
                         <label for="notes" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
@@ -318,9 +388,9 @@
                         <textarea name="notes" 
                                   id="notes" 
                                   rows="4" 
-                                  placeholder="Describe your offer, delivery terms, warranty, or any special conditions..."
+                                  placeholder="Describe your offer or any special conditions..."
                                   class="block w-full rounded-lg border @error('notes') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-                                  maxlength="2000">{{ old('notes') }}</textarea>
+                                  maxlength="2000">{{ old('notes', $myOffer ? $myOffer->notes : '') }}</textarea>
                         @error('notes')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -336,19 +406,25 @@
                         <button type="submit" 
                                 class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-lg transition shadow-sm hover:shadow flex items-center gap-2">
                             <i data-feather="send" class="w-4 h-4"></i>
-                            Submit Offer
+                            {{ $isNegotiating ? 'Update Offer' : 'Submit Offer' }}
                         </button>
                     </div>
                 </div>
             </form>
         </div>
-    @elseif($hasExistingOffer)
+    @elseif($hasExistingOffer && !$isNegotiating)
         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 mb-8">
             <div class="flex items-start gap-3">
                 <i data-feather="check-circle" class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
                 <div>
                     <h3 class="text-base font-bold text-blue-900 dark:text-blue-200">Offer Already Submitted</h3>
-                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">Your company has already submitted an offer for this requisition.</p>
+                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        @if($myOffer->status === 'winning')
+                           Your offer is currently under final review for the award.
+                        @else
+                           Your company has already submitted an offer for this requisition.
+                        @endif
+                    </p>
                     <a href="{{ route('procurement.offers.my') }}" class="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-2 inline-flex items-center gap-1">
                         View My Offers
                         <i data-feather="arrow-right" class="w-3 h-3"></i>

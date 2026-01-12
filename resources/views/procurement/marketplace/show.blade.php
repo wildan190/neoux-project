@@ -68,7 +68,6 @@
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                             <p class="font-bold text-primary-600 dark:text-primary-400">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
                                              <p class="text-xs {{ $item->stock > 0 ? 'text-green-600' : 'text-red-500' }}">Stock: {{ $item->stock }}</p>
                                         </div>
                                     </div>
@@ -77,18 +76,17 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-6">
-                        <div class="w-32">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
                             <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
                             <input type="number" name="quantity" id="quantity" value="1" min="1" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         </div>
-                        <div class="flex-1">
-                             <div class="text-right">
-                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Estimate</label>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-price">-</p>
-                            </div>
+                        <div>
+                            <label for="delivery_point" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Point</label>
+                            <input type="text" name="delivery_point" id="delivery_point" placeholder="e.g. Warehouse A, Floor 2" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                         </div>
                     </div>
+                    {{-- Total estimate removed as per user request --}}
                 </div>
 
                 <div class="flex gap-4">
@@ -124,16 +122,7 @@
     }
 
     function updateTotal() {
-        const checked = document.querySelector('input[name="sku_id"]:checked');
-        if(!checked) return;
-
-        // Simplify Parsing (remove Rp and dots)
-        const priceStr = checked.dataset.price.replace(/[^0-9]/g, '');
-        const price = parseInt(priceStr);
-        const qty = parseInt(document.getElementById('quantity').value) || 1;
-        
-        const total = price * qty;
-        document.getElementById('total-price').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        // Calculation removed as price is no longer displayed
     }
 
     document.getElementById('quantity').addEventListener('input', updateTotal);

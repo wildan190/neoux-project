@@ -116,4 +116,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return \Database\Factories\UserFactory::new();
     }
+
+    /**
+     * The channels the user receives notification broadcasts on.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'users.' . $this->id;
+    }
 }
+

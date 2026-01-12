@@ -9,9 +9,14 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
 use App\Notifications\PurchaseOrderConfirmed;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Procurement\Presentation\Http\Exports\PurchaseOrderTemplateExport;
+use App\Modules\Procurement\Presentation\Http\Imports\PurchaseOrderHistoryImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
+use App\Modules\Company\Domain\Models\Company;
 
 class PurchaseOrderController extends Controller
 {
@@ -33,8 +38,10 @@ class PurchaseOrderController extends Controller
         // Separate POs by role
         // Buyer POs: where I'm the buyer (can receive goods)
         $buyerPOs = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
-            ->whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
+            ->where(function ($q) use ($selectedCompanyId) {
+                $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
+                    $q2->where('company_id', $selectedCompanyId);
+                })->orWhere('company_id', $selectedCompanyId);
             })
             ->latest()
             ->paginate(10, ['*'], 'buyer_page');
@@ -53,7 +60,7 @@ class PurchaseOrderController extends Controller
         $selectedCompanyId = session('selected_company_id');
 
         // Authorization: Buyer or Vendor
-        $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
         if (!$isBuyer && !$isVendor) {
@@ -114,7 +121,7 @@ class PurchaseOrderController extends Controller
         $selectedCompanyId = session('selected_company_id');
 
         // Authorization: Buyer or Vendor
-        $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
         if (!$isBuyer && !$isVendor) {
@@ -131,7 +138,7 @@ class PurchaseOrderController extends Controller
         $selectedCompanyId = session('selected_company_id');
 
         // Authorization: Buyer or Vendor
-        $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
         if (!$isBuyer && !$isVendor) {
@@ -158,11 +165,15 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'No winning offer selected for this requisition.');
         }
 
+        $offer = PurchaseRequisitionOffer::with('items')->findOrFail($purchaseRequisition->winning_offer_id);
+
+        if ($offer->status !== 'accepted') {
+            return back()->with('error', 'The selected winner has not been approved by the Purchasing Manager/Head yet.');
+        }
+
         if ($purchaseRequisition->purchaseOrder) {
             return back()->with('error', 'Purchase Order already exists for this requisition.');
         }
-
-        $offer = PurchaseRequisitionOffer::with('items')->findOrFail($purchaseRequisition->winning_offer_id);
 
         DB::beginTransaction();
         try {
@@ -176,17 +187,26 @@ class PurchaseOrderController extends Controller
                 'vendor_company_id' => $offer->company_id,
                 'created_by_user_id' => Auth::id(),
                 'total_amount' => $offer->total_price,
-                'status' => 'issued',
+                'status' => 'pending_vendor_acceptance',
             ]);
 
+            // Calculate negotiation ratio if total price differs from sum of items
+            $originalTotal = $offer->items()->sum('subtotal');
+            $negotiatedTotal = $offer->total_price;
+            $ratio = ($originalTotal > 0) ? ($negotiatedTotal / $originalTotal) : 1;
+
             foreach ($offer->items as $offerItem) {
+                // Adjust unit price and subtotal based on negotiation
+                $adjustedUnitPrice = $offerItem->unit_price * $ratio;
+                $adjustedSubtotal = $offerItem->subtotal * $ratio;
+
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchaseOrder->id,
                     'purchase_requisition_item_id' => $offerItem->purchase_requisition_item_id,
                     'quantity_ordered' => $offerItem->quantity_offered,
                     'quantity_received' => 0,
-                    'unit_price' => $offerItem->unit_price,
-                    'subtotal' => $offerItem->subtotal,
+                    'unit_price' => $adjustedUnitPrice,
+                    'subtotal' => $adjustedSubtotal,
                 ]);
             }
 
@@ -217,6 +237,111 @@ class PurchaseOrderController extends Controller
             DB::rollBack();
 
             return back()->with('error', 'Failed to generate Purchase Order: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Vendor acceptance of PO
+     */
+    public function vendorAccept(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
+            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
+        }
+
+        $purchaseOrder->update([
+            'status' => 'issued', // Official issuance after vendor acceptance
+            'vendor_accepted_at' => now(),
+            'vendor_notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'You have accepted the Purchase Order. You can now prepare the delivery.');
+    }
+
+    /**
+     * Vendor rejection of PO
+     */
+    public function vendorReject(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
+            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
+        }
+
+        $purchaseOrder->update([
+            'status' => 'rejected_by_vendor',
+            'vendor_rejected_at' => now(),
+            'vendor_notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'Purchase Order has been rejected.');
+    }
+
+    public function exportTemplate()
+    {
+        return Excel::download(new PurchaseOrderTemplateExport, 'po_template.xlsx');
+    }
+
+    public function importHistory(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv',
+            'import_role' => 'required|in:buyer,vendor',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('temp_imports', $fileName, 'local');
+
+            // Parse for preview
+            $data = Excel::toArray(new PurchaseOrderHistoryImport, $path, 'local')[0];
+
+            // Limit preview to first 20 rows
+            $previewData = collect($data)->slice(0, 20)->map(function ($row) {
+                if (isset($row['vendor_name'])) {
+                    $exists = Company::where('name', 'like', "%{$row['vendor_name']}%")->exists();
+                    $row['vendor_status'] = $exists ? 'Matched' : 'New/Manual';
+                }
+                return $row;
+            });
+            $totalRows = count($data);
+
+            return response()->json([
+                'success' => true,
+                'preview' => $previewData,
+                'total_rows' => $totalRows,
+                'temp_path' => $path,
+                'import_role' => $request->import_role
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to parse file: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function confirmImport(Request $request)
+    {
+        $request->validate([
+            'temp_path' => 'required',
+            'import_role' => 'required|in:buyer,vendor',
+        ]);
+
+        try {
+            $path = $request->temp_path;
+
+            if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+                return back()->with('error', 'Temporary file expired or not found.');
+            }
+
+            // Dispatch Queue Job
+            \App\Jobs\ProcessPurchaseOrderImport::dispatch($path, Auth::id(), session('selected_company_id'), $request->import_role);
+
+            return redirect()->route('procurement.po.index')
+                ->with('success', 'Import has been queued. POs will appear in the list once processed.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to start import: ' . $e->getMessage());
         }
     }
 }

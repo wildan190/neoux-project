@@ -83,6 +83,8 @@
                                         <option value="manager" {{ $member->pivot->role === 'manager' ? 'selected' : '' }}>Manager</option>
                                         <option value="buyer" {{ $member->pivot->role === 'buyer' ? 'selected' : '' }}>Buyer</option>
                                         <option value="approver" {{ $member->pivot->role === 'approver' ? 'selected' : '' }}>Approver</option>
+                                        <option value="purchasing_manager" {{ $member->pivot->role === 'purchasing_manager' ? 'selected' : '' }}>Purchasing Manager</option>
+                                        <option value="finance" {{ $member->pivot->role === 'finance' ? 'selected' : '' }}>Finance</option>
                                         <option value="staff" {{ $member->pivot->role === 'staff' ? 'selected' : '' }}>Staff</option>
                                     </select>
                                 </form>
@@ -180,6 +182,8 @@
                                         <option value="staff">Staff - Standard Access</option>
                                         <option value="buyer">Buyer - Can create Requests</option>
                                         <option value="approver">Approver - Can approve Requests</option>
+                                        <option value="purchasing_manager">Purchasing Manager - Can approve Winners</option>
+                                        <option value="finance">Finance - Can process Payments</option>
                                         <option value="manager">Manager - Can assign Tasks</option>
                                         <option value="admin">Admin - Full Control</option>
                                     </select>
