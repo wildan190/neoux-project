@@ -294,11 +294,6 @@
                 </div>
                 
                 {{-- Offers Section (PR Creator Only) --}}
-                @php
-                    $offersCount = $purchaseRequisition->offers()->count();
-                @endphp
-                @if($offersCount > 0)
-                {{-- Offers Section (Replaced Summary with Full Table Below) --}}
             </dl>
         </div>
     </div>
@@ -367,7 +362,7 @@
                                         </a>
                                         @if(in_array($offer->status, ['pending', 'negotiating']))
                                             @if($offer->status === 'pending')
-                                                <button onclick="openNegotiateModal('{{ route('procurement.offers.negotiate', $offer) }}')" 
+                                                <button onclick="openNegotiateModal('{{ route('procurement.offers.submit-negotiation', $offer) }}')" 
                                                         class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-lg transition" title="Negotiate">
                                                     <i data-feather="message-circle" class="w-4 h-4"></i>
                                                 </button>
@@ -388,9 +383,7 @@
             </div>
         </div>
     @endif
-            </dl>
-        </div>
-    </div>
+
 
     {{-- Items Section --}}
     <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700">

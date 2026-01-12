@@ -294,11 +294,12 @@
                                         </p>
                                     </div>
                                     @if($do->status === 'pending' && $isVendor)
-                                        <form action="{{ route('procurement.do.ship', $do) }}" method="POST">
+                                        <button onclick="shipOrder('{{ $do->id }}')" class="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
+                                            <i data-feather="send" class="w-4 h-4"></i>
+                                        </button>
+                                        <form id="ship-form-{{ $do->id }}" action="{{ route('procurement.do.ship', $do) }}" method="POST" class="hidden">
                                             @csrf
-                                            <button type="submit" class="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
-                                                <i data-feather="send" class="w-4 h-4"></i>
-                                            </button>
+                                            <input type="hidden" name="tracking_number" id="tracking-input-{{ $do->id }}">
                                         </form>
                                     @endif
                                 </div>
@@ -416,6 +417,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof feather !== 'undefined') {
@@ -431,6 +433,31 @@
                 submitBtn.innerHTML = '<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>Processing...</div>';
             }
             return true;
+        }
+
+        function shipOrder(doId) {
+            Swal.fire({
+                title: 'Mark as Shipped',
+                text: 'Please enter the shipping tracking number (Resi):',
+                input: 'text',
+                inputPlaceholder: 'e.g. JB0018829922',
+                showCancelButton: true,
+                confirmButtonText: 'Ship Order',
+                confirmButtonColor: '#4F46E5', // Indigo-600
+                showLoaderOnConfirm: true,
+                preConfirm: (trackingNumber) => {
+                    if (!trackingNumber) {
+                        Swal.showValidationMessage('Tracking number is required');
+                    }
+                    return trackingNumber;
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('tracking-input-' + doId).value = result.value;
+                    document.getElementById('ship-form-' + doId).submit();
+                }
+            });
         }
     </script>
 @endpush

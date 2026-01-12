@@ -466,7 +466,7 @@
                             @if($offer->status === 'pending' || $offer->status === 'negotiating')
                                 <div class="flex gap-2">
                                     @if($offer->status === 'pending')
-                                        <form action="{{ route('procurement.offers.negotiate', $offer) }}" method="POST" class="inline">
+                                        <form action="{{ route('procurement.offers.submit-negotiation', $offer) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" onclick="return confirm('Invite this vendor to stage 2 negotiation?')"
                                                 class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-lg transition">

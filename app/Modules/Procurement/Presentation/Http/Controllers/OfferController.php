@@ -9,6 +9,9 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferItem;
 use App\Notifications\NewOfferReceived;
 use App\Notifications\OfferAccepted;
+use App\Notifications\NegotiationProposed;
+use App\Notifications\NegotiationAccepted;
+use App\Notifications\NegotiationRejected;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -332,8 +335,6 @@ class OfferController extends Controller
         return back()->with('success', 'Offer rejected successfully.');
     }
 
-
-
     /**
      * Submit Negotiation Proposal (Buyer Proposes New Terms)
      */
@@ -365,6 +366,11 @@ class OfferController extends Controller
             'negotiation_message' => $request->negotiation_message ?? 'Terms updated by Buyer.',
         ]);
 
+        // Notify Vendor
+        if ($offer->user) {
+            $offer->user->notify(new NegotiationProposed($offer));
+        }
+
         return back()->with('success', 'Negotiation proposal sent to Vendor.');
     }
 
@@ -389,6 +395,11 @@ class OfferController extends Controller
             'negotiation_message' => null, // Clear negotiation status/message
         ]);
 
+        // Notify Buyer (PR Creator)
+        if ($offer->purchaseRequisition->user) {
+            $offer->purchaseRequisition->user->notify(new NegotiationAccepted($offer));
+        }
+
         return back()->with('success', 'You have accepted the new terms.');
     }
 
@@ -407,17 +418,15 @@ class OfferController extends Controller
             }
         }
 
-        // What status to set? 'rejected' might mean the whole offer is dead.
-        // Maybe we keep it as 'negotiating' but add a "Rejected by Vendor" flag?
-        // Or simply revert to 'rejected' status for the whole offer?
-        // Let's set it to 'rejected' for now as per "Reject Negotiation" usually means deal off.
-        // Or we can add a specific status 'negotiation_rejected' if needed.
-        // For simplicity: 'rejected'.
-
         $offer->update([
             'status' => 'rejected',
             'negotiation_message' => 'Vendor rejected the proposed terms.',
         ]);
+
+        // Notify Buyer (PR Creator)
+        if ($offer->purchaseRequisition->user) {
+            $offer->purchaseRequisition->user->notify(new NegotiationRejected($offer));
+        }
 
         return back()->with('success', 'You have rejected the negotiation proposal.');
     }

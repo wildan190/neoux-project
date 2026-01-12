@@ -109,7 +109,7 @@ class DeliveryOrderController extends Controller
     /**
      * Mark DO as shipped
      */
-    public function markAsShipped(DeliveryOrder $deliveryOrder)
+    public function markAsShipped(Request $request, DeliveryOrder $deliveryOrder)
     {
         $selectedCompanyId = session('selected_company_id');
 
@@ -117,11 +117,16 @@ class DeliveryOrderController extends Controller
             abort(403, 'Unauthorized.');
         }
 
+        $request->validate([
+            'tracking_number' => 'required|string|max:100',
+        ]);
+
         $deliveryOrder->update([
             'status' => 'shipped',
             'shipped_at' => now(),
+            'tracking_number' => $request->tracking_number,
         ]);
 
-        return back()->with('success', 'Delivery Order marked as shipped.');
+        return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: ' . $request->tracking_number);
     }
 }
