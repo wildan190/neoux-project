@@ -25,8 +25,9 @@ class PurchaseRequisitionController extends Controller
         $query = PurchaseRequisition::with(['user.userDetail', 'items'])
             ->where('company_id', $selectedCompanyId);
 
-        if ($filter === 'open') {
+        if ($filter === 'open' || $request->get('status') === 'pending') {
             $query->where('status', 'pending');
+            $filter = 'open'; // Sync for UI
         } elseif ($filter === 'closed') {
             $query->whereIn('status', ['awarded', 'ordered']);
         }

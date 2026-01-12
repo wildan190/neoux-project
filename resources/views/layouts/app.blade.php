@@ -15,6 +15,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="{{ asset('js/feather.min.js') }}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @stack('styles')
     <style>
         @keyframes shimmer {
