@@ -96,6 +96,7 @@ Route::middleware('auth')->group(function () {
         });
 
         // Purchase Orders
+        Route::get('/po/export-template', [PurchaseOrderController::class, 'exportTemplate'])->name('po.export-template');
         Route::get('/po', [PurchaseOrderController::class, 'index'])->name('po.index');
         Route::get('/po/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('po.show');
         Route::get('/po/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('po.print');
@@ -103,6 +104,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/po/{purchaseOrder}/confirm', [PurchaseOrderController::class, 'confirm'])->name('po.confirm');
         Route::post('/po/{purchaseOrder}/vendor-accept', [PurchaseOrderController::class, 'vendorAccept'])->name('po.vendor-accept');
         Route::post('/po/{purchaseOrder}/vendor-reject', [PurchaseOrderController::class, 'vendorReject'])->name('po.vendor-reject');
+        Route::post('/po/import-history', [PurchaseOrderController::class, 'importHistory'])->name('po.import-history');
+        Route::post('/po/confirm-import', [PurchaseOrderController::class, 'confirmImport'])->name('po.confirm-import');
         Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
 
         // Goods Receipts

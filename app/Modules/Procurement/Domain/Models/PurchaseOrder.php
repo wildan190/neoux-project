@@ -17,9 +17,11 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'po_number',
+        'company_id',
         'purchase_requisition_id',
         'offer_id',
         'vendor_company_id',
+        'historical_vendor_name',
         'created_by_user_id',
         'total_amount',
         'status',
@@ -37,6 +39,11 @@ class PurchaseOrder extends Model
     public function purchaseRequisition(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequisition::class);
+    }
+
+    public function buyerCompany(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     public function offer(): BelongsTo

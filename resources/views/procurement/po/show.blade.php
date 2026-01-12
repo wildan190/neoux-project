@@ -161,24 +161,24 @@
                         <div class="flex flex-col md:flex-row justify-between gap-8 mb-12">
                             <div>
                                 <h2 class="text-sm font-black text-primary-600 uppercase tracking-widest mb-4">Vendor Information</h2>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $purchaseOrder->vendorCompany->name }}</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $purchaseOrder->vendorCompany?->name ?? $purchaseOrder->historical_vendor_name ?? 'N/A' }}</p>
                                 <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                                     <p class="flex items-center gap-2">
                                         <i data-feather="map-pin" class="w-3 h-3"></i>
-                                        {{ $purchaseOrder->vendorCompany->address ?? 'No address provided' }}
+                                        {{ $purchaseOrder->vendorCompany?->address ?? 'No address provided' }}
                                     </p>
                                     <p class="flex items-center gap-2">
                                         <i data-feather="mail" class="w-3 h-3"></i>
-                                        {{ $purchaseOrder->vendorCompany->email }}
+                                        {{ $purchaseOrder->vendorCompany?->email ?? 'N/A' }}
                                     </p>
                                 </div>
                             </div>
                             <div class="md:text-right">
                                 <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Ship To</h2>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $purchaseOrder->purchaseRequisition->company->name }}</p>
+                                <p class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $purchaseOrder->purchaseRequisition?->company->name ?? $purchaseOrder->buyerCompany?->name ?? 'N/A' }}</p>
                                 <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                                     <p class="flex items-center gap-2 md:justify-end">
-                                        {{ $purchaseOrder->purchaseRequisition->delivery_point ?? 'Head Office' }}
+                                        {{ $purchaseOrder->purchaseRequisition?->delivery_point ?? 'Head Office' }}
                                         <i data-feather="map-pin" class="w-3 h-3"></i>
                                     </p>
                                     <p class="flex items-center gap-2 md:justify-end">
@@ -207,8 +207,12 @@
                                         @foreach($purchaseOrder->items as $item)
                                             <tr>
                                                 <td class="py-6">
-                                                    <div class="font-bold text-gray-900 dark:text-white">{{ $item->purchaseRequisitionItem->catalogueItem->name }}</div>
-                                                    <div class="text-xs text-gray-500 mt-1 uppercase tracking-tighter">SKU: {{ $item->purchaseRequisitionItem->catalogueItem->sku }}</div>
+                                                    <div class="font-bold text-gray-900 dark:text-white">
+                                                        {{ $item->purchaseRequisitionItem?->catalogueItem?->name ?? $item->item_name ?? 'N/A' }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 mt-1 uppercase tracking-tighter">
+                                                        SKU: {{ $item->purchaseRequisitionItem?->catalogueItem?->sku ?? 'N/A' }}
+                                                    </div>
                                                 </td>
                                                 <td class="py-6 text-center font-bold text-gray-700 dark:text-gray-300 tabular-nums">{{ $item->quantity_ordered }}</td>
                                                 <td class="py-6 text-center tabular-nums">
@@ -261,7 +265,7 @@
                                 <div class="w-32 h-16 bg-gray-50 dark:bg-gray-700/30 rounded-xl mb-2 flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-600">
                                     <span class="text-[10px] text-gray-400 uppercase font-black uppercase">Authorized Signature</span>
                                 </div>
-                                <p class="text-xs font-bold text-gray-900 dark:text-white">{{ $purchaseOrder->purchaseRequisition->company->name }}</p>
+                                <p class="text-xs font-bold text-gray-900 dark:text-white">{{ $purchaseOrder->purchaseRequisition?->company->name ?? $purchaseOrder->buyerCompany?->name ?? 'N/A' }}</p>
                             </div>
                         </div>
                     </div>

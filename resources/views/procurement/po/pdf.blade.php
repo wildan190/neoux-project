@@ -197,8 +197,8 @@
 </head>
 
 @php
-    $company = $purchaseOrder->purchaseRequisition->company;
-    $logoPath = $company->logo ? public_path('storage/' . $company->logo) : null;
+    $company = $purchaseOrder->purchaseRequisition?->company ?? $purchaseOrder->buyerCompany;
+    $logoPath = $company?->logo ? public_path('storage/' . $company->logo) : null;
     $logoData = "";
     if ($logoPath && file_exists($logoPath)) {
         $logoData = base64_encode(file_get_contents($logoPath));
@@ -212,8 +212,10 @@
             <div class="header-left">
                 @if($logoData)
                     <img src="data:{{ $mimeType }};base64,{{ $logoData }}" class="logo">
-                @else
+                @elseif($company)
                     <div style="font-size: 18px; font-weight: bold;">{{ $company->name }}</div>
+                @else
+                    <div style="font-size: 18px; font-weight: bold;">NewUX</div>
                 @endif
                 <div style="font-size: 10px; opacity: 0.9;">Powered by HUNTR</div>
             </div>
@@ -227,18 +229,19 @@
     <div class="info-section">
         <div class="info-box">
             <h3>Vendor</h3>
-            <p style="font-weight: bold; font-size: 13px;">{{ $purchaseOrder->vendorCompany->name }}</p>
-            <p>{{ $purchaseOrder->vendorCompany->email }}</p>
-            @if($purchaseOrder->vendorCompany->phone)
+            <p style="font-weight: bold; font-size: 13px;">
+                {{ $purchaseOrder->vendorCompany?->name ?? $purchaseOrder->historical_vendor_name ?? 'N/A' }}</p>
+            <p>{{ $purchaseOrder->vendorCompany?->email ?? 'N/A' }}</p>
+            @if($purchaseOrder->vendorCompany?->phone)
                 <p>{{ $purchaseOrder->vendorCompany->phone }}</p>
             @endif
         </div>
         <div class="info-box">
             <h3>Buyer</h3>
-            <p style="font-weight: bold; font-size: 13px;">{{ $purchaseOrder->purchaseRequisition->company->name }}</p>
-            <p>{{ $purchaseOrder->purchaseRequisition->company->email }}</p>
-            @if($purchaseOrder->purchaseRequisition->company->phone)
-                <p>{{ $purchaseOrder->purchaseRequisition->company->phone }}</p>
+            <p style="font-weight: bold; font-size: 13px;">{{ $company?->name ?? 'N/A' }}</p>
+            <p>{{ $company?->email ?? 'N/A' }}</p>
+            @if($company?->phone)
+                <p>{{ $company->phone }}</p>
             @endif
         </div>
     </div>
@@ -250,7 +253,7 @@
         </div>
         <div class="detail-item">
             <div class="detail-label">PR Number</div>
-            <div class="detail-value">{{ $purchaseOrder->purchaseRequisition->pr_number }}</div>
+            <div class="detail-value">{{ $purchaseOrder->purchaseRequisition?->pr_number ?? 'Manual/Import' }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Status</div>
@@ -278,9 +281,9 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>
-                        <strong>{{ $item->purchaseRequisitionItem->catalogueItem->name }}</strong><br>
+                        <strong>{{ $item->purchaseRequisitionItem?->catalogueItem->name ?? $item->item_name ?? 'N/A' }}</strong><br>
                         <span style="font-size: 9px; color: #666;">SKU:
-                            {{ $item->purchaseRequisitionItem->catalogueItem->sku }}</span>
+                            {{ $item->purchaseRequisitionItem?->catalogueItem->sku ?? 'N/A' }}</span>
                     </td>
                     <td class="text-center"><strong>{{ $item->quantity_ordered }}</strong></td>
                     <td class="text-right">{{ $item->formatted_unit_price }}</td>
@@ -337,7 +340,7 @@
             </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Authorized Buyer</div>
-                <div style="font-size: 9px; color: #666;">{{ $purchaseOrder->purchaseRequisition->company->name }}</div>
+                <div style="font-size: 9px; color: #666;">{{ $company?->name ?? 'N/A' }}</div>
             </div>
         </div>
         <div class="signature-box">
@@ -347,7 +350,8 @@
             </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Vendor Acknowledgment</div>
-                <div style="font-size: 9px; color: #666;">{{ $purchaseOrder->vendorCompany->name }}</div>
+                <div style="font-size: 9px; color: #666;">
+                    {{ $purchaseOrder->vendorCompany?->name ?? $purchaseOrder->historical_vendor_name ?? 'N/A' }}</div>
             </div>
         </div>
     </div>
