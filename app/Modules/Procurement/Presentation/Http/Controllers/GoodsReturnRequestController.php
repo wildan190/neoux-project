@@ -8,6 +8,9 @@ use App\Modules\Procurement\Domain\Models\GoodsReturnRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Procurement\Presentation\Http\Requests\StoreGRRRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\UpdateGRRResolutionRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\VendorGRRResponseRequest;
 
 class GoodsReturnRequestController extends Controller
 {
@@ -18,7 +21,7 @@ class GoodsReturnRequestController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -90,7 +93,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this GRR.');
         }
 
@@ -100,16 +103,8 @@ class GoodsReturnRequestController extends Controller
     /**
      * Store a newly created GRR
      */
-    public function store(Request $request)
+    public function store(StoreGRRRequest $request)
     {
-        $request->validate([
-            'goods_receipt_item_id' => 'required|exists:goods_receipt_items,id',
-            'issue_type' => 'required|in:damaged,rejected,wrong_item',
-            'quantity_affected' => 'required|integer|min:1',
-            'issue_description' => 'nullable|string|max:1000',
-            'photos' => 'nullable|array',
-            'photos.*' => 'image|max:2048',
-        ]);
 
         $grItem = GoodsReceiptItem::with('goodsReceipt.purchaseOrder.purchaseRequisition')->findOrFail($request->goods_receipt_item_id);
 
@@ -159,18 +154,15 @@ class GoodsReturnRequestController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create GRR: '.$e->getMessage());
+            return back()->with('error', 'Failed to create GRR: ' . $e->getMessage());
         }
     }
 
     /**
      * Update resolution type for a GRR
      */
-    public function updateResolution(Request $request, GoodsReturnRequest $goodsReturnRequest)
+    public function updateResolution(UpdateGRRResolutionRequest $request, GoodsReturnRequest $goodsReturnRequest)
     {
-        $request->validate([
-            'resolution_type' => 'required|in:price_adjustment,replacement,return_refund',
-        ]);
 
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
@@ -190,12 +182,8 @@ class GoodsReturnRequestController extends Controller
     /**
      * Vendor responds to GRR (approve/reject)
      */
-    public function vendorResponse(Request $request, GoodsReturnRequest $goodsReturnRequest)
+    public function vendorResponse(VendorGRRResponseRequest $request, GoodsReturnRequest $goodsReturnRequest)
     {
-        $request->validate([
-            'action' => 'required|in:approve,reject',
-            'vendor_notes' => 'nullable|string|max:500',
-        ]);
 
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
@@ -250,7 +238,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized.');
         }
 

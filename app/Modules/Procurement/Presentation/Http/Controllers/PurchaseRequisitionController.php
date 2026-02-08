@@ -10,6 +10,10 @@ use App\Modules\Procurement\Domain\Models\PurchaseRequisitionDocument;
 use App\Modules\Procurement\Domain\Models\PurchaseRequisitionItem;
 use App\Notifications\NewCommentAdded;
 use App\Notifications\PurchaseOrderReceived;
+use App\Modules\Procurement\Presentation\Http\Requests\AddPRCommentRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\AssignPRRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\StorePurchaseRequisitionRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\SubmitPRApprovalRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -63,27 +67,8 @@ class PurchaseRequisitionController extends Controller
         return view('procurement.pr.create', compact('catalogueItems'));
     }
 
-    public function store(Request $request)
+    public function store(StorePurchaseRequisitionRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.catalogue_item_id' => 'required|exists:catalogue_items,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.price' => 'required|numeric|min:0',
-            'documents.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png',
-        ], [
-            'title.required' => 'Request title is required.',
-            'items.required' => 'At least one item is required.',
-            'items.min' => 'At least one item must be added.',
-            'items.*.catalogue_item_id.required' => 'Please select an item.',
-            'items.*.catalogue_item_id.exists' => 'Selected item does not exist.',
-            'items.*.quantity.required' => 'Quantity is required.',
-            'items.*.quantity.min' => 'Quantity must be at least 1.',
-            'items.*.price.required' => 'Price is required.',
-            'items.*.price.min' => 'Price cannot be negative.',
-        ]);
 
         try {
             DB::transaction(function () use ($request) {
@@ -246,12 +231,8 @@ class PurchaseRequisitionController extends Controller
         return response()->download($filePath, $document->original_name);
     }
 
-    public function addComment(Request $request, PurchaseRequisition $purchaseRequisition)
+    public function addComment(AddPRCommentRequest $request, PurchaseRequisition $purchaseRequisition)
     {
-        $request->validate([
-            'comment' => 'required|string|max:1000',
-            'parent_id' => 'nullable|exists:purchase_requisition_comments,id',
-        ]);
 
         $comment = PurchaseRequisitionComment::create([
             'purchase_requisition_id' => $purchaseRequisition->id,
@@ -270,12 +251,8 @@ class PurchaseRequisitionController extends Controller
     /**
      * Submit PR for Approval
      */
-    public function submitForApproval(Request $request, PurchaseRequisition $purchaseRequisition)
+    public function submitForApproval(SubmitPRApprovalRequest $request, PurchaseRequisition $purchaseRequisition)
     {
-        $request->validate([
-            'approver_id' => 'required|exists:users,id',
-            'head_approver_id' => 'required|exists:users,id',
-        ]);
 
         // Ensure user has permission (is owner or has admin/manager role)
         $userRole = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
@@ -462,11 +439,8 @@ class PurchaseRequisitionController extends Controller
     /**
      * Assign PR to Staff
      */
-    public function assign(Request $request, PurchaseRequisition $purchaseRequisition)
+    public function assign(AssignPRRequest $request, PurchaseRequisition $purchaseRequisition)
     {
-        $request->validate([
-            'assigned_to' => 'required|exists:users,id',
-        ]);
 
         // Only Admin/Manager can assign
         // Simplification for now: check if user belongs to company with role

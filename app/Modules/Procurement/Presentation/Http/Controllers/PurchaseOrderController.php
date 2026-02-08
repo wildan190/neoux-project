@@ -17,6 +17,8 @@ use App\Modules\Procurement\Presentation\Http\Imports\PurchaseOrderHistoryImport
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Procurement\Presentation\Http\Requests\ImportPOHistoryRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\ConfirmPOImportRequest;
 
 class PurchaseOrderController extends Controller
 {
@@ -301,12 +303,8 @@ class PurchaseOrderController extends Controller
         return Excel::download(new PurchaseOrderTemplateExport, 'po_template.xlsx');
     }
 
-    public function importHistory(Request $request)
+    public function importHistory(ImportPOHistoryRequest $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
-            'import_role' => 'required|in:buyer,vendor',
-        ]);
 
         try {
             $file = $request->file('file');
@@ -341,12 +339,8 @@ class PurchaseOrderController extends Controller
         }
     }
 
-    public function confirmImport(Request $request)
+    public function confirmImport(ConfirmPOImportRequest $request)
     {
-        $request->validate([
-            'temp_path' => 'required',
-            'import_role' => 'required|in:buyer,vendor',
-        ]);
 
         try {
             $path = $request->temp_path;
