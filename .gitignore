@@ -26,3 +26,7 @@ Thumbs.db
 **/caddy
 frankenphp
 frankenphp-worker.php
+composer.json
+horizon.conf
+supervisord.conf
+composer-lock.json
