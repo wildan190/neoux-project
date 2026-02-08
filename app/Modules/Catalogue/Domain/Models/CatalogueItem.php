@@ -3,6 +3,7 @@
 namespace App\Modules\Catalogue\Domain\Models;
 
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Procurement\Domain\Models\PurchaseRequisitionItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -57,6 +58,11 @@ class CatalogueItem extends Model
     public function primaryImage()
     {
         return $this->hasOne(CatalogueItemImage::class)->where('is_primary', true);
+    }
+
+    public function purchaseRequisitionItems()
+    {
+        return $this->hasMany(PurchaseRequisitionItem::class);
     }
 
     /**

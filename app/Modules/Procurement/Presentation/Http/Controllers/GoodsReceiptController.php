@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Modules\Procurement\Presentation\Http\Requests\StoreGoodsReceiptRequest;
 
 class GoodsReceiptController extends Controller
 {
@@ -100,7 +101,7 @@ class GoodsReceiptController extends Controller
         return view('procurement.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems', 'deliveryOrder', 'warehouses'));
     }
 
-    public function store(Request $request, PurchaseOrder $purchaseOrder)
+    public function store(StoreGoodsReceiptRequest $request, PurchaseOrder $purchaseOrder)
     {
         $selectedCompanyId = session('selected_company_id');
 
@@ -121,21 +122,6 @@ class GoodsReceiptController extends Controller
             return redirect()->route('procurement.po.show', $purchaseOrder)
                 ->with('error', 'Purchase Order must be accepted by the vendor before receiving goods.');
         }
-
-        $request->validate([
-            'received_at' => 'required|date',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'delivery_note' => 'nullable|string|max:255',
-            'delivery_order_id' => 'nullable|exists:delivery_orders,id',
-            'notes' => 'nullable|string|max:1000',
-            'items' => 'required|array',
-            'items.*.po_item_id' => 'required|exists:purchase_order_items,id',
-            'items.*.quantity_received' => 'required|integer|min:0',
-            'items.*.quantity_good' => 'required|integer|min:0',
-            'items.*.quantity_rejected' => 'required|integer|min:0',
-            'items.*.rejected_reason' => 'nullable|string|max:255',
-            'items.*.condition' => 'nullable|string|max:255',
-        ]);
 
         // Additional validation: Check if receiving more than ordered (skip for replacement mode)
         $isReplacement = $request->has('is_replacement') && $request->is_replacement == '1';

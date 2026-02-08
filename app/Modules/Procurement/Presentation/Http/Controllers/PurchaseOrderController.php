@@ -17,6 +17,8 @@ use App\Modules\Procurement\Presentation\Http\Imports\PurchaseOrderHistoryImport
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Procurement\Presentation\Http\Requests\ImportPOHistoryRequest;
+use App\Modules\Procurement\Presentation\Http\Requests\ConfirmPOImportRequest;
 
 class PurchaseOrderController extends Controller
 {
@@ -36,23 +38,43 @@ class PurchaseOrderController extends Controller
         }
 
         // Separate POs by role
+        // Status filter
+        $status = request('status');
+
         // Buyer POs: where I'm the buyer (can receive goods)
-        $buyerPOs = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
+        $buyerPOsQuery = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
             ->where(function ($q) use ($selectedCompanyId) {
                 $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
                     $q2->where('company_id', $selectedCompanyId);
                 })->orWhere('company_id', $selectedCompanyId);
-            })
-            ->latest()
+            });
+
+        if ($status) {
+            $buyerPOsQuery->where('status', $status);
+        }
+
+        $buyerPOs = $buyerPOsQuery->latest()
             ->paginate(10, ['*'], 'buyer_page');
 
         // Vendor POs: where I'm the vendor (can create invoice)
-        $vendorPOs = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
-            ->where('vendor_company_id', $selectedCompanyId)
-            ->latest()
+        $vendorPOsQuery = PurchaseOrder::with(['purchaseRequisition.company', 'buyerCompany', 'vendorCompany', 'createdBy'])
+            ->withCount('invoices')
+            ->where('vendor_company_id', $selectedCompanyId);
+
+        if ($status) {
+            $vendorPOsQuery->where('status', $status);
+        }
+
+        $dashboardFilterLabel = null;
+        if (request('filter') === 'need_invoice') {
+            $vendorPOsQuery->whereDoesntHave('invoices');
+            $dashboardFilterLabel = 'Needs Invoicing (Fulfilled orders without invoices)';
+        }
+
+        $vendorPOs = $vendorPOsQuery->latest()
             ->paginate(10, ['*'], 'vendor_page');
 
-        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'selectedCompanyId', 'currentView'));
+        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'selectedCompanyId', 'currentView', 'dashboardFilterLabel'));
     }
 
     public function show(PurchaseOrder $purchaseOrder)
@@ -281,12 +303,8 @@ class PurchaseOrderController extends Controller
         return Excel::download(new PurchaseOrderTemplateExport, 'po_template.xlsx');
     }
 
-    public function importHistory(Request $request)
+    public function importHistory(ImportPOHistoryRequest $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv',
-            'import_role' => 'required|in:buyer,vendor',
-        ]);
 
         try {
             $file = $request->file('file');
@@ -321,12 +339,8 @@ class PurchaseOrderController extends Controller
         }
     }
 
-    public function confirmImport(Request $request)
+    public function confirmImport(ConfirmPOImportRequest $request)
     {
-        $request->validate([
-            'temp_path' => 'required',
-            'import_role' => 'required|in:buyer,vendor',
-        ]);
 
         try {
             $path = $request->temp_path;

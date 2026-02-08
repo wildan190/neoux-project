@@ -139,8 +139,29 @@
         <div id="vendorContent">
             <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-700 bg-emerald-50/50 dark:bg-emerald-900/10">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight">Orders from Customers</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">New or ongoing orders sent by your clients</p>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight">Orders from Customers</h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">New or ongoing orders sent by your clients</p>
+                        </div>
+                    </div>
+                    
+                    @if(isset($dashboardFilterLabel))
+                        <div class="mt-4 flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+                                    <i data-feather="filter" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider">Active Filter</p>
+                                    <p class="text-sm text-amber-700 dark:text-amber-500 font-bold">{{ $dashboardFilterLabel }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('procurement.po.index', ['view' => 'vendor']) }}" class="text-[10px] font-black text-amber-800 dark:text-amber-400 uppercase bg-amber-100 dark:bg-amber-900/40 px-3 py-1.5 rounded-lg hover:bg-amber-200 transition-colors">
+                                Clear Filter
+                            </a>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="overflow-x-auto">
@@ -176,13 +197,21 @@
                                         {{ $po->formatted_total_amount }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 text-[10px] font-black rounded-full uppercase tracking-wider
-                                            @if($po->status === 'completed') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
-                                            @elseif($po->status === 'cancelled') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
-                                            @elseif($po->status === 'issued') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
-                                            @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
-                                            {{ str_replace('_', ' ', $po->status) }}
-                                        </span>
+                                        <div class="flex flex-col gap-1.5">
+                                            <span class="px-2 py-1 text-[10px] w-fit font-black rounded-full uppercase tracking-wider
+                                                @if($po->status === 'completed') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+                                                @elseif($po->status === 'cancelled') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                                                @elseif($po->status === 'issued') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                                @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                                {{ str_replace('_', ' ', $po->status) }}
+                                            </span>
+                                            
+                                            @if($po->status === 'full_delivery' && $po->invoices_count === 0)
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 animate-pulse">
+                                                    <i data-feather="alert-circle" class="w-3 h-3"></i> Invoice Required
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('procurement.po.show', $po) }}" class="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg transition-colors">
