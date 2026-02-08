@@ -8,7 +8,6 @@ use App\Modules\Procurement\Domain\Models\GoodsReturnRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Modules\Procurement\Presentation\Http\Requests\StoreDebitNoteRequest;
 
 class DebitNoteController extends Controller
 {
@@ -19,7 +18,7 @@ class DebitNoteController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -73,8 +72,13 @@ class DebitNoteController extends Controller
     /**
      * Store a newly created Debit Note
      */
-    public function store(StoreDebitNoteRequest $request, GoodsReturnRequest $goodsReturnRequest)
+    public function store(Request $request, GoodsReturnRequest $goodsReturnRequest)
     {
+        $request->validate([
+            'deduction_percentage' => 'nullable|numeric|min:0|max:100',
+            'deduction_amount' => 'required_without:deduction_percentage|numeric|min:0',
+            'reason' => 'nullable|string|max:500',
+        ]);
 
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
@@ -120,7 +124,7 @@ class DebitNoteController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create Debit Note: ' . $e->getMessage());
+            return back()->with('error', 'Failed to create Debit Note: '.$e->getMessage());
         }
     }
 
@@ -143,7 +147,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to view this Debit Note.');
         }
 
@@ -170,7 +174,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to print this Debit Note.');
         }
 

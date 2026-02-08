@@ -145,13 +145,6 @@ class CatalogueController extends Controller
             abort(403);
         }
 
-        // Check if any variant is used in Procurement
-        foreach ($product->items as $item) {
-            if ($item->purchaseRequisitionItems()->exists()) {
-                return redirect()->back()->with('error', "Cannot delete product because one or more variants ('{$item->sku}') are referenced in Purchase Requisitions or Orders.");
-            }
-        }
-
         // Items are cascaded deleted by FK, but images need cleanup
         foreach ($product->items as $item) {
             foreach ($item->images as $image) {
@@ -214,11 +207,6 @@ class CatalogueController extends Controller
     {
         if ($item->company_id !== session('selected_company_id')) {
             abort(403);
-        }
-
-        // Check if variant is used in Procurement
-        if ($item->purchaseRequisitionItems()->exists()) {
-            return redirect()->back()->with('error', "Cannot delete variant '{$item->sku}' because it is referenced in Purchase Requisitions or Orders.");
         }
 
         // Cleanup images
