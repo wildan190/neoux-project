@@ -35,14 +35,16 @@ const unlockAudio = () => {
         notifAudio.pause();
         notifAudio.currentTime = 0;
         console.log('Audio unlocked successfully.');
+        
+        // Remove listeners ONLY after successful unlock
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
+        document.removeEventListener('touchstart', unlockAudio);
     }).catch((e) => {
-        console.warn('Audio unlock failed (user interaction needed):', e);
+        // Keep listeners attached if unlock failed (e.g. browser policy), so we can try again on next interaction
+        // Using debug instead of warn to reduce console noise for expected behavior
+        console.debug('Audio unlock attempt failed, retrying on next interaction...');
     });
-    
-    // Remove listeners once unlocked (or attempted)
-    document.removeEventListener('click', unlockAudio);
-    document.removeEventListener('keydown', unlockAudio);
-    document.removeEventListener('touchstart', unlockAudio);
 };
 
 // Listen for any interaction
