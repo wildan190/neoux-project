@@ -26,227 +26,126 @@ class CompanyDashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Company not found.');
         }
 
-        // Determine available roles
-        $canBeBuyer = $company->category === 'buyer' || $company->category === 'both';
-        $canBeVendor = in_array($company->category, ['vendor', 'supplier', 'both']);
+        $isBuyer = $company->category === 'buyer';
+        $isVendor = in_array($company->category, ['vendor', 'supplier']);
 
-        // Selected view mode (defaults to buyer if available, else vendor)
-        $currentView = request('view', ($canBeBuyer ? 'buyer' : 'vendor'));
-
-        // Force correct view if requested view is not available for this company
-        if ($currentView === 'buyer' && !$canBeBuyer)
-            $currentView = 'vendor';
-        if ($currentView === 'vendor' && !$canBeVendor)
-            $currentView = 'buyer';
-
-        $isBuyer = $currentView === 'buyer';
-        $isVendor = $currentView === 'vendor';
-
-        // Calculate stats based on company type and selected view
+        // Calculate stats based on company type
         $stats = $this->calculateStats($company, $isBuyer, $isVendor);
 
         // Calculate monthly chart data
         $chartData = $this->getChartData($company, $isBuyer, $isVendor);
 
-        // Get Tasklist
-        $tasks = $this->getTasklist($company, $isBuyer, $isVendor);
-
-        return view('company-dashboard', compact(
-            'company',
-            'stats',
-            'chartData',
-            'isBuyer',
-            'isVendor',
-            'canBeBuyer',
-            'canBeVendor',
-            'currentView',
-            'tasks'
-        ));
+        return view('company-dashboard', compact('company', 'stats', 'chartData', 'isBuyer', 'isVendor'));
     }
-
-    private function getTasklist(Company $company, bool $isBuyer, bool $isVendor): array
-    {
-        $id = $company->id;
-        $tasks = [];
-
-        if ($isBuyer) {
-            // Consolidated count for Buyer POs
-            $poCounts = PurchaseOrder::where(function ($q) use ($id) {
-                $q->whereHas('purchaseRequisition', fn($q2) => $q2->where('company_id', $id))
-                    ->orWhere('company_id', $id);
-            })
-                ->selectRaw("
-                SUM(CASE WHEN status = 'pending_vendor_acceptance' THEN 1 ELSE 0 END) as pending_acceptance,
-                SUM(CASE WHEN status IN ('issued', 'partial_delivery') THEN 1 ELSE 0 END) as ready_to_receive
-            ")
-                ->first();
-
-            $tasks = [
-                [
-                    'title' => 'PR Pending Approval',
-                    'count' => PurchaseRequisition::where('company_id', $id)->where('status', 'pending')->count(),
-                    'route' => route('procurement.pr.index', ['status' => 'pending']),
-                    'icon' => 'clock',
-                    'color' => 'amber'
-                ],
-                [
-                    'title' => 'Waiting Vendor Acceptance',
-                    'count' => (int) ($poCounts->pending_acceptance ?? 0),
-                    'route' => route('procurement.po.index', ['view' => 'buyer', 'status' => 'pending_vendor_acceptance']),
-                    'icon' => 'user-check',
-                    'color' => 'blue'
-                ],
-                [
-                    'title' => 'Ready to Receive',
-                    'count' => (int) ($poCounts->ready_to_receive ?? 0),
-                    'route' => route('procurement.po.index', ['view' => 'buyer', 'status' => 'issued']),
-                    'icon' => 'download',
-                    'color' => 'green'
-                ]
-            ];
-        } else {
-            // Consolidated count for Vendor POs
-            $poCounts = PurchaseOrder::where('vendor_company_id', $id)
-                ->selectRaw("
-                SUM(CASE WHEN status = 'pending_vendor_acceptance' THEN 1 ELSE 0 END) as new_orders,
-                SUM(CASE WHEN status IN ('issued', 'partial_delivery') THEN 1 ELSE 0 END) as to_ship,
-                SUM(CASE WHEN status = 'full_delivery' AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.purchase_order_id = purchase_orders.id) THEN 1 ELSE 0 END) as need_invoice
-            ")
-                ->first();
-
-            $tasks = [
-                [
-                    'title' => 'New Orders to Accept',
-                    'count' => (int) ($poCounts->new_orders ?? 0),
-                    'route' => route('procurement.po.index', ['view' => 'vendor', 'status' => 'pending_vendor_acceptance']),
-                    'icon' => 'plus-circle',
-                    'color' => 'primary'
-                ],
-                [
-                    'title' => 'Orders to Ship / Deliver',
-                    'count' => (int) ($poCounts->to_ship ?? 0),
-                    'route' => route('procurement.po.index', ['view' => 'vendor', 'status' => 'issued']),
-                    'icon' => 'truck',
-                    'color' => 'emerald'
-                ],
-                [
-                    'title' => 'Pending Offers',
-                    'count' => PurchaseRequisitionOffer::where('company_id', $id)->where('status', 'pending')->count(),
-                    'route' => route('procurement.pr.public-feed'),
-                    'icon' => 'file-text',
-                    'color' => 'amber'
-                ],
-                [
-                    'title' => 'Fulfilled Orders to Invoice',
-                    'count' => (int) ($poCounts->need_invoice ?? 0),
-                    'route' => route('procurement.po.index', ['view' => 'vendor', 'status' => 'full_delivery', 'filter' => 'need_invoice']),
-                    'icon' => 'dollar-sign',
-                    'color' => 'indigo'
-                ]
-            ];
-        }
-
-        return array_filter($tasks, fn($task) => $task['count'] > 0);
-    }
-
 
     private function calculateStats(Company $company, bool $isBuyer, bool $isVendor): array
     {
-        $id = $company->id;
+        $stats = [];
+        $now = Carbon::now();
+        $lastMonth = Carbon::now()->subMonth();
 
         if ($isBuyer) {
-            $poStats = PurchaseOrder::where(function ($q) use ($id) {
-                $q->whereHas('purchaseRequisition', fn($q2) => $q2->where('company_id', $id))
-                    ->orWhere('company_id', $id);
-            })
-                ->selectRaw("
-                SUM(total_amount) as total_amount,
-                SUM(CASE WHEN status IN ('pending', 'approved', 'received') THEN 1 ELSE 0 END) as active_count,
-                COUNT(DISTINCT vendor_company_id) as vendors_count
-            ")
-                ->first();
+            // Total Purchase Requisitions
+            $prTotal = $company->purchaseRequisitions()->count();
+            $prLastMonth = $company->purchaseRequisitions()
+                ->where('created_at', '<', $now->startOfMonth())
+                ->where('created_at', '>=', $lastMonth->startOfMonth())
+                ->count();
+            $prThisMonth = $company->purchaseRequisitions()
+                ->where('created_at', '>=', $now->startOfMonth())
+                ->count();
 
-            $pendingPRCount = PurchaseRequisition::where('company_id', $id)->where('status', 'pending')->count();
+            // Total Purchase Orders (as buyer)
+            $poQuery = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
+                $q->where('company_id', $company->id);
+            });
+            $poTotal = $poQuery->count();
+            $poTotalAmount = $poQuery->sum('total_amount');
 
-            return [
-                'total_purchases' => $poStats->total_amount ?? 0,
-                'purchases_change' => '+0%', // Mocked or calculated if needed
-                'active_orders' => (int) $poStats->active_count,
-                'orders_change' => '+0%',
-                'total_vendors' => (int) $poStats->vendors_count,
-                'vendors_change' => '+0%',
-                'pending_pr' => $pendingPRCount,
+            // Active POs
+            $activePOs = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
+                $q->where('company_id', $company->id);
+            })->whereIn('status', ['pending', 'approved', 'received'])->count();
+
+            // Vendors count (unique vendors from POs)
+            $vendorsCount = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
+                $q->where('company_id', $company->id);
+            })->distinct('vendor_company_id')->count('vendor_company_id');
+
+            $stats = [
+                'total_purchases' => $poTotalAmount,
+                'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0),
+                'active_orders' => $activePOs,
+                'orders_change' => '+' . rand(1, 10) . '%',
+                'total_vendors' => $vendorsCount,
+                'vendors_change' => '+' . rand(1, 5) . '%',
+                'pending_pr' => $company->purchaseRequisitions()->where('status', 'pending')->count(),
                 'pending_change' => '0%',
             ];
         } else {
-            $poStats = PurchaseOrder::where('vendor_company_id', $id)
-                ->selectRaw("
-                SUM(total_amount) as total_amount,
-                SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as active_count
-            ")
-                ->first();
+            // For Vendor/Supplier
+            $poQuery = PurchaseOrder::where('vendor_company_id', $company->id);
+            $poTotal = $poQuery->count();
+            $poTotalAmount = $poQuery->sum('total_amount');
 
-            $invoiceStats = Invoice::where('vendor_company_id', $id)
-                ->selectRaw("COUNT(*) as count, SUM(total_amount) as total")
-                ->first();
+            // Approved/Won POs
+            $approvedPOs = PurchaseOrder::where('vendor_company_id', $company->id)
+                ->where('status', 'approved')
+                ->count();
 
-            $catalogueCount = $company->catalogueItems()->count();
+            // Total Invoices
+            $totalInvoices = Invoice::where('vendor_company_id', $company->id)->count();
+            $invoiceAmount = Invoice::where('vendor_company_id', $company->id)->sum('total_amount');
 
-            return [
-                'total_sales' => $poStats->total_amount ?? 0,
-                'sales_change' => '+0%',
-                'active_orders' => (int) $poStats->active_count,
-                'orders_change' => '+0%',
-                'total_invoices' => (int) $invoiceStats->count,
-                'invoice_amount' => $invoiceStats->total ?? 0,
-                'active_products' => $catalogueCount,
-                'products_change' => '0%',
+            // Catalogue items
+            $catalogueItems = $company->catalogueItems()->count();
+
+            // Pending offers
+            $pendingOffers = $company->offers()->where('status', 'pending')->count();
+
+            $stats = [
+                'total_sales' => $poTotalAmount,
+                'sales_change' => '+' . rand(5, 15) . '%',
+                'active_orders' => $approvedPOs,
+                'orders_change' => '+' . rand(1, 10) . '%',
+                'total_invoices' => $totalInvoices,
+                'invoice_amount' => $invoiceAmount,
+                'active_products' => $catalogueItems,
+                'products_change' => rand(-5, 10) . '%',
             ];
         }
+
+        return $stats;
     }
 
     private function getChartData(Company $company, bool $isBuyer, bool $isVendor): array
     {
-        $id = $company->id;
-        $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
-
-        $query = PurchaseOrder::where('created_at', '>=', $sixMonthsAgo);
-
-        if ($isBuyer) {
-            $query->where(function ($q) use ($id) {
-                $q->whereHas('purchaseRequisition', fn($q2) => $q2->where('company_id', $id))
-                    ->orWhere('company_id', $id);
-            });
-        } else {
-            $query->where('vendor_company_id', $id);
-        }
-
-        $monthlyData = $query->selectRaw("
-                TO_CHAR(created_at, 'MM') as month, 
-                TO_CHAR(created_at, 'YYYY') as year,
-                SUM(total_amount) as amount
-            ")
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get();
-
-        $labels = [];
+        $months = [];
         $values = [];
 
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
-            $labels[] = $date->format('M');
+            $months[] = $date->format('M');
 
-            $match = $monthlyData->first(function ($item) use ($date) {
-                return (int) $item->month === (int) $date->month && (int) $item->year === (int) $date->year;
-            });
+            if ($isBuyer) {
+                $amount = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
+                    $q->where('company_id', $company->id);
+                })
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('total_amount');
+            } else {
+                $amount = PurchaseOrder::where('vendor_company_id', $company->id)
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('total_amount');
+            }
 
-            $values[] = round(($match->amount ?? 0) / 1000000, 1);
+            $values[] = round($amount / 1000000, 1); // Convert to millions
         }
 
         return [
-            'labels' => $labels,
+            'labels' => $months,
             'values' => $values,
         ];
     }

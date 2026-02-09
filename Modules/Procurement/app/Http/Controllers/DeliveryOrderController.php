@@ -52,8 +52,19 @@ class DeliveryOrderController extends Controller
     /**
      * Store new DO
      */
-    public function store(StoreDeliveryOrderRequest $request, PurchaseOrder $purchaseOrder)
+    public function store(Request $request, PurchaseOrder $purchaseOrder)
     {
+        $selectedCompanyId = session('selected_company_id');
+
+        if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.purchase_order_item_id' => 'required|exists:purchase_order_items,id',
+            'items.*.quantity_shipped' => 'required|numeric|min:0',
+        ]);
 
         DB::beginTransaction();
         try {
@@ -100,8 +111,17 @@ class DeliveryOrderController extends Controller
     /**
      * Mark DO as shipped
      */
-    public function markAsShipped(MarkDOAsShippedRequest $request, DeliveryOrder $deliveryOrder)
+    public function markAsShipped(Request $request, DeliveryOrder $deliveryOrder)
     {
+        $selectedCompanyId = session('selected_company_id');
+
+        if ($deliveryOrder->purchaseOrder->vendor_company_id != $selectedCompanyId) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'tracking_number' => 'required|string|max:100',
+        ]);
 
         $deliveryOrder->update([
             'status' => 'shipped',

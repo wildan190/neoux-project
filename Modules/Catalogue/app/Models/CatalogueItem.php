@@ -60,11 +60,6 @@ class CatalogueItem extends Model
         return $this->hasOne(CatalogueItemImage::class)->where('is_primary', true);
     }
 
-    public function purchaseRequisitionItems()
-    {
-        return $this->hasMany(PurchaseRequisitionItem::class);
-    }
-
     /**
      * Get all tags as array
      */

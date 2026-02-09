@@ -7,6 +7,7 @@ use Modules\Procurement\Models\Invoice;
 use Modules\Procurement\Models\InvoiceItem;
 use Modules\Procurement\Models\PurchaseOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -80,7 +81,7 @@ class InvoiceController extends Controller
         return view('procurement.invoices.create', compact('purchaseOrder'));
     }
 
-    public function store(StoreInvoiceRequest $request, PurchaseOrder $purchaseOrder)
+    public function store(Request $request, PurchaseOrder $purchaseOrder)
     {
         $selectedCompanyId = session('selected_company_id');
 
@@ -95,6 +96,15 @@ class InvoiceController extends Controller
         if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
             abort(403, 'Unauthorized to create Invoice.');
         }
+
+        $request->validate([
+            'invoice_date' => 'required|date',
+            'due_date' => 'required|date|after_or_equal:invoice_date',
+            'items' => 'required|array',
+            'items.*.po_item_id' => 'required|exists:purchase_order_items,id',
+            'items.*.quantity_invoiced' => 'required|integer|min:0',
+            'items.*.unit_price' => 'required|numeric|min:0',
+        ]);
 
         DB::beginTransaction();
         try {
@@ -216,7 +226,7 @@ class InvoiceController extends Controller
     /**
      * Reject Invoice
      */
-    public function reject(RejectInvoiceRequest $request, Invoice $invoice)
+    public function reject(Request $request, Invoice $invoice)
     {
         $invoice->update([
             'status' => 'rejected',

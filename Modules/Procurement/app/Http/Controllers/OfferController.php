@@ -53,8 +53,21 @@ class OfferController extends Controller
     /**
      * Store a new offer
      */
-    public function store(StoreOfferRequest $request, PurchaseRequisition $purchaseRequisition)
+    public function store(Request $request, PurchaseRequisition $purchaseRequisition)
     {
+        // Validation
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+            'delivery_time' => 'required|string|max:255',
+            'warranty' => 'required|string|max:1000',
+            'payment_scheme' => 'required|string|max:1000',
+            'items' => 'required|array|min:1',
+            'items.*.item_id' => 'required|exists:purchase_requisition_items,id',
+            'items.*.quantity_offered' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'documents' => 'nullable|array|max:5',
+            'documents.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240', // 10MB max
+        ]);
 
         // Get selected company from session
         $selectedCompanyId = session('selected_company_id');
@@ -327,8 +340,23 @@ class OfferController extends Controller
     /**
      * Submit Negotiation Proposal (Buyer Proposes New Terms)
      */
-    public function submitNegotiation(SubmitNegotiationRequest $request, PurchaseRequisitionOffer $offer)
+    public function submitNegotiation(Request $request, PurchaseRequisitionOffer $offer)
     {
+        $purchaseRequisition = $offer->purchaseRequisition;
+        $selectedCompanyId = session('selected_company_id');
+
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'total_price' => 'required|numeric|min:0',
+            'delivery_time' => 'required|string',
+            'warranty' => 'required|string',
+            'payment_scheme' => 'required|string',
+            'notes' => 'nullable|string|max:2000',
+            'negotiation_message' => 'nullable|string|max:1000',
+        ]);
 
         $offer->update([
             'total_price' => $request->total_price,
