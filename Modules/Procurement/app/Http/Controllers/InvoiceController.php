@@ -7,7 +7,6 @@ use Modules\Procurement\Models\Invoice;
 use Modules\Procurement\Models\InvoiceItem;
 use Modules\Procurement\Models\PurchaseOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
