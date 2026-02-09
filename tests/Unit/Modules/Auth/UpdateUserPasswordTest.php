@@ -4,8 +4,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Auth\Domain\Actions\UpdateUserPassword;
-use App\Modules\User\Domain\Models\User;
+use Modules\Auth\Domain\Actions\UpdateUserPassword;
+use Modules\User\Domain\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 test('update user password action updates password successfully', function () {

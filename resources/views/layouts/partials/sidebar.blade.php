@@ -86,7 +86,7 @@
             $showCatalogue = false;
             $selectedCompany = null;
             if ($selectedCompanyId) {
-                $selectedCompany = \App\Modules\Company\Domain\Models\Company::find($selectedCompanyId);
+                $selectedCompany = \Modules\Company\Models\Company::find($selectedCompanyId);
                 $showCatalogue = $selectedCompany && in_array($selectedCompany->status, ['approved', 'active']);
             }
         @endphp

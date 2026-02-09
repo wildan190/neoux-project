@@ -7,14 +7,10 @@ use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
-        then: function () {
-            Route::middleware('web')
-                ->group(base_path('routes/admin.php'));
-        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
@@ -22,8 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'admin' => \App\Modules\Admin\Application\Http\Middleware\AdminMiddleware::class,
-            'company.selected' => \App\Http\Middleware\EnsureCompanySelected::class,
+            'admin' => \Modules\Admin\Http\Middleware\AdminMiddleware::class,
+            'company.selected' => \Modules\Company\Http\Middleware\EnsureCompanySelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -4,8 +4,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Company\Domain\Models\Company;
-use App\Modules\User\Domain\Models\User;
+use Modules\Company\Domain\Models\Company;
+use Modules\User\Domain\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 test('user can be created with valid data', function () {
@@ -61,14 +61,14 @@ test('user can send email verification notification', function () {
     \Illuminate\Support\Facades\Notification::fake();
     $user = User::factory()->create();
     $user->sendEmailVerificationNotification();
-    \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Modules\Auth\Application\Notifications\QueuedVerifyEmail::class);
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, \Modules\Auth\Application\Notifications\QueuedVerifyEmail::class);
 });
 
 test('user can send password reset notification', function () {
     \Illuminate\Support\Facades\Notification::fake();
     $user = User::factory()->create();
     $user->sendPasswordResetNotification('fake-token');
-    \Illuminate\Support\Facades\Notification::assertSentTo($user, \App\Modules\Auth\Application\Notifications\QueuedResetPassword::class);
+    \Illuminate\Support\Facades\Notification::assertSentTo($user, \Modules\Auth\Application\Notifications\QueuedResetPassword::class);
 });
 
 test('user implements must verify email contract', function () {
