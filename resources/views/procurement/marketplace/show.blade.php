@@ -100,7 +100,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{{-- SweetAlert2 loaded via Vite --}}
 <script>
     function selectVariant(input) {
         // Highlight logic

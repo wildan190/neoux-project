@@ -254,7 +254,7 @@
 
 {{-- PASTE SCRIPT CHART.js DI SINI --}}
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{-- Chart.js is loaded via npm/Vite bundle --}}
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
