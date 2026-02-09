@@ -11,11 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-<<<<<<< HEAD:app/Modules/Procurement/Presentation/Http/Controllers/InvoiceController.php
-=======
 use Modules\Procurement\Http\Requests\StoreInvoiceRequest;
 use Modules\Procurement\Http\Requests\RejectInvoiceRequest;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Procurement/app/Http/Controllers/InvoiceController.php
 
 class InvoiceController extends Controller
 {

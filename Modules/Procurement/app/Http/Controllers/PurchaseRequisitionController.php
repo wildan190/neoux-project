@@ -3,15 +3,6 @@
 namespace Modules\Procurement\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-<<<<<<< HEAD:app/Modules/Procurement/Presentation/Http/Controllers/PurchaseRequisitionController.php
-use App\Modules\Catalogue\Domain\Models\CatalogueItem;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionComment;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionDocument;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionItem;
-use App\Notifications\NewCommentAdded;
-use App\Notifications\PurchaseOrderReceived;
-=======
 use Modules\Catalogue\Models\CatalogueItem;
 use Modules\Procurement\Models\PurchaseRequisition;
 use Modules\Procurement\Models\PurchaseRequisitionComment;
@@ -25,7 +16,6 @@ use Modules\Procurement\Http\Requests\AddPRCommentRequest;
 use Modules\Procurement\Http\Requests\AssignPRRequest;
 use Modules\Procurement\Http\Requests\StorePurchaseRequisitionRequest;
 use Modules\Procurement\Http\Requests\SubmitPRApprovalRequest;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Procurement/app/Http/Controllers/PurchaseRequisitionController.php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

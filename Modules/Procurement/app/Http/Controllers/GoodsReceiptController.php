@@ -13,10 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-<<<<<<< HEAD:app/Modules/Procurement/Presentation/Http/Controllers/GoodsReceiptController.php
-=======
 use Modules\Procurement\Http\Requests\StoreGoodsReceiptRequest;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Procurement/app/Http/Controllers/GoodsReceiptController.php
 
 class GoodsReceiptController extends Controller
 {

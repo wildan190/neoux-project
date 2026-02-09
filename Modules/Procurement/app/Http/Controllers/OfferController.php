@@ -3,17 +3,6 @@
 namespace Modules\Procurement\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-<<<<<<< HEAD:app/Modules/Procurement/Presentation/Http/Controllers/OfferController.php
-use App\Modules\Procurement\Domain\Models\PurchaseRequisition;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferDocument;
-use App\Modules\Procurement\Domain\Models\PurchaseRequisitionOfferItem;
-use App\Notifications\NewOfferReceived;
-use App\Notifications\OfferAccepted;
-use App\Notifications\NegotiationProposed;
-use App\Notifications\NegotiationAccepted;
-use App\Notifications\NegotiationRejected;
-=======
 use Modules\Procurement\Models\PurchaseRequisition;
 use Modules\Procurement\Models\PurchaseRequisitionOffer;
 use Modules\Procurement\Models\PurchaseRequisitionOfferDocument;
@@ -25,7 +14,6 @@ use Modules\Procurement\Notifications\NegotiationAccepted;
 use Modules\Procurement\Notifications\NegotiationRejected;
 use Modules\Procurement\Http\Requests\StoreOfferRequest;
 use Modules\Procurement\Http\Requests\SubmitNegotiationRequest;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Procurement/app/Http/Controllers/OfferController.php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

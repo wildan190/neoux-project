@@ -2,12 +2,8 @@
 
 namespace Modules\Catalogue\Models;
 
-<<<<<<< HEAD:app/Modules/Catalogue/Domain/Models/CatalogueItem.php
-use App\Modules\Company\Domain\Models\Company;
-=======
 use Modules\Company\Models\Company;
 use Modules\Procurement\Models\PurchaseRequisitionItem;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Catalogue/app/Models/CatalogueItem.php
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

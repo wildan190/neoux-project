@@ -17,13 +17,9 @@ use Modules\Procurement\Http\Exports\PurchaseOrderTemplateExport;
 use Modules\Procurement\Http\Imports\PurchaseOrderHistoryImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
-<<<<<<< HEAD:app/Modules/Procurement/Presentation/Http/Controllers/PurchaseOrderController.php
-use App\Modules\Company\Domain\Models\Company;
-=======
 use Modules\Company\Models\Company;
 use Modules\Procurement\Http\Requests\ImportPOHistoryRequest;
 use Modules\Procurement\Http\Requests\ConfirmPOImportRequest;
->>>>>>> 000eb05 (refactoring to modular architect):Modules/Procurement/app/Http/Controllers/PurchaseOrderController.php
 
 class PurchaseOrderController extends Controller
 {
