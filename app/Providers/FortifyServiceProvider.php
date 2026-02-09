@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Modules\Auth\Domain\Actions\CreateNewUser;
-use App\Modules\Auth\Domain\Actions\ResetUserPassword;
-use App\Modules\Auth\Domain\Actions\UpdateUserPassword;
-use App\Modules\Auth\Domain\Actions\UpdateUserProfileInformation;
+use Modules\Auth\Actions\CreateNewUser;
+use Modules\Auth\Actions\ResetUserPassword;
+use Modules\Auth\Actions\UpdateUserPassword;
+use Modules\Auth\Actions\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -36,7 +36,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });
