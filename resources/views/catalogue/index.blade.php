@@ -13,7 +13,7 @@
         <p class="text-gray-600 dark:text-gray-400">Manage your products and their variants</p>
     </div>
     <div class="flex gap-2">
-        <a href="{{ route('catalogue.download-template') }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+        <a href="{{ route('catalogue.download-template') }}" target="_blank" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
             <i data-feather="download" class="w-4 h-4"></i>
             Template
         </a>

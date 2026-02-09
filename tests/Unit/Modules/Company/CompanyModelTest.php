@@ -4,10 +4,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Company\Domain\Models\CompanyDocument;
-use App\Modules\Company\Domain\Models\CompanyLocation;
-use App\Modules\User\Domain\Models\User;
+use Modules\Company\Domain\Models\Company;
+use Modules\Company\Domain\Models\CompanyDocument;
+use Modules\Company\Domain\Models\CompanyLocation;
+use Modules\User\Domain\Models\User;
 
 beforeEach(function () {
     $this->user = User::factory()->create();

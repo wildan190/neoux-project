@@ -4,9 +4,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Company\Domain\Models\Company;
-use App\Modules\Company\Domain\Models\CompanyDocument;
-use App\Modules\User\Domain\Models\User;
+use Modules\Company\Domain\Models\Company;
+use Modules\Company\Domain\Models\CompanyDocument;
+use Modules\User\Domain\Models\User;
 
 test('company document belongs to a company', function () {
     $user = User::factory()->create();

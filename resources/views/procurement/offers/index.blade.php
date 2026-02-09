@@ -217,7 +217,7 @@
                                 @foreach($offers->take(3) as $offer)
                                     @php
                                         // Count past wins (excluding current if won) for this company
-                                        $wins = \App\Modules\Procurement\Domain\Models\PurchaseRequisitionOffer::where('company_id', $offer->company_id)
+                                        $wins = \Modules\Procurement\Models\PurchaseRequisitionOffer::where('company_id', $offer->company_id)
                                             ->where('status', 'accepted')
                                             ->count();
                                     @endphp

@@ -4,8 +4,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Auth\Domain\Actions\CreateNewUser;
-use App\Modules\User\Domain\Models\User;
+use Modules\Auth\Domain\Actions\CreateNewUser;
+use Modules\User\Domain\Models\User;
 
 test('create new user action creates user successfully', function () {
     $action = new CreateNewUser;

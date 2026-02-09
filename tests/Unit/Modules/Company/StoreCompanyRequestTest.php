@@ -4,7 +4,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Company\Presentation\Http\Requests\StoreCompanyRequest;
+use Modules\Company\Presentation\Http\Requests\StoreCompanyRequest;
 
 test('store company request requires name', function () {
     $rules = (new StoreCompanyRequest)->rules();

@@ -31,7 +31,26 @@
             </div>
 
             {{-- Scanner Container --}}
-            <div id="reader" width="600px" class="mx-auto border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700"></div>
+            <div id="scanner-wrapper" class="mx-auto max-w-lg mb-6 text-center">
+                
+                <div id="start-btn-container" class="py-12 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <i data-feather="camera" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to Scan</h3>
+                    <p class="text-gray-500 mb-6 max-w-xs mx-auto">Please allow camera access when prompted to start scanning codes.</p>
+                    
+                    <button onclick="requestCameraPermission()" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i data-feather="camera" class="w-5 h-5 mr-2"></i>
+                        Start Scanning
+                    </button>
+                </div>
+
+                <div id="scanner-container" class="hidden relative rounded-lg overflow-hidden bg-black">
+                     <div id="reader" class="w-full"></div>
+                     <button onclick="stopScanner()" class="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full shadow hover:bg-red-700 z-10" title="Stop Camera">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                     </button>
+                </div>
+            </div>
             
             <div class="mt-4 text-center">
                 <p class="text-sm text-gray-500 dark:text-gray-400">Point your camera at a Product QR Code</p>
@@ -99,56 +118,128 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let html5QrcodeScanner;
-    
+    // Use window property to avoid redeclaration errors in SPA/Turbo
+    window.html5QrCode = window.html5QrCode || null;
+
     function onScanSuccess(decodedText, decodedResult) {
-        // Stop scanning to prevent multiple triggers
-        if(html5QrcodeScanner) {
-            html5QrcodeScanner.clear().then(_ => {
-                // Fetch item details
+        if(window.html5QrCode) {
+            window.html5QrCode.stop().then(_ => {
+                window.html5QrCode.clear();
+                toggleScannerUI(false);
                 fetchItemDetails(decodedText);
             }).catch(error => {
-                console.error("Failed to clear scanner", error);
+                console.error("Failed to stop scanner", error);
             });
         }
     }
 
     function onScanFailure(error) {
-        // handle scan failure, usually better to ignore and keep scanning.
-        // console.warn(`Code scan error = ${error}`);
+        // handle scan failure
+    }
+
+    window.requestCameraPermission = function() {
+        Swal.fire({
+            title: 'Camera Access Needed',
+            text: 'To scan QR codes, please allow access to your camera in the next prompt.',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'I Understand, Enable Camera',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                startScanner();
+            }
+        });
     }
 
     function startScanner() {
-        document.getElementById('scan-result').classList.add('hidden');
-        document.getElementById('reader').classList.remove('hidden');
-
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader",
-            { fps: 10, qrbox: {width: 250, height: 250} },
-            /* verbose= */ false
-        );
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    }
-
-    function resetScanner() {
-        startScanner();
-    }
-
-    function fetchItemDetails(sku) {
         const warehouseId = document.getElementById('warehouse-select').value;
         if(!warehouseId) {
             Swal.fire('Error', 'Please select a warehouse first', 'warning');
             return;
         }
 
-        // Show loading state if needed
+        // Show loading
+        document.getElementById('scanner-container').classList.remove('hidden');
+        document.getElementById('start-btn-container').classList.add('hidden');
+        
+        // Clean up if exists
+        if(window.html5QrCode) {
+             try { window.html5QrCode.clear(); } catch(e){}
+        }
+
+        window.html5QrCode = new Html5Qrcode("reader");
+
+        // Prefer back camera
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        
+        window.html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+        .catch(err => {
+            console.error(err);
+            document.getElementById('scanner-container').classList.add('hidden');
+            document.getElementById('start-btn-container').classList.remove('hidden');
+            
+            let msg = 'Failed to access camera.';
+            if (err.name === 'NotAllowedError' || err.message.includes('permission')) {
+                msg = 'Camera permission denied. Please allow camera access in your browser settings and try again.';
+            }
+            
+            Swal.fire('Camera Error', msg, 'error');
+        });
+    }
+
+    window.stopScanner = function() {
+        if(window.html5QrCode) {
+            window.html5QrCode.stop().then(() => {
+                window.html5QrCode.clear();
+                toggleScannerUI(false);
+            }).catch(err => console.log(err));
+        } else {
+            toggleScannerUI(false);
+        }
+    }
+
+    window.toggleScannerUI = function(show) {
+        if(show) {
+            document.getElementById('scanner-container').classList.remove('hidden');
+            document.getElementById('start-btn-container').classList.add('hidden');
+        } else {
+            document.getElementById('scanner-container').classList.add('hidden');
+            document.getElementById('start-btn-container').classList.remove('hidden');
+        }
+    }
+
+    window.resetScanner = function() {
+        // Just reset UI to start state
+        document.getElementById('scan-result').classList.add('hidden');
+        toggleScannerUI(false);
+    }
+
+    function fetchItemDetails(sku) {
+        const warehouseId = document.getElementById('warehouse-select').value;
+        if(!warehouseId) {
+            Swal.fire('Error', 'Please select a warehouse first', 'warning');
+            resetScanner();
+            return;
+        }
+
         Swal.fire({
             title: 'Processing...',
             text: 'Looking up item ' + sku,
+            allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading()
             }
         });
+
+        // Parse JSON if needed (for our generated QRs)
+        let parsedSku = sku;
+        try {
+            const json = JSON.parse(sku);
+            if(json.sku) parsedSku = json.sku;
+        } catch(e) {
+            // Not JSON, use as is
+        }
 
         fetch('{{ route("warehouse.process-scan") }}', {
             method: 'POST',
@@ -156,7 +247,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ qr_code: sku, warehouse_id: warehouseId }) // Sent warehouse_id
+            body: JSON.stringify({ qr_code: parsedSku, warehouse_id: warehouseId }) 
         })
         .then(response => response.json())
         .then(data => {
@@ -167,7 +258,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Item Not Found',
-                    text: 'No item found with SKU: ' + sku,
+                    text: 'No item found with SKU: ' + parsedSku,
                     confirmButtonText: 'Try Again'
                 }).then((result) => {
                      startScanner();
@@ -175,13 +266,13 @@
             }
         })
         .catch(error => {
-            Swal.fire('Error', 'Something went wrong', 'error');
-             startScanner();
+            Swal.fire('Error', 'Something went wrong: ' + error, 'error');
+            setTimeout(() => startScanner(), 1000);
         });
     }
 
     function displayResult(item, warehouseName) {
-        document.getElementById('reader').classList.add('hidden'); // Hide scanner
+        toggleScannerUI(false);
         
         document.getElementById('res-name').innerText = item.name;
         document.getElementById('res-sku').innerText = item.sku;
@@ -193,7 +284,9 @@
         document.getElementById('scan-result').classList.remove('hidden');
     }
 
-    function adjustStock(type) {
+    // Function to handle stock adjustment... 
+    // (Defining it globally to ensure it's accessible)
+    window.adjustStock = function(type) {
         const sku = document.getElementById('res-sku').innerText;
         const qty = document.getElementById('adjust-qty').value;
         const warehouseId = document.getElementById('warehouse-select').value;
@@ -224,7 +317,6 @@
                 .then(data => {
                     if(data.status === 'success') {
                         Swal.fire('Success', data.message, 'success');
-                        // Update stock display
                         const unit = document.getElementById('res-stock').innerText.split(' ')[1] || '';
                         document.getElementById('res-stock').innerText = data.new_stock + ' ' + unit;
                     } else {
@@ -236,8 +328,10 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        startScanner();
+    // Initialize on load and Turbo load
+    document.addEventListener('turbo:load', () => {
+        // If we want to reset UI on nav
+        resetScanner();
     });
 </script>
 @endsection

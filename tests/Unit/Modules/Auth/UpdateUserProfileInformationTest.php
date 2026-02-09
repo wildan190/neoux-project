@@ -4,8 +4,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
-use App\Modules\Auth\Domain\Actions\UpdateUserProfileInformation;
-use App\Modules\User\Domain\Models\User;
+use Modules\Auth\Domain\Actions\UpdateUserProfileInformation;
+use Modules\User\Domain\Models\User;
 
 test('update user profile information action updates user data', function () {
     $user = User::factory()->create([
