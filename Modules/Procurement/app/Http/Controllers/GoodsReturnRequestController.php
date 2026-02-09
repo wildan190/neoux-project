@@ -8,9 +8,6 @@ use Modules\Procurement\Models\GoodsReturnRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Modules\Procurement\Http\Requests\StoreGRRRequest;
-use Modules\Procurement\Http\Requests\UpdateGRRResolutionRequest;
-use Modules\Procurement\Http\Requests\VendorGRRResponseRequest;
 
 class GoodsReturnRequestController extends Controller
 {

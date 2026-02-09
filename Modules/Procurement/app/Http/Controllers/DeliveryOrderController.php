@@ -10,8 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Procurement\Http\Requests\StoreDeliveryOrderRequest;
-use Modules\Procurement\Http\Requests\MarkDOAsShippedRequest;
 
 class DeliveryOrderController extends Controller
 {

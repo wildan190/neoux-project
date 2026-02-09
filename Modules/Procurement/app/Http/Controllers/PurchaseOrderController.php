@@ -18,8 +18,6 @@ use Modules\Procurement\Http\Imports\PurchaseOrderHistoryImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Modules\Company\Models\Company;
-use Modules\Procurement\Http\Requests\ImportPOHistoryRequest;
-use Modules\Procurement\Http\Requests\ConfirmPOImportRequest;
 
 class PurchaseOrderController extends Controller
 {
