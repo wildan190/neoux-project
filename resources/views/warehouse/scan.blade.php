@@ -116,7 +116,7 @@
 </div>
 
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{{-- SweetAlert2 loaded via Vite --}}
 <script>
     // Use window property to avoid redeclaration errors in SPA/Turbo
     window.html5QrCode = window.html5QrCode || null;
