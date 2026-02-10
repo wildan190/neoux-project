@@ -198,7 +198,7 @@
                                         <tr class="border-b border-gray-100 dark:border-gray-700">
                                             <th class="py-4 text-left text-xs font-black text-gray-400 uppercase tracking-widest">Description</th>
                                             <th class="py-4 text-center text-xs font-black text-gray-400 uppercase tracking-widest px-4">Qty</th>
-                                            <th class="py-4 text-center text-xs font-black text-gray-400 uppercase tracking-widest px-4">Recv</th>
+                                            <th class="py-4 text-center text-xs font-black text-gray-400 uppercase tracking-widest px-4">Accepted</th>
                                             <th class="py-4 text-right text-xs font-black text-gray-400 uppercase tracking-widest">Rate</th>
                                             <th class="py-4 text-right text-xs font-black text-gray-400 uppercase tracking-widest">Amount</th>
                                         </tr>
@@ -338,7 +338,7 @@
                                 <p class="text-lg font-bold text-gray-900 dark:text-white tabular-nums">{{ $purchaseOrder->items->sum('quantity_ordered') }}</p>
                             </div>
                             <div class="p-4 bg-gray-50 dark:bg-gray-900/20 rounded-2xl border border-gray-100 dark:border-gray-700">
-                                <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Received</p>
+                                <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Accepted</p>
                                 <p class="text-lg font-bold text-green-600 dark:text-green-400 tabular-nums">{{ $purchaseOrder->items->sum('quantity_received') }}</p>
                             </div>
                         </div>

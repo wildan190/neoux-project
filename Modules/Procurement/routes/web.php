@@ -107,6 +107,8 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::get('/{goodsReturnRequest}', [GoodsReturnRequestController::class, 'show'])->name('show');
         Route::put('/{goodsReturnRequest}/resolution', [GoodsReturnRequestController::class, 'updateResolution'])->name('update-resolution');
         Route::post('/{goodsReturnRequest}/vendor-response', [GoodsReturnRequestController::class, 'vendorResponse'])->name('vendor-response');
+        Route::post('/{goodsReturnRequest}/ship-replacement', [GoodsReturnRequestController::class, 'shipReplacement'])->name('ship-replacement');
+        Route::post('/{goodsReturnRequest}/confirm-replacement-receipt', [GoodsReturnRequestController::class, 'confirmReplacementReceipt'])->name('confirm-replacement-receipt');
         Route::post('/{goodsReturnRequest}/resolve', [GoodsReturnRequestController::class, 'resolve'])->name('resolve');
     });
 
@@ -118,5 +120,6 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::get('/{debitNote}', [DebitNoteController::class, 'show'])->name('show');
         Route::get('/{debitNote}/print', [DebitNoteController::class, 'print'])->name('print');
         Route::post('/{debitNote}/approve', [DebitNoteController::class, 'approve'])->name('approve');
+        Route::post('/{debitNote}/reject', [DebitNoteController::class, 'reject'])->name('reject');
     });
 });

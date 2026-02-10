@@ -18,7 +18,7 @@ class DebitNoteController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -60,6 +60,13 @@ class DebitNoteController extends Controller
         // Only vendor can create debit note
         if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
             abort(403, 'Only vendor can create Debit Note.');
+        }
+
+        // Check if already has an active debit note
+        $existingDN = $goodsReturnRequest->debitNote;
+        if ($existingDN && $existingDN->status != 'rejected') {
+            return redirect()->route('procurement.debit-notes.show', $existingDN)
+                ->with('info', 'There is already an active Debit Note for this request.');
         }
 
         // Calculate original amount for affected items
@@ -105,26 +112,27 @@ class DebitNoteController extends Controller
                 'goods_return_request_id' => $goodsReturnRequest->id,
                 'purchase_order_id' => $purchaseOrder->id,
                 'original_amount' => $originalAmount,
+                'deduction_percentage' => $request->deduction_percentage,
                 'adjusted_amount' => $adjustedAmount,
                 'deduction_amount' => $deductionAmount,
                 'reason' => $request->reason,
+                'status' => 'pending', // Explicitly set to pending
             ]);
 
-            // Update GRR status
+            // Update GRR status to awaiting buyer approval
             $goodsReturnRequest->update([
-                'resolution_status' => 'resolved',
-                'resolved_at' => now(),
+                'resolution_status' => 'awaiting_buyer_approval',
             ]);
 
             DB::commit();
 
             return redirect()->route('procurement.debit-notes.show', $debitNote)
-                ->with('success', 'Debit Note created successfully. GRR has been resolved.');
+                ->with('success', 'Debit Note created successfully. Waiting for buyer approval.');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create Debit Note: '.$e->getMessage());
+            return back()->with('error', 'Failed to create Debit Note: ' . $e->getMessage());
         }
     }
 
@@ -147,7 +155,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this Debit Note.');
         }
 
@@ -174,7 +182,7 @@ class DebitNoteController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to print this Debit Note.');
         }
 
@@ -195,9 +203,41 @@ class DebitNoteController extends Controller
         }
 
         $debitNote->update([
-            'approved_by_vendor_at' => now(),
+            'status' => 'approved',
+            'approved_by_vendor_at' => now(), // This was named approved_by_vendor_at but used by buyer in previous turn
         ]);
 
-        return back()->with('success', 'Debit Note approved. Invoice will be adjusted accordingly.');
+        // Finalize GRR
+        $debitNote->goodsReturnRequest->update([
+            'resolution_status' => 'resolved',
+            'resolved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Debit Note approved. GRR is now fully resolved and Invoice will be adjusted.');
+    }
+
+    /**
+     * Buyer rejects Debit Note
+     */
+    public function reject(DebitNote $debitNote)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        $purchaseOrder = $debitNote->purchaseOrder;
+
+        // Only buyer can reject
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+            abort(403, 'Only buyer can reject Debit Note.');
+        }
+
+        $debitNote->update([
+            'status' => 'rejected',
+        ]);
+
+        // Update GRR status to allow vendor action
+        $debitNote->goodsReturnRequest->update([
+            'resolution_status' => 'rejected_by_buyer',
+        ]);
+
+        return back()->with('info', 'Debit Note rejected. Vendor can resubmit a new adjustment.');
     }
 }
