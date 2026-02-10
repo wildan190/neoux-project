@@ -466,14 +466,11 @@
                             @if($offer->status === 'pending' || $offer->status === 'negotiating')
                                 <div class="flex gap-2">
                                     @if($offer->status === 'pending')
-                                        <form action="{{ route('procurement.offers.submit-negotiation', $offer) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" onclick="return confirm('Invite this vendor to stage 2 negotiation?')"
-                                                class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-lg transition">
-                                                <i data-feather="message-circle" class="w-4 h-4 inline mr-1"></i>
-                                                Negotiate
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="document.getElementById('negotiateModal-{{ $offer->id }}').classList.remove('hidden')"
+                                            class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-sm font-semibold rounded-lg transition inline-flex items-center gap-1">
+                                            <i data-feather="message-circle" class="w-4 h-4"></i>
+                                            Negotiate
+                                        </button>
                                     @endif
 
                                     <form action="{{ route('procurement.offers.reject', $offer) }}" method="POST" class="inline">
@@ -519,6 +516,93 @@
                             @endif
                         </div>
                     </div>
+
+                    {{-- Negotiate Modal for this offer --}}
+                    <div id="negotiateModal-{{ $offer->id }}" class="hidden fixed inset-0 z-50 overflow-auto backdrop-blur-sm bg-gray-900/30 flex items-center justify-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 relative h-auto max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+                            <button type="button" onclick="document.getElementById('negotiateModal-{{ $offer->id }}').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                                <i data-feather="x" class="w-5 h-5"></i>
+                            </button>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Propose Negotiation (Update Terms)</h3>
+                            <p class="text-sm text-gray-500 mb-4">Modify the offer terms below to propose a negotiation. The vendor will be notified to accept or reject these new terms.</p>
+                            
+                            <form action="{{ route('procurement.offers.submit-negotiation', $offer) }}" method="POST" class="negotiation-form-{{ $offer->id }}">
+                                @csrf
+                                 <div class="space-y-4">
+                                     <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Negotiation Message (Optional)</label>
+                                        <textarea name="negotiation_message" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Reason for change..."></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Items & Pricing</label>
+                                        <div class="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                                            <table class="w-full text-sm">
+                                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                                    <tr>
+                                                        <th class="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Item</th>
+                                                        <th class="px-3 py-2 text-center text-gray-700 dark:text-gray-300">Qty</th>
+                                                        <th class="px-3 py-2 text-right text-gray-700 dark:text-gray-300">Unit Price</th>
+                                                        <th class="px-3 py-2 text-right text-gray-700 dark:text-gray-300">Subtotal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                                                    @foreach($offer->items as $item)
+                                                    <tr class="bg-white dark:bg-gray-800">
+                                                        <td class="px-3 py-2 text-gray-900 dark:text-white">
+                                                            {{ $item->purchaseRequisitionItem->catalogue_item_name ?? 'N/A' }}
+                                                            <input type="hidden" name="items[{{ $loop->index }}][id]" value="{{ $item->id }}">
+                                                        </td>
+                                                        <td class="px-3 py-2 text-center">
+                                                            <input type="number" name="items[{{ $loop->index }}][quantity_offered]" value="{{ $item->quantity_offered }}" min="1" required 
+                                                                class="w-20 px-2 py-1 text-center rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:border-indigo-500 focus:ring-indigo-500 item-quantity" 
+                                                                data-offer-id="{{ $offer->id }}" data-index="{{ $loop->index }}">
+                                                        </td>
+                                                        <td class="px-3 py-2 text-right">
+                                                            <input type="number" name="items[{{ $loop->index }}][unit_price]" value="{{ $item->unit_price }}" step="0.01" min="0" required 
+                                                                class="w-32 px-2 py-1 text-right rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:border-indigo-500 focus:ring-indigo-500 item-unit-price" 
+                                                                data-offer-id="{{ $offer->id }}" data-index="{{ $loop->index }}">
+                                                        </td>
+                                                        <td class="px-3 py-2 text-right font-medium text-gray-900 dark:text-white">
+                                                            <span class="item-subtotal" data-offer-id="{{ $offer->id }}" data-index="{{ $loop->index }}">{{ number_format($item->subtotal, 2) }}</span>
+                                                        </td>
+                                                    </tr>
+                                                    @endforeach
+                                                    <tr class="bg-gray-50 dark:bg-gray-700 font-bold">
+                                                        <td colspan="3" class="px-3 py-2 text-right text-gray-900 dark:text-white">Grand Total:</td>
+                                                        <td class="px-3 py-2 text-right text-indigo-600 dark:text-indigo-400 grand-total-{{ $offer->id }}">{{ number_format($offer->total_price, 2) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Time</label>
+                                            <input type="text" name="delivery_time" value="{{ $offer->delivery_time }}" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Warranty</label>
+                                            <input type="text" name="warranty" value="{{ $offer->warranty }}" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Scheme</label>
+                                        <input type="text" name="payment_scheme" value="{{ $offer->payment_scheme }}" required class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                                        <textarea name="notes" rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ $offer->notes }}</textarea>
+                                    </div>
+                                    <div class="flex gap-3 pt-2">
+                                         <button type="button" onclick="document.getElementById('negotiateModal-{{ $offer->id }}').classList.add('hidden')" class="flex-1 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
+                                         <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">Send Proposal</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>
@@ -528,5 +612,45 @@
 @push('scripts')
     <script>
         feather.replace();
+        
+        // Auto-calculate subtotals and grand total for all negotiation forms
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle all item inputs with data-offer-id
+            document.querySelectorAll('.item-quantity, .item-unit-price').forEach(input => {
+                input.addEventListener('input', function() {
+                    const offerId = this.dataset.offerId;
+                    const index = this.dataset.index;
+                    calculateSubtotal(offerId, index);
+                });
+            });
+            
+            function calculateSubtotal(offerId, index) {
+                const qtyInput = document.querySelector(`.item-quantity[data-offer-id="${offerId}"][data-index="${index}"]`);
+                const priceInput = document.querySelector(`.item-unit-price[data-offer-id="${offerId}"][data-index="${index}"]`);
+                const subtotalSpan = document.querySelector(`.item-subtotal[data-offer-id="${offerId}"][data-index="${index}"]`);
+                
+                if (qtyInput && priceInput && subtotalSpan) {
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    const subtotal = qty * price;
+                    subtotalSpan.textContent = subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+                
+                calculateGrandTotal(offerId);
+            }
+            
+            function calculateGrandTotal(offerId) {
+                let total = 0;
+                document.querySelectorAll(`.item-subtotal[data-offer-id="${offerId}"]`).forEach(span => {
+                    const subtotal = parseFloat(span.textContent.replace(/,/g, '')) || 0;
+                    total += subtotal;
+                });
+                
+                const grandTotalEl = document.querySelector(`.grand-total-${offerId}`);
+                if (grandTotalEl) {
+                    grandTotalEl.textContent = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+            }
+        });
     </script>
 @endpush

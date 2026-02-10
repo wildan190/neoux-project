@@ -32,7 +32,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-white">NeoUX</h2>
+                    <h2 class="text-xl font-bold text-white">Huntr.id</h2>
                     <p class="text-xs text-gray-400">Platform by HUNTR</p>
                 </div>
             </div>
@@ -146,8 +146,8 @@
             </a>
         @endif
 
-        @if(session('selected_company_id'))
-            {{-- Procurement Section (Buying) --}}
+        {{-- Procurement Section (Buying) --}}
+        @if($showCatalogue)
             <div class="px-4 pt-6 pb-2">
                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Procurement (Buying)</p>
             </div>
@@ -346,9 +346,7 @@
                     </span>
                 @endif
             </a>
-        @endif
 
-        @if(session('selected_company_id'))
             <a href="{{ route('team.index') }}"
                 class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('team.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
                 <div

@@ -14,7 +14,10 @@ class SubmitNegotiationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'total_price' => 'required|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:purchase_requisition_offer_items,id',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.quantity_offered' => 'required|integer|min:1',
             'delivery_time' => 'required|string',
             'warranty' => 'required|string',
             'payment_scheme' => 'required|string',

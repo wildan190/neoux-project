@@ -3,7 +3,6 @@
 namespace Modules\Company\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Mail\TeamInvitationMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -23,7 +22,7 @@ class TeamController extends Controller
         $company = Company::findOrFail($companyId);
 
         // Authorization: Check if user belongs to company
-        if (! $company->members()->where('user_id', Auth::id())->exists() && $company->user_id !== Auth::id()) {
+        if (!$company->members()->where('user_id', Auth::id())->exists() && $company->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -62,9 +61,9 @@ class TeamController extends Controller
         ]);
 
         // Send Email
-        Mail::to($request->email)->send(new TeamInvitationMail($invitation));
+        Mail::to($request->email)->send(new \Modules\User\Emails\TeamInvitationMail($invitation));
 
-        return back()->with('success', 'Invitation sent successfully to '.$request->email);
+        return back()->with('success', 'Invitation sent successfully to ' . $request->email);
     }
 
     /**
@@ -78,13 +77,13 @@ class TeamController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->email !== $invitation->email) {
-                return redirect()->route('dashboard')->with('error', 'This invitation was sent to a different email address ('.$invitation->email.').');
+                return redirect()->route('dashboard')->with('error', 'This invitation was sent to a different email address (' . $invitation->email . ').');
             }
 
             // Accept logic for logged in user
             $this->joinCompany($user, $invitation);
 
-            return redirect()->route('dashboard')->with('success', 'You have joined '.$invitation->company->name);
+            return redirect()->route('dashboard')->with('success', 'You have joined ' . $invitation->company->name);
         }
 
         // 2. If user is NOT logged in
@@ -93,7 +92,7 @@ class TeamController extends Controller
 
         if ($userExists) {
             // Redirect to login if account exists
-            return redirect()->route('login')->with('info', 'Please login to accept the invitation for '.$invitation->company->name);
+            return redirect()->route('login')->with('info', 'Please login to accept the invitation for ' . $invitation->company->name);
         }
 
         // 3. User does not exist -> Show Register/Accept View
@@ -132,7 +131,7 @@ class TeamController extends Controller
         // Join Company
         $this->joinCompany($user, $invitation);
 
-        return redirect()->route('dashboard')->with('success', 'Account created! You have joined '.$invitation->company->name);
+        return redirect()->route('dashboard')->with('success', 'Account created! You have joined ' . $invitation->company->name);
     }
 
     /**
@@ -141,7 +140,7 @@ class TeamController extends Controller
     protected function joinCompany(User $user, CompanyInvitation $invitation)
     {
         // Attach user to company if not already attached
-        if (! $invitation->company->members()->where('user_id', $user->id)->exists()) {
+        if (!$invitation->company->members()->where('user_id', $user->id)->exists()) {
             $invitation->company->members()->attach($user->id, ['role' => $invitation->role]);
         }
 
