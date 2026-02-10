@@ -32,7 +32,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-white">NeoUX</h2>
+                    <h2 class="text-xl font-bold text-white">Huntr.id</h2>
                     <p class="text-xs text-gray-400">Platform by HUNTR</p>
                 </div>
             </div>
