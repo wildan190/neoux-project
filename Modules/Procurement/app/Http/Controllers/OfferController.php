@@ -27,7 +27,7 @@ class OfferController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -70,7 +70,7 @@ class OfferController extends Controller
         // Get selected company from session
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -94,7 +94,7 @@ class OfferController extends Controller
             ->where('company_id', $selectedCompanyId)
             ->first();
 
-        if ($existingOffer && ! in_array($existingOffer->status, ['pending', 'negotiating'])) {
+        if ($existingOffer && !in_array($existingOffer->status, ['pending', 'negotiating'])) {
             return back()->withErrors(['error' => 'You have already submitted an offer that has been processed.']);
         }
 
@@ -152,8 +152,8 @@ class OfferController extends Controller
             // Handle document uploads
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $file) {
-                    $fileName = time().'_'.$file->getClientOriginalName();
-                    $filePath = $file->storeAs('procurement/offers/'.$offer->id, $fileName, 'public');
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('procurement/offers/' . $offer->id, $fileName, 'public');
 
                     PurchaseRequisitionOfferDocument::create([
                         'offer_id' => $offer->id,
@@ -186,7 +186,7 @@ class OfferController extends Controller
                 'pr_id' => $purchaseRequisition->id,
             ]);
 
-            return back()->withErrors(['error' => 'Failed to submit offer: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to submit offer: ' . $e->getMessage()]);
         }
     }
 
@@ -202,7 +202,7 @@ class OfferController extends Controller
         $isPROwner = $purchaseRequisition->company_id == $selectedCompanyId;
         $isOfferSubmitter = $offer->company_id == $selectedCompanyId;
 
-        if (! $isPROwner && ! $isOfferSubmitter) {
+        if (!$isPROwner && !$isOfferSubmitter) {
             abort(403, 'Unauthorized to view this offer.');
         }
 
@@ -234,7 +234,7 @@ class OfferController extends Controller
             abort(403, 'Unauthorized to accept offers for this requisition.');
         }
 
-        if (! in_array($offer->status, ['pending', 'negotiating'])) {
+        if (!in_array($offer->status, ['pending', 'negotiating'])) {
             return back()->withErrors(['error' => 'This offer has already been processed.']);
         }
 
@@ -274,7 +274,7 @@ class OfferController extends Controller
             ->wherePivotIn('role', ['owner', 'admin'])
             ->exists();
 
-        if (Auth::id() !== $purchaseRequisition->head_approver_id && ! $isCompanyManager && ! Auth::user()->is_admin) {
+        if (Auth::id() !== $purchaseRequisition->head_approver_id && !$isCompanyManager && !Auth::user()->is_admin) {
             abort(403, 'Only the Head Approver, Company Owner/Admin, or Purchasing Manager can approve the winner.');
         }
 
@@ -340,7 +340,7 @@ class OfferController extends Controller
     /**
      * Submit Negotiation Proposal (Buyer Proposes New Terms)
      */
-    public function submitNegotiation(Request $request, PurchaseRequisitionOffer $offer)
+    public function submitNegotiation(\Modules\Procurement\Http\Requests\SubmitNegotiationRequest $request, PurchaseRequisitionOffer $offer)
     {
         $purchaseRequisition = $offer->purchaseRequisition;
         $selectedCompanyId = session('selected_company_id');
@@ -349,17 +349,33 @@ class OfferController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $request->validate([
-            'total_price' => 'required|numeric|min:0',
-            'delivery_time' => 'required|string',
-            'warranty' => 'required|string',
-            'payment_scheme' => 'required|string',
-            'notes' => 'nullable|string|max:2000',
-            'negotiation_message' => 'nullable|string|max:1000',
-        ]);
+        // Validation handled by FormRequest
+
+        // Update each item with new pricing
+        $totalPrice = 0;
+        foreach ($request->items as $itemData) {
+            $offerItem = \Modules\Procurement\Models\PurchaseRequisitionOfferItem::findOrFail($itemData['id']);
+
+            // Verify this item belongs to this offer
+            if ($offerItem->offer_id !== $offer->id) {
+                abort(403, 'Unauthorized item access.');
+            }
+
+            $unitPrice = $itemData['unit_price'];
+            $quantity = $itemData['quantity_offered'];
+            $subtotal = $unitPrice * $quantity;
+
+            $offerItem->update([
+                'unit_price' => $unitPrice,
+                'quantity_offered' => $quantity,
+                'subtotal' => $subtotal,
+            ]);
+
+            $totalPrice += $subtotal;
+        }
 
         $offer->update([
-            'total_price' => $request->total_price,
+            'total_price' => $totalPrice,
             'delivery_time' => $request->delivery_time,
             'warranty' => $request->warranty,
             'payment_scheme' => $request->payment_scheme,
@@ -387,7 +403,7 @@ class OfferController extends Controller
             $isMember = $offer->company->members()->where('users.id', Auth::id())->exists();
             $isOwner = $offer->company->user_id === Auth::id();
 
-            if (! $isMember && ! $isOwner) {
+            if (!$isMember && !$isOwner) {
                 abort(403, 'Unauthorized.');
             }
         }
@@ -415,7 +431,7 @@ class OfferController extends Controller
             $isMember = $offer->company->members()->where('users.id', Auth::id())->exists();
             $isOwner = $offer->company->user_id === Auth::id();
 
-            if (! $isMember && ! $isOwner) {
+            if (!$isMember && !$isOwner) {
                 abort(403, 'Unauthorized.');
             }
         }
@@ -491,17 +507,17 @@ class OfferController extends Controller
             }
 
             // 3. Delivery Time (10%) - Simple presence check for now
-            if (! empty($offer->delivery_time)) {
+            if (!empty($offer->delivery_time)) {
                 $score += 10;
             }
 
             // 4. Warranty (10%) - Simple presence check for now
-            if (! empty($offer->warranty)) {
+            if (!empty($offer->warranty)) {
                 $score += 10;
             }
 
             // 5. Payment Scheme (10%) - Simple presence check for now
-            if (! empty($offer->payment_scheme)) {
+            if (!empty($offer->payment_scheme)) {
                 $score += 10;
             }
 
@@ -523,7 +539,7 @@ class OfferController extends Controller
         $topOffer = $offers->sortByDesc('rank_score')->first();
 
         // Reset all recommendations first
-        $offers->each(fn ($o) => $o->update(['is_recommended' => false]));
+        $offers->each(fn($o) => $o->update(['is_recommended' => false]));
 
         if ($topOffer && $topOffer->rank_score >= 70) {
             // Check if quantity match is at least 80%

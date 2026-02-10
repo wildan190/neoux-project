@@ -13,29 +13,17 @@ class TeamInvitationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $invitation;
-
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($invitation)
+    public function __construct(public $invitation)
     {
-        $this->invitation = $invitation;
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invitation to join '.$this->invitation->company->name,
+            subject: 'Invitation to join ' . $this->invitation->company->name
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
@@ -43,11 +31,6 @@ class TeamInvitationMail extends Mailable implements ShouldQueue
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];
