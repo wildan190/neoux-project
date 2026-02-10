@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Procurement\Models\GoodsReceiptItem;
 use Modules\Procurement\Models\GoodsReturnRequest;
+use Modules\Procurement\Models\ReplacementDelivery;
+use Illuminate\Support\Str;
 
 class GoodsReturnRequestController extends Controller
 {
@@ -18,7 +20,7 @@ class GoodsReturnRequestController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -90,7 +92,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this GRR.');
         }
 
@@ -159,7 +161,7 @@ class GoodsReturnRequestController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create GRR: '.$e->getMessage());
+            return back()->with('error', 'Failed to create GRR: ' . $e->getMessage());
         }
     }
 
@@ -208,6 +210,7 @@ class GoodsReturnRequestController extends Controller
         if ($request->action === 'approve') {
             $goodsReturnRequest->update([
                 'resolution_status' => 'approved_by_vendor',
+                'vendor_notes' => $request->vendor_notes,
             ]);
 
             // If price adjustment, create debit note
@@ -216,15 +219,14 @@ class GoodsReturnRequestController extends Controller
                     ->with('success', 'GRR approved. Please create Debit Note for price adjustment.');
             }
 
-            // If replacement - mark as resolved (replacement tracking to be added later)
+            // If replacement - move to awaiting shipping
             if ($goodsReturnRequest->resolution_type === 'replacement') {
                 $goodsReturnRequest->update([
-                    'resolution_status' => 'resolved',
-                    'resolved_at' => now(),
+                    'resolution_status' => 'awaiting_replacement_shipping',
                 ]);
 
                 return redirect()->route('procurement.grr.show', $goodsReturnRequest)
-                    ->with('success', 'GRR approved for replacement. Please ship replacement items to buyer.');
+                    ->with('success', 'GRR approved for replacement. Please ship the replacement items and provide tracking information.');
             }
 
             return back()->with('success', 'GRR approved by vendor.');
@@ -232,9 +234,90 @@ class GoodsReturnRequestController extends Controller
         } else {
             $goodsReturnRequest->update([
                 'resolution_status' => 'rejected_by_vendor',
+                'vendor_notes' => $request->vendor_notes,
             ]);
 
             return back()->with('info', 'GRR rejected by vendor. Please negotiate with vendor.');
+        }
+    }
+
+    /**
+     * Vendor ships the replacement items
+     */
+    public function shipReplacement(Request $request, GoodsReturnRequest $goodsReturnRequest)
+    {
+        $request->validate([
+            'tracking_number' => 'nullable|string|max:100',
+            'expected_delivery_date' => 'nullable|date',
+        ]);
+
+        $selectedCompanyId = session('selected_company_id');
+        $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
+
+        if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
+            abort(403, 'Only vendor can ship replacements.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Create or update ReplacementDelivery
+            ReplacementDelivery::updateOrCreate(
+                ['goods_return_request_id' => $goodsReturnRequest->id],
+                [
+                    'rd_number' => 'RD-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+                    'original_goods_receipt_id' => $goodsReturnRequest->goodsReceiptItem->goods_receipt_id,
+                    'expected_delivery_date' => $request->expected_delivery_date,
+                    'tracking_number' => $request->tracking_number,
+                    'status' => 'shipped',
+                ]
+            );
+
+            $goodsReturnRequest->update([
+                'resolution_status' => 'replacement_shipped',
+            ]);
+
+            DB::commit();
+
+            return back()->with('success', 'Replacement items marked as shipped.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update shipping info: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Buyer confirms receipt of replacement items
+     */
+    public function confirmReplacementReceipt(GoodsReturnRequest $goodsReturnRequest)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
+
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+            abort(403, 'Only buyer can confirm receipt.');
+        }
+
+        DB::beginTransaction();
+        try {
+            if ($goodsReturnRequest->replacementDelivery) {
+                $goodsReturnRequest->replacementDelivery->update([
+                    'status' => 'received',
+                    'actual_delivery_date' => now(),
+                    'received_by' => Auth::id(),
+                ]);
+            }
+
+            $goodsReturnRequest->update([
+                'resolution_status' => 'resolved',
+                'resolved_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return back()->with('success', 'Replacement receipt confirmed. GRR is now resolved.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to confirm receipt: ' . $e->getMessage());
         }
     }
 
@@ -250,7 +333,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized.');
         }
 

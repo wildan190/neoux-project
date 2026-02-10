@@ -62,13 +62,13 @@
                         <div>
                             <label for="received_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Received <span class="text-red-500">*</span></label>
                             <input type="datetime-local" name="received_at" id="received_at" required
-                                   class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                                   class="w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500"
                                    value="{{ now()->format('Y-m-d\TH:i') }}">
                         </div>
                         <div>
                             <label for="warehouse_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Warehouse <span class="text-red-500">*</span></label>
                             <select name="warehouse_id" id="warehouse_id" required
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500">
+                                    class="w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500">
                                 <option value="">-- Select Warehouse --</option>
                                 @foreach($warehouses as $wh)
                                     <option value="{{ $wh->id }}">{{ $wh->name }} ({{ $wh->code }})</option>
@@ -83,17 +83,16 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                         <div>
                             <label for="delivery_note" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Note / Ref Number</label>
-                            <input type="text" name="delivery_note" id="delivery_note"
-                                   class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500"
-                                   placeholder="e.g. DO-123456"
-                                   value="{{ $deliveryOrder ? $deliveryOrder->do_number : '' }}">
+                            <input type="text" name="delivery_note" id="delivery_note" readonly
+                                   class="w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500 bg-gray-50 dark:bg-gray-900"
+                                   value="{{ $deliveryOrder ? $deliveryOrder->do_number : 'DN-' . now()->format('ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT) }}">
                         </div>
                     </div>
 
                     <div>
                         <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
                         <textarea name="notes" id="notes" rows="3"
-                                  class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                                  class="w-full px-3 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500"
                                   placeholder="Any additional comments about this delivery..."></textarea>
                     </div>
 
@@ -125,7 +124,7 @@
                                                 foreach($item->goodsReceiptItems ?? [] as $grItem) {
                                                     if ($grItem->goodsReturnRequest && 
                                                         $grItem->goodsReturnRequest->resolution_type === 'replacement' &&
-                                                        $grItem->goodsReturnRequest->resolution_status === 'resolved') {
+                                                        $grItem->goodsReturnRequest->resolution_status === 'replacement_shipped') {
                                                         $replacementQty += $grItem->goodsReturnRequest->quantity_affected;
                                                         $needsReplacement = true;
                                                     }
@@ -171,7 +170,7 @@
                                             <td class="px-4 py-3 relative">
                                                 <input type="number" name="items[{{ $index }}][quantity_received]" 
                                                        id="total_qty_{{ $index }}"
-                                                       class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center font-bold text-lg focus:ring-primary-500 focus:border-primary-500"
+                                                       class="w-full px-3 py-2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center font-bold text-lg focus:ring-primary-500 focus:border-primary-500"
                                                        min="0" max="{{ $maxQty }}" value="{{ $defaultQty }}"
                                                        oninput="updateQC({{ $index }})">
                                                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
@@ -184,14 +183,14 @@
                                                         <label class="block text-xs font-bold text-green-600 dark:text-green-400 mb-0.5">GOOD</label>
                                                         <input type="number" name="items[{{ $index }}][quantity_good]" 
                                                             id="good_qty_{{ $index }}"
-                                                            class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center text-sm focus:ring-green-500 focus:border-green-500"
+                                                            class="w-full px-3 py-2 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center text-sm focus:ring-green-500 focus:border-green-500"
                                                             min="0" value="{{ $defaultQty }}" readonly>
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-bold text-red-600 dark:text-red-400 mb-0.5">REJECTED</label>
                                                         <input type="number" name="items[{{ $index }}][quantity_rejected]" 
                                                             id="rejected_qty_{{ $index }}"
-                                                            class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center text-sm focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20"
+                                                            class="w-full px-3 py-2 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-center text-sm focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20"
                                                             min="0" value="0"
                                                             oninput="calculateGood({{ $index }})">
                                                     </div>
@@ -201,11 +200,11 @@
                                                 <div class="space-y-2">
                                                     <input type="text" name="items[{{ $index }}][rejected_reason]" 
                                                            id="rejected_reason_{{ $index }}"
-                                                           class="w-full rounded-md border-red-300 dark:border-red-600 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500 sm:text-sm hidden"
+                                                           class="w-full px-3 py-2 rounded-md border-red-300 dark:border-red-600 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500 sm:text-sm hidden"
                                                            placeholder="Reason for rejection (Required)...">
                                                     
                                                     <input type="text" name="items[{{ $index }}][condition]" 
-                                                           class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                           class="w-full px-3 py-2 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                            placeholder="General notes (optional)...">
                                                 </div>
                                             </td>

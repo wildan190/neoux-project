@@ -709,15 +709,17 @@
 
             // Attach event listeners to offer inputs
             document.addEventListener('DOMContentLoaded', function() {
+                // Attach event listeners for real-time calculation
                 document.querySelectorAll('.offer-quantity, .offer-price').forEach(input => {
                     input.addEventListener('input', function() {
                         const row = this.getAttribute('data-row');
                         calculateOfferSubtotal(row);
                     });
+                });
 
-                    // Trigger initial calculation
-                    const row = input.getAttribute('data-row');
-                    calculateOfferSubtotal(row);
+                // Calculate initial values on page load
+                document.querySelectorAll('.offer-item-row').forEach((row, index) => {
+                    calculateOfferSubtotal(index);
                 });
 
                 feather.replace();
