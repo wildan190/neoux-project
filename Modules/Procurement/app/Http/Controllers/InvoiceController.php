@@ -11,8 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Procurement\Http\Requests\StoreInvoiceRequest;
-use Modules\Procurement\Http\Requests\RejectInvoiceRequest;
 
 class InvoiceController extends Controller
 {
