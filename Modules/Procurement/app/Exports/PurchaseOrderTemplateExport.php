@@ -2,10 +2,10 @@
 
 namespace Modules\Procurement\Exports;
 
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Illuminate\Support\Collection;
 
 class PurchaseOrderTemplateExport implements FromCollection, WithHeadings, WithTitle
 {
@@ -24,7 +24,7 @@ class PurchaseOrderTemplateExport implements FromCollection, WithHeadings, WithT
                 '10',
                 '25000',
                 '250000',
-            ]
+            ],
         ]);
     }
 

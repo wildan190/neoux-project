@@ -5,13 +5,12 @@ namespace Modules\Procurement\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Modules\User\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
+use Modules\User\Traits\CheckNotificationSettings;
 
 class PurchaseOrderConfirmed extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable, CheckNotificationSettings;
+    use CheckNotificationSettings, Queueable;
 
     protected $purchaseOrder;
 
@@ -22,7 +21,7 @@ class PurchaseOrderConfirmed extends Notification implements ShouldBroadcast, Sh
 
     public function via(object $notifiable): array
     {
-        if (!$this->isNotificationEnabled($notifiable, 'po_confirmed')) {
+        if (! $this->isNotificationEnabled($notifiable, 'po_confirmed')) {
             return [];
         }
 
@@ -34,7 +33,7 @@ class PurchaseOrderConfirmed extends Notification implements ShouldBroadcast, Sh
         return [
             'type' => 'purchase_order_confirmed',
             'title' => 'Purchase Order Confirmed',
-            'message' => 'Vendor ' . ($this->purchaseOrder->vendorCompany->name ?? 'Vendor') . ' has confirmed Purchase Order ' . $this->purchaseOrder->po_number,
+            'message' => 'Vendor '.($this->purchaseOrder->vendorCompany->name ?? 'Vendor').' has confirmed Purchase Order '.$this->purchaseOrder->po_number,
             'url' => route('procurement.po.show', $this->purchaseOrder->id),
             'action_text' => 'View Order',
             'po_id' => $this->purchaseOrder->id,

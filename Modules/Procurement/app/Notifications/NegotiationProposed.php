@@ -5,12 +5,12 @@ namespace Modules\Procurement\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Modules\User\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
+use Modules\User\Traits\CheckNotificationSettings;
 
 class NegotiationProposed extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable, CheckNotificationSettings;
+    use CheckNotificationSettings, Queueable;
 
     protected $offer;
 
@@ -21,7 +21,7 @@ class NegotiationProposed extends Notification implements ShouldBroadcast, Shoul
 
     public function via(object $notifiable): array
     {
-        if (!$this->isNotificationEnabled($notifiable, 'negotiation_updates')) {
+        if (! $this->isNotificationEnabled($notifiable, 'negotiation_updates')) {
             return [];
         }
 
@@ -33,7 +33,7 @@ class NegotiationProposed extends Notification implements ShouldBroadcast, Shoul
         return [
             'type' => 'negotiation_proposed',
             'title' => 'Negotiation Proposal',
-            'message' => 'Buyer has proposed new terms for your offer on PR #' . ($this->offer->purchaseRequisition->pr_number ?? ''),
+            'message' => 'Buyer has proposed new terms for your offer on PR #'.($this->offer->purchaseRequisition->pr_number ?? ''),
             'url' => route('procurement.offers.show', $this->offer->id),
             'action_text' => 'Review Proposal',
             'offer_id' => $this->offer->id,

@@ -2,13 +2,13 @@
 
 namespace Modules\Procurement\Models;
 
-use Modules\Company\Models\Company;
-use Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Company\Models\Company;
+use Modules\User\Models\User;
 
 class PurchaseRequisitionOffer extends Model
 {
@@ -68,7 +68,7 @@ class PurchaseRequisitionOffer extends Model
     // Accessor for formatted price
     public function getFormattedTotalPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_price, 2, ',', '.');
+        return 'Rp '.number_format($this->total_price, 2, ',', '.');
     }
 
     // Accessor for rank position

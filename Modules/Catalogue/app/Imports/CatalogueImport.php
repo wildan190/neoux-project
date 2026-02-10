@@ -14,6 +14,7 @@ use Modules\Catalogue\Models\ImportJob;
 class CatalogueImport implements ToCollection, WithHeadingRow
 {
     protected $companyId;
+
     protected $importJobId;
 
     public function __construct($companyId, $importJobId)
@@ -50,7 +51,7 @@ class CatalogueImport implements ToCollection, WithHeadingRow
                     ],
                     [
                         'category_id' => $category->id,
-                        'slug' => Str::slug($row['name']) . '-' . Str::random(6),
+                        'slug' => Str::slug($row['name']).'-'.Str::random(6),
                         'brand' => $row['brand'] ?? null,
                         'description' => $row['description'] ?? null,
                         'is_active' => true,
@@ -58,7 +59,7 @@ class CatalogueImport implements ToCollection, WithHeadingRow
                 );
 
                 // Create Item (SKU)
-                $sku = $row['sku'] ?? 'SKU-' . strtoupper(Str::random(8));
+                $sku = $row['sku'] ?? 'SKU-'.strtoupper(Str::random(8));
 
                 CatalogueItem::updateOrCreate(
                     [
@@ -84,7 +85,7 @@ class CatalogueImport implements ToCollection, WithHeadingRow
 
             } catch (\Exception $e) {
                 // Log error per row if needed, but for now continue
-                \Log::error("Import Row Failed: " . $e->getMessage());
+                \Log::error('Import Row Failed: '.$e->getMessage());
             }
         }
 

@@ -48,7 +48,7 @@ class PurchaseOrderItem extends Model
 
     public function getQuantityShippedAttribute(): float
     {
-        // Only count shipped or pending DOs? 
+        // Only count shipped or pending DOs?
         // Usually we count anything that is assigned to a DO (not cancelled)
         return $this->deliveryOrderItems()
             ->whereHas('deliveryOrder', function ($q) {
@@ -59,11 +59,11 @@ class PurchaseOrderItem extends Model
 
     public function getFormattedUnitPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->unit_price, 2, ',', '.');
+        return 'Rp '.number_format($this->unit_price, 2, ',', '.');
     }
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return 'Rp ' . number_format($this->subtotal, 2, ',', '.');
+        return 'Rp '.number_format($this->subtotal, 2, ',', '.');
     }
 }

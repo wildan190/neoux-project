@@ -3,11 +3,11 @@
 namespace Modules\Procurement\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Procurement\Models\GoodsReceiptItem;
-use Modules\Procurement\Models\GoodsReturnRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Procurement\Models\GoodsReceiptItem;
+use Modules\Procurement\Models\GoodsReturnRequest;
 
 class GoodsReturnRequestController extends Controller
 {
@@ -18,7 +18,7 @@ class GoodsReturnRequestController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (!$selectedCompanyId) {
+        if (! $selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -90,7 +90,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized to view this GRR.');
         }
 
@@ -159,7 +159,7 @@ class GoodsReturnRequestController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to create GRR: ' . $e->getMessage());
+            return back()->with('error', 'Failed to create GRR: '.$e->getMessage());
         }
     }
 
@@ -250,7 +250,7 @@ class GoodsReturnRequestController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (!$isBuyer && !$isVendor) {
+        if (! $isBuyer && ! $isVendor) {
             abort(403, 'Unauthorized.');
         }
 

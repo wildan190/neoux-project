@@ -3,9 +3,9 @@
 namespace Modules\User\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\User\Models\UserNotificationSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\User\Models\UserNotificationSetting;
 
 class SettingsController extends Controller
 {

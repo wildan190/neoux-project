@@ -3,10 +3,10 @@
 namespace Modules\Company\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Company\Models\Company;
-use Modules\Company\Http\Requests\StoreCompanyRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Modules\Company\Http\Requests\StoreCompanyRequest;
+use Modules\Company\Models\Company;
 
 class CompanyController extends Controller
 {

@@ -10,8 +10,6 @@ trait CheckNotificationSettings
      * Check if a specific notification type is enabled for the user.
      *
      * @param  \Modules\User\Models\User  $user
-     * @param  string  $settingKey
-     * @return bool
      */
     protected function isNotificationEnabled($user, string $settingKey): bool
     {

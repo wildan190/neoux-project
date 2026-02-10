@@ -3,7 +3,6 @@
 namespace Modules\User\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -31,8 +30,9 @@ class NotificationController extends Controller
 
     private function sanitizeUrl($url)
     {
-        if (empty($url))
+        if (empty($url)) {
             return route('notifications.index');
+        }
 
         // If it starts with http://localhost:8000, replace with current APP_URL
         $localhost = 'http://localhost:8000';

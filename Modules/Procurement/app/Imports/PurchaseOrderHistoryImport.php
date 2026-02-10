@@ -2,19 +2,21 @@
 
 namespace Modules\Procurement\Imports;
 
-use Modules\Procurement\Models\PurchaseOrder;
-use Modules\Procurement\Models\PurchaseOrderItem;
-use Modules\Company\Models\Company;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Modules\Company\Models\Company;
+use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseOrderItem;
 
 class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow
 {
     protected $userId;
+
     protected $companyId;
+
     protected $importRole;
 
     public function __construct($userId = null, $companyId = null, $importRole = 'buyer')
@@ -31,8 +33,9 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow
             $groupedRows = $rows->groupBy('po_number');
 
             foreach ($groupedRows as $poNumber => $items) {
-                if (empty($poNumber))
+                if (empty($poNumber)) {
                     continue;
+                }
 
                 $firstItem = $items->first();
                 $partnerName = $firstItem['vendor_name'] ?? ($firstItem['customer_name'] ?? null);
@@ -55,7 +58,7 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow
                     // Importing as Buyer (default): the current company is the Buyer
                     $data['company_id'] = $this->companyId;
                     $data['vendor_company_id'] = $matchedPartner ? $matchedPartner->id : null;
-                    $data['historical_vendor_name'] = !$matchedPartner ? $partnerName : null;
+                    $data['historical_vendor_name'] = ! $matchedPartner ? $partnerName : null;
                 }
 
                 $purchaseOrder = PurchaseOrder::create($data);
@@ -75,7 +78,7 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("PO Import Collection Error: " . $e->getMessage());
+            Log::error('PO Import Collection Error: '.$e->getMessage());
             throw $e;
         }
     }

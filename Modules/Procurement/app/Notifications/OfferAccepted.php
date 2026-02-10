@@ -5,12 +5,12 @@ namespace Modules\Procurement\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Modules\User\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
+use Modules\User\Traits\CheckNotificationSettings;
 
 class OfferAccepted extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable, CheckNotificationSettings;
+    use CheckNotificationSettings, Queueable;
 
     protected $offer;
 
@@ -21,7 +21,7 @@ class OfferAccepted extends Notification implements ShouldBroadcast, ShouldQueue
 
     public function via(object $notifiable): array
     {
-        if (!$this->isNotificationEnabled($notifiable, 'new_offers')) { // Using 'new_offers' category for win status as well or can define new one if needed
+        if (! $this->isNotificationEnabled($notifiable, 'new_offers')) { // Using 'new_offers' category for win status as well or can define new one if needed
             return [];
         }
 
@@ -33,7 +33,7 @@ class OfferAccepted extends Notification implements ShouldBroadcast, ShouldQueue
         return [
             'type' => 'offer_accepted',
             'title' => 'Bid Won!',
-            'message' => 'Your offer for PR ' . ($this->offer->purchaseRequisition->pr_number ?? '') . ' has been accepted.',
+            'message' => 'Your offer for PR '.($this->offer->purchaseRequisition->pr_number ?? '').' has been accepted.',
             'url' => route('procurement.offers.show', $this->offer->id),
             'action_text' => 'View Details',
             'offer_id' => $this->offer->id,

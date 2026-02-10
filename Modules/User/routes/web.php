@@ -1,8 +1,8 @@
 <?php
 
-use Modules\User\Http\Controllers\SettingsController;
-use Modules\User\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Modules\User\Http\Controllers\ProfileController;
+use Modules\User\Http\Controllers\SettingsController;
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [\Modules\User\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

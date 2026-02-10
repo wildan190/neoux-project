@@ -2,10 +2,10 @@
 
 namespace Modules\Catalogue\Models;
 
-use Modules\Company\Models\Warehouse;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Company\Models\Warehouse;
 
 class WarehouseStock extends Model
 {

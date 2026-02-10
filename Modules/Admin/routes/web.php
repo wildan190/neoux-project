@@ -1,12 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AdminDashboardController;
 use Modules\Admin\Http\Controllers\AdminManagementController;
 use Modules\Admin\Http\Controllers\Auth\AdminLoginController;
 use Modules\Admin\Http\Controllers\CompanyReviewController;
 use Modules\Admin\Http\Controllers\UserManagementController;
 use Modules\Catalogue\Http\Controllers\CategoryController;
-use Illuminate\Support\Facades\Route;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {

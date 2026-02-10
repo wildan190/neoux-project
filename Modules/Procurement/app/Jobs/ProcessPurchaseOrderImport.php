@@ -3,22 +3,25 @@
 namespace Modules\Procurement\Jobs;
 
 use App\Modules\Procurement\Presentation\Http\Imports\PurchaseOrderHistoryImport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessPurchaseOrderImport implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $filePath;
+
     protected $userId;
+
     protected $companyId;
+
     protected $importRole;
 
     /**
@@ -45,7 +48,7 @@ class ProcessPurchaseOrderImport implements ShouldQueue
 
             Log::info("PO Import completed for user ID: {$this->userId}, Role: {$this->importRole}");
         } catch (\Exception $e) {
-            Log::error("PO Import failed: " . $e->getMessage());
+            Log::error('PO Import failed: '.$e->getMessage());
             throw $e;
         }
     }

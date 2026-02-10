@@ -16,7 +16,9 @@ class ImportCatalogueItemsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $filePath;
+
     protected $companyId;
+
     protected $importJobId;
 
     /**
@@ -36,7 +38,7 @@ class ImportCatalogueItemsJob implements ShouldQueue
     {
         $importJob = ImportJob::find($this->importJobId);
 
-        if (!$importJob) {
+        if (! $importJob) {
             return;
         }
 

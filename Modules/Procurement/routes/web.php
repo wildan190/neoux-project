@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Modules\Catalogue\Http\Controllers\MarketplaceController;
 use Modules\Procurement\Http\Controllers\DebitNoteController;
 use Modules\Procurement\Http\Controllers\DeliveryOrderController;
 use Modules\Procurement\Http\Controllers\GoodsReceiptController;
@@ -8,8 +10,6 @@ use Modules\Procurement\Http\Controllers\InvoiceController;
 use Modules\Procurement\Http\Controllers\OfferController;
 use Modules\Procurement\Http\Controllers\PurchaseOrderController;
 use Modules\Procurement\Http\Controllers\PurchaseRequisitionController;
-use Modules\Catalogue\Http\Controllers\MarketplaceController;
-use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('procurement.')->group(function () {
 

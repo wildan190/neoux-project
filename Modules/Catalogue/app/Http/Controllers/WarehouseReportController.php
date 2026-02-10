@@ -3,9 +3,9 @@
 namespace Modules\Catalogue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Catalogue\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Catalogue\Models\StockMovement;
 
 class WarehouseReportController extends Controller
 {

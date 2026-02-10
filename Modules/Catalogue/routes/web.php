@@ -1,10 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Modules\Catalogue\Http\Controllers\CatalogueController;
 use Modules\Catalogue\Http\Controllers\WarehouseController;
 use Modules\Catalogue\Http\Controllers\WarehouseReportController;
-use Modules\Catalogue\Http\Controllers\MarketplaceController;
-use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'company.selected'])->group(function () {
 

@@ -2,10 +2,9 @@
 
 namespace Modules\Catalogue\Models;
 
-use Modules\Company\Models\Company;
-use Modules\Procurement\Models\PurchaseRequisitionItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Company\Models\Company;
 
 class CatalogueItem extends Model
 {
