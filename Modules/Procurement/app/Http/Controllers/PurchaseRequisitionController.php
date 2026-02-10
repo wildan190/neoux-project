@@ -3,19 +3,19 @@
 namespace Modules\Procurement\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Catalogue\Models\CatalogueItem;
-use Modules\Procurement\Models\PurchaseRequisition;
-use Modules\Procurement\Models\PurchaseRequisitionComment;
-use Modules\Procurement\Models\PurchaseRequisitionDocument;
-use Modules\Procurement\Models\PurchaseRequisitionItem;
-use Modules\User\Notifications\NewCommentAdded;
-use Modules\Procurement\Notifications\PurchaseOrderReceived;
-use Modules\Procurement\Notifications\TenderPublished;
-use Modules\Procurement\Emails\PurchaseOrderSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Catalogue\Models\CatalogueItem;
+use Modules\Procurement\Emails\PurchaseOrderSent;
+use Modules\Procurement\Models\PurchaseRequisition;
+use Modules\Procurement\Models\PurchaseRequisitionComment;
+use Modules\Procurement\Models\PurchaseRequisitionDocument;
+use Modules\Procurement\Models\PurchaseRequisitionItem;
+use Modules\Procurement\Notifications\PurchaseOrderReceived;
+use Modules\Procurement\Notifications\TenderPublished;
+use Modules\User\Notifications\NewCommentAdded;
 
 class PurchaseRequisitionController extends Controller
 {
@@ -90,16 +90,16 @@ class PurchaseRequisitionController extends Controller
             DB::transaction(function () use ($request) {
                 $companyId = session('selected_company_id');
 
-                if (!$companyId) {
+                if (! $companyId) {
                     $companyId = Auth::user()->allCompanies()->first()?->id;
                 }
 
-                if (!$companyId) {
+                if (! $companyId) {
                     throw new \Exception('No company found for this user.');
                 }
 
                 // Generate PR Number
-                $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
+                $prNumber = 'PR-'.date('Y').'-'.strtoupper(Str::random(6));
 
                 $requisition = PurchaseRequisition::create([
                     'pr_number' => $prNumber,
@@ -124,8 +124,8 @@ class PurchaseRequisitionController extends Controller
                     foreach ($request->file('documents') as $file) {
                         $originalName = $file->getClientOriginalName();
                         $extension = $file->getClientOriginalExtension();
-                        $filename = Str::uuid() . '.' . $extension;
-                        $path = $file->storeAs('procurement/documents/' . $requisition->id, $filename, 'public');
+                        $filename = Str::uuid().'.'.$extension;
+                        $path = $file->storeAs('procurement/documents/'.$requisition->id, $filename, 'public');
 
                         PurchaseRequisitionDocument::create([
                             'purchase_requisition_id' => $requisition->id,
@@ -144,7 +144,7 @@ class PurchaseRequisitionController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to create Purchase Requisition: ' . $e->getMessage());
+                ->with('error', 'Failed to create Purchase Requisition: '.$e->getMessage());
         }
     }
 
@@ -238,9 +238,9 @@ class PurchaseRequisitionController extends Controller
         // Optional: Add authorization check here
         // e.g., if ($document->purchaseRequisition->company_id !== Auth::user()->companies->first()->id) abort(403);
 
-        $filePath = storage_path('app/public/' . $document->file_path);
+        $filePath = storage_path('app/public/'.$document->file_path);
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             abort(404, 'File not found');
         }
 
@@ -282,7 +282,7 @@ class PurchaseRequisitionController extends Controller
         $userRole = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
         $isAdminOrManager = in_array($userRole, ['admin', 'manager']);
 
-        if ($purchaseRequisition->user_id !== Auth::id() && !$isAdminOrManager) {
+        if ($purchaseRequisition->user_id !== Auth::id() && ! $isAdminOrManager) {
             abort(403, 'Unauthorized to submit this requisition.');
         }
 
@@ -304,8 +304,9 @@ class PurchaseRequisitionController extends Controller
                 $purchaseRequisition->update([
                     'approval_status' => 'approved',
                     'status' => 'open',
-                    'tender_status' => 'open'
+                    'tender_status' => 'open',
                 ]);
+
                 return back()->with('success', 'Purchase Requisition submitted and auto-approved.');
             }
         }
@@ -324,7 +325,7 @@ class PurchaseRequisitionController extends Controller
         $isOwner = $purchaseRequisition->company->user_id === Auth::id();
 
         // Universal Bypass: Owner/Admin can approve anything
-        if (!$isAdmin && !$isOwner) {
+        if (! $isAdmin && ! $isOwner) {
             if ($purchaseRequisition->approval_status === 'pending_supervisor' && $purchaseRequisition->approver_id !== Auth::id()) {
                 abort(403, 'Only assigned supervisor can approve this step.');
             }
@@ -368,7 +369,7 @@ class PurchaseRequisitionController extends Controller
 
                 foreach ($itemsByVendor as $vendorId => $items) {
                     // Generate PO for this Vendor
-                    $poNumber = 'PO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+                    $poNumber = 'PO-'.date('Y').'-'.strtoupper(\Illuminate\Support\Str::random(6));
 
                     $totalAmount = $items->sum(function ($item) {
                         return $item->quantity * $item->price;
@@ -413,7 +414,7 @@ class PurchaseRequisitionController extends Controller
                         $email = $company->email;
 
                         // 2. Fallback to Owner Email
-                        if (!$email && $company->user) {
+                        if (! $email && $company->user) {
                             $email = $company->user->email;
                         }
 
@@ -422,7 +423,7 @@ class PurchaseRequisitionController extends Controller
                                 ->send(new PurchaseOrderSent($po));
                         }
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: '.$e->getMessage());
                     }
                 }
 
@@ -447,7 +448,7 @@ class PurchaseRequisitionController extends Controller
         $isApprover = $purchaseRequisition->approver_id === Auth::id();
         $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
 
-        if (!$isApprover && !$isAdmin) {
+        if (! $isApprover && ! $isAdmin) {
             abort(403, 'Unauthorized');
         }
 

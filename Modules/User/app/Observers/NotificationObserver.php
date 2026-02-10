@@ -2,11 +2,10 @@
 
 namespace Modules\User\Observers;
 
-use App\Notifications\ModelOperationNotification;
-use App\Modules\User\Domain\Models\User;
-use App\Modules\Procurement\Domain\Models\GoodsReturnRequest;
-use App\Modules\Procurement\Domain\Models\PurchaseOrder;
 use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Procurement\Domain\Models\GoodsReturnRequest;
+use App\Modules\User\Domain\Models\User;
+use App\Notifications\ModelOperationNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Notification;
 
@@ -74,7 +73,7 @@ class NotificationObserver
         // Default logic: Notify owner
         if ($model->user_id) {
             $owner = User::find($model->user_id);
-            if ($owner && (!$currentUser || $owner->id !== $currentUser->id)) {
+            if ($owner && (! $currentUser || $owner->id !== $currentUser->id)) {
                 $usersToNotify->push($owner);
             }
         }
@@ -84,19 +83,21 @@ class NotificationObserver
     {
         $grr->loadMissing([
             'goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition.company',
-            'goodsReceiptItem.goodsReceipt.purchaseOrder.vendorCompany'
+            'goodsReceiptItem.goodsReceipt.purchaseOrder.vendorCompany',
         ]);
 
         $po = $grr->goodsReceiptItem?->goodsReceipt?->purchaseOrder;
 
-        if (!$po)
+        if (! $po) {
             return;
+        }
 
         $buyerCompany = $po->purchaseRequisition?->company;
         $vendorCompany = $po->vendorCompany;
 
-        if (!$buyerCompany || !$vendorCompany)
+        if (! $buyerCompany || ! $vendorCompany) {
             return;
+        }
 
         $isBuyerAction = $this->isUserInCompany($currentUser, $buyerCompany);
         $isVendorAction = $this->isUserInCompany($currentUser, $vendorCompany);
@@ -124,10 +125,11 @@ class NotificationObserver
                 }
             } else {
                 $customMessage = "Update on GRR $grrNumber.";
-                if ($isBuyerAction)
+                if ($isBuyerAction) {
                     $this->addCompanyUsers($vendorCompany, $usersToNotify);
-                elseif ($isVendorAction)
+                } elseif ($isVendorAction) {
                     $this->addCompanyUsers($buyerCompany, $usersToNotify);
+                }
             }
         }
     }
@@ -137,14 +139,16 @@ class NotificationObserver
         $invoice->loadMissing(['purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
 
         $po = $invoice->purchaseOrder;
-        if (!$po)
+        if (! $po) {
             return;
+        }
 
         $vendorCompany = $po->vendorCompany; // Issuer
         $buyerCompany = $po->purchaseRequisition?->company; // Payer
 
-        if (!$vendorCompany || !$buyerCompany)
+        if (! $vendorCompany || ! $buyerCompany) {
             return;
+        }
 
         $isVendorAction = $this->isUserInCompany($currentUser, $vendorCompany);
         $isBuyerAction = $this->isUserInCompany($currentUser, $buyerCompany);
@@ -173,20 +177,24 @@ class NotificationObserver
                 }
             } else {
                 $customMessage = "Invoice $invNumber updated.";
-                if ($isVendorAction)
+                if ($isVendorAction) {
                     $this->addCompanyUsers($buyerCompany, $usersToNotify);
-                elseif ($isBuyerAction)
+                } elseif ($isBuyerAction) {
                     $this->addCompanyUsers($vendorCompany, $usersToNotify);
+                }
             }
         }
     }
 
     protected function isUserInCompany(?User $user, Company $company): bool
     {
-        if (!$user)
+        if (! $user) {
             return false;
-        if ($company->user_id === $user->id)
+        }
+        if ($company->user_id === $user->id) {
             return true;
+        }
+
         return $company->members()->where('users.id', $user->id)->exists();
     }
 

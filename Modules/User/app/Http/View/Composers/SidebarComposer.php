@@ -2,22 +2,23 @@
 
 namespace Modules\User\Http\View\Composers;
 
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
-use Modules\Procurement\Models\PurchaseRequisition;
-use Modules\Procurement\Models\PurchaseOrder;
-use Modules\Procurement\Models\PurchaseRequisitionOffer;
-use Modules\Procurement\Models\Invoice;
-use Modules\Procurement\Models\GoodsReturnRequest;
+use Illuminate\View\View;
 use Modules\Procurement\Models\DebitNote;
+use Modules\Procurement\Models\GoodsReturnRequest;
+use Modules\Procurement\Models\Invoice;
+use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseRequisition;
+use Modules\Procurement\Models\PurchaseRequisitionOffer;
 
 class SidebarComposer
 {
     public function compose(View $view)
     {
         $user = Auth::user();
-        if (!$user)
+        if (! $user) {
             return;
+        }
 
         $selectedCompanyId = session('selected_company_id');
 
@@ -71,14 +72,13 @@ class SidebarComposer
 
             // Buyer Debit Notes - Received (checking if approved?)
             // Usually buyer issues DN? No, in this system, GRR resolutions create DN.
-            // If Buyer returns goods -> Vendor issues Credit Note/Debit Note? 
+            // If Buyer returns goods -> Vendor issues Credit Note/Debit Note?
             // Model says "approved_by_vendor_at".
             $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
                 $q->where('company_id', $selectedCompanyId);
             })
                 ->whereNull('approved_by_vendor_at')
                 ->count();
-
 
             // === VENDOR SIDE ===
 

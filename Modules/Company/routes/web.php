@@ -1,10 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Modules\Company\Http\Controllers\CompanyController;
 use Modules\Company\Http\Controllers\CompanyDashboardController;
 use Modules\Company\Http\Controllers\TeamController;
 use Modules\Company\Http\Controllers\WarehouseController;
-use Illuminate\Support\Facades\Route;
 
 // Invitation (Public/Auth)
 Route::get('/invitation/{token}', [TeamController::class, 'acceptInvitation'])->name('team.accept-invitation');

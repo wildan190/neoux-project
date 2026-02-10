@@ -2,8 +2,8 @@
 
 namespace Modules\Admin\Models;
 
-use Modules\Company\Models\Company;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Company\Models\Company;
 
 class CompanyActivity extends Model
 {

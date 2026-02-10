@@ -13,9 +13,13 @@ class ModelOperationNotification extends Notification implements ShouldBroadcast
     use Queueable;
 
     public $model;
+
     public $action;
+
     public $modelName;
+
     public $customMessage;
+
     public $customUrl;
 
     public function __construct($model, string $action, ?string $customMessage = null, ?string $customUrl = null)
@@ -34,14 +38,14 @@ class ModelOperationNotification extends Notification implements ShouldBroadcast
 
     public function toArray(object $notifiable): array
     {
-        $title = Str::headline($this->modelName) . ' ' . ucfirst($this->action);
+        $title = Str::headline($this->modelName).' '.ucfirst($this->action);
 
         $message = $this->customMessage;
-        if (!$message) {
-            $message = "A " . Str::headline($this->modelName) . " has been {$this->action}.";
+        if (! $message) {
+            $message = 'A '.Str::headline($this->modelName)." has been {$this->action}.";
 
             // Try to get a meaningful identifier
-            $identifier = $this->model->number ?? $this->model->name ?? $this->model->title ?? '#' . $this->model->id;
+            $identifier = $this->model->number ?? $this->model->name ?? $this->model->title ?? '#'.$this->model->id;
             if ($identifier) {
                 $message = "{$title}: {$identifier} has been {$this->action}.";
             }

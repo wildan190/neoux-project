@@ -3,9 +3,9 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Admin\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Modules\Admin\Models\Admin;
 
 class AdminManagementController extends Controller
 {

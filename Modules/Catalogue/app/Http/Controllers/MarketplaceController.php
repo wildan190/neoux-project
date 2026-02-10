@@ -3,13 +3,12 @@
 namespace Modules\Catalogue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Modules\Catalogue\Models\CatalogueCategory;
 use Modules\Catalogue\Models\CatalogueItem;
 use Modules\Catalogue\Models\CatalogueProduct;
 use Modules\Procurement\Models\PurchaseRequisition;
-use Modules\Procurement\Models\PurchaseRequisitionItem;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class MarketplaceController extends Controller
 {
@@ -43,7 +42,7 @@ class MarketplaceController extends Controller
 
     public function show(CatalogueProduct $product)
     {
-        if (!$product->is_active) {
+        if (! $product->is_active) {
             abort(404);
         }
 
@@ -64,13 +63,13 @@ class MarketplaceController extends Controller
 
         $cart = session()->get('marketplace_cart', []);
 
-        // Key by item ID + delivery point to allow different points for same item if needed, 
-        // or just keep it simple if it's per PR. 
-        // Flow says: Insert delivery point -> Add to cart. Usually per item or per cart? 
+        // Key by item ID + delivery point to allow different points for same item if needed,
+        // or just keep it simple if it's per PR.
+        // Flow says: Insert delivery point -> Add to cart. Usually per item or per cart?
         // Prompt says: 1. Choose items, 2. Insert Qty, 3. Insert delivery point, 4. Add to cart.
         // This implies per item.
 
-        $cartKey = $item->id . '_' . Str::slug($request->delivery_point);
+        $cartKey = $item->id.'_'.Str::slug($request->delivery_point);
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $request->quantity;
@@ -79,7 +78,7 @@ class MarketplaceController extends Controller
                 'sku_id' => $item->id,
                 'quantity' => $request->quantity,
                 'price' => $item->price,
-                'name' => $item->product->name . ' (' . $item->sku . ')',
+                'name' => $item->product->name.' ('.$item->sku.')',
                 'image' => $item->primaryImage->image_path ?? null,
                 'delivery_point' => $request->delivery_point,
             ];
@@ -120,14 +119,14 @@ class MarketplaceController extends Controller
         $companyId = session('selected_company_id');
 
         // Generate PR Number
-        $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
+        $prNumber = 'PR-'.date('Y').'-'.strtoupper(Str::random(6));
 
         // Create Purchase Requisition (B2B Tender)
         $pr = PurchaseRequisition::create([
             'pr_number' => $prNumber,
             'company_id' => $companyId,
             'user_id' => $user->id,
-            'title' => 'Tender Request - ' . now()->format('d M Y'),
+            'title' => 'Tender Request - '.now()->format('d M Y'),
             'description' => 'Tender request from Marketplace',
             'status' => 'pending',
             'approval_status' => 'pending_head', // Initial approval state

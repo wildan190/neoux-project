@@ -6,12 +6,12 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Modules\User\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
+use Modules\User\Traits\CheckNotificationSettings;
 
 class TenderPublished extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable, CheckNotificationSettings;
+    use CheckNotificationSettings, Queueable;
 
     protected $requisition;
 
@@ -35,10 +35,10 @@ class TenderPublished extends Notification implements ShouldBroadcast, ShouldQue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Tender Published: ' . $this->requisition->title)
+            ->subject('New Tender Published: '.$this->requisition->title)
             ->line('A new tender has been published on the platform.')
-            ->line('Tender Title: ' . $this->requisition->title)
-            ->line('Company: ' . $this->requisition->company->name)
+            ->line('Tender Title: '.$this->requisition->title)
+            ->line('Company: '.$this->requisition->company->name)
             ->action('View Tender', route('procurement.pr.show-public', $this->requisition->id))
             ->line('You can submit your bids through the platform.');
     }
@@ -51,7 +51,7 @@ class TenderPublished extends Notification implements ShouldBroadcast, ShouldQue
         return [
             'type' => 'tender_published',
             'title' => 'New Tender Published',
-            'message' => 'A new tender is available: ' . $this->requisition->title,
+            'message' => 'A new tender is available: '.$this->requisition->title,
             'url' => route('procurement.pr.show-public', $this->requisition->id),
             'action_text' => 'View Tender',
             'requisition_id' => $this->requisition->id,

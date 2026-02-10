@@ -4,9 +4,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
+use Illuminate\Support\Facades\Hash;
 use Modules\Auth\Domain\Actions\UpdateUserPassword;
 use Modules\User\Domain\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 test('update user password action updates password successfully', function () {
     $user = User::factory()->create([

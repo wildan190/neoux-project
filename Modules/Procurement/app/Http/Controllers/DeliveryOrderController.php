@@ -3,13 +3,13 @@
 namespace Modules\Procurement\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Procurement\Models\DeliveryOrder;
-use Modules\Procurement\Models\DeliveryOrderItem;
-use Modules\Procurement\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Procurement\Models\DeliveryOrder;
+use Modules\Procurement\Models\DeliveryOrderItem;
+use Modules\Procurement\Models\PurchaseOrder;
 
 class DeliveryOrderController extends Controller
 {
@@ -39,7 +39,7 @@ class DeliveryOrderController extends Controller
             }
         }
 
-        if (!$hasRemaining) {
+        if (! $hasRemaining) {
             return redirect()->route('procurement.po.show', $purchaseOrder)
                 ->with('error', 'All items for this Purchase Order have already been arranged for delivery.');
         }
@@ -67,7 +67,7 @@ class DeliveryOrderController extends Controller
         DB::beginTransaction();
         try {
             $purchaseOrder->load('items.deliveryOrderItems.deliveryOrder');
-            $doNumber = 'DO-' . date('Y') . '-' . strtoupper(Str::random(6));
+            $doNumber = 'DO-'.date('Y').'-'.strtoupper(Str::random(6));
 
             $deliveryOrder = DeliveryOrder::create([
                 'purchase_order_id' => $purchaseOrder->id,
@@ -84,7 +84,7 @@ class DeliveryOrderController extends Controller
                 if ($qtyShipped > 0) {
                     $remaining = $item->quantity_ordered - $item->quantity_shipped;
                     if ($qtyShipped > $remaining) {
-                        throw new \Exception("Quantity to ship ({$qtyShipped}) exceeds remaining quantity ({$remaining}) for item " . $item->purchaseRequisitionItem->catalogueItem->name);
+                        throw new \Exception("Quantity to ship ({$qtyShipped}) exceeds remaining quantity ({$remaining}) for item ".$item->purchaseRequisitionItem->catalogueItem->name);
                     }
 
                     DeliveryOrderItem::create([
@@ -98,11 +98,12 @@ class DeliveryOrderController extends Controller
             DB::commit();
 
             return redirect()->route('procurement.po.show', $purchaseOrder)
-                ->with('success', 'Delivery Order ' . $doNumber . ' created successfully!');
+                ->with('success', 'Delivery Order '.$doNumber.' created successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to create Delivery Order: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to create Delivery Order: '.$e->getMessage());
         }
     }
 
@@ -127,6 +128,6 @@ class DeliveryOrderController extends Controller
             'tracking_number' => $request->tracking_number,
         ]);
 
-        return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: ' . $request->tracking_number);
+        return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: '.$request->tracking_number);
     }
 }

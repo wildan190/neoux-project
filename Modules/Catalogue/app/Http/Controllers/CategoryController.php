@@ -3,8 +3,8 @@
 namespace Modules\Catalogue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Catalogue\Models\CatalogueCategory;
 use Illuminate\Http\Request;
+use Modules\Catalogue\Models\CatalogueCategory;
 
 class CategoryController extends Controller
 {

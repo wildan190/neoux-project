@@ -2,11 +2,11 @@
 
 namespace Modules\Auth\Mail;
 
-use Modules\User\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Modules\User\Models\User;
 
 class WelcomeEmail extends Mailable implements ShouldQueue
 {

@@ -2,12 +2,12 @@
 
 namespace Modules\Company\Models;
 
-use Modules\Catalogue\Models\CatalogueItem;
-use Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Catalogue\Models\CatalogueItem;
+use Modules\User\Models\User;
 
 class Company extends Model
 {
@@ -90,11 +90,11 @@ class Company extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
-        if (!$this->logo) {
+        if (! $this->logo) {
             return null;
         }
 
-        return asset('storage/' . $this->logo);
+        return asset('storage/'.$this->logo);
     }
 
     /**

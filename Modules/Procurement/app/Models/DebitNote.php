@@ -38,6 +38,6 @@ class DebitNote extends Model
 
     public function isApprovedByVendor(): bool
     {
-        return !is_null($this->approved_by_vendor_at);
+        return ! is_null($this->approved_by_vendor_at);
     }
 }

@@ -3,17 +3,17 @@
 namespace Modules\Catalogue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Catalogue\Models\CatalogueCategory;
-use Modules\Catalogue\Models\CatalogueItem;
-use Modules\Catalogue\Models\CatalogueProduct;
-use Modules\Catalogue\Http\Requests\StoreCatalogueProductRequest;
-use Modules\Catalogue\Http\Requests\StoreCatalogueSkuRequest; // Ensure this exists
-// Keep for backward compat if needed or alias
-use Modules\Company\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Catalogue\Http\Requests\StoreCatalogueProductRequest; // Ensure this exists
+// Keep for backward compat if needed or alias
+use Modules\Catalogue\Http\Requests\StoreCatalogueSkuRequest;
+use Modules\Catalogue\Models\CatalogueCategory;
+use Modules\Catalogue\Models\CatalogueItem;
+use Modules\Catalogue\Models\CatalogueProduct;
+use Modules\Company\Models\Company;
 
 class CatalogueController extends Controller
 {
@@ -21,13 +21,13 @@ class CatalogueController extends Controller
     {
         $companyId = session('selected_company_id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         // Check company status
         $company = Company::find($companyId);
-        if (!$company || !in_array($company->status, ['approved', 'active'])) {
+        if (! $company || ! in_array($company->status, ['approved', 'active'])) {
             return redirect()->route('dashboard')
                 ->with('error', 'Catalogue access is only available for approved companies.');
         }
@@ -40,7 +40,7 @@ class CatalogueController extends Controller
         }
 
         if ($request->has('search') && $request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $products = $query->latest()->paginate(12);
@@ -66,7 +66,7 @@ class CatalogueController extends Controller
             'company_id' => $companyId,
             'category_id' => $data['category_id'],
             'name' => $data['name'],
-            'slug' => Str::slug($data['name']) . '-' . Str::random(6),
+            'slug' => Str::slug($data['name']).'-'.Str::random(6),
             'brand' => $data['brand'],
             'description' => $data['description'],
             'is_active' => $data['is_active'] ?? true,
@@ -179,7 +179,7 @@ class CatalogueController extends Controller
         // Attributes
         if ($request->has('attributes') && is_array($request->input('attributes'))) {
             foreach ($request->input('attributes') as $attribute) {
-                if (!empty($attribute['key']) && !empty($attribute['value'])) {
+                if (! empty($attribute['key']) && ! empty($attribute['value'])) {
                     $item->attributes()->create([
                         'attribute_key' => $attribute['key'],
                         'attribute_value' => $attribute['value'],
@@ -233,7 +233,7 @@ class CatalogueController extends Controller
             }
         }
 
-        $sku = $prefix . '-' . strtoupper(Str::random(6));
+        $sku = $prefix.'-'.strtoupper(Str::random(6));
         // ex: ELE-AB12CD
 
         return response()->json(['sku' => $sku]);
@@ -245,8 +245,9 @@ class CatalogueController extends Controller
         try {
             return Excel::download(new \Modules\Catalogue\Exports\CatalogueTemplateExport, 'catalogue_template.xlsx');
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Download template failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Download failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Download template failed: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Download failed: '.$e->getMessage());
         }
     }
 
@@ -285,14 +286,14 @@ class CatalogueController extends Controller
         } catch (\Exception $e) {
             $importJob->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
 
-            return response()->json(['message' => 'Import failed to start: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Import failed to start: '.$e->getMessage()], 500);
         }
     }
 
     public function checkImportStatus($id)
     {
         $job = \Modules\Catalogue\Models\ImportJob::find($id);
-        if (!$job) {
+        if (! $job) {
             return response()->json(['status' => 'not_found'], 404);
         }
 

@@ -6,12 +6,12 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Modules\User\Traits\CheckNotificationSettings;
 use Illuminate\Notifications\Notification;
+use Modules\User\Traits\CheckNotificationSettings;
 
 class PurchaseOrderReceived extends Notification implements ShouldBroadcast, ShouldQueue
 {
-    use Queueable, CheckNotificationSettings;
+    use CheckNotificationSettings, Queueable;
 
     protected $purchaseOrder;
 
@@ -27,7 +27,7 @@ class PurchaseOrderReceived extends Notification implements ShouldBroadcast, Sho
      */
     public function via(object $notifiable): array
     {
-        if (!$this->isNotificationEnabled($notifiable, 'po_received')) {
+        if (! $this->isNotificationEnabled($notifiable, 'po_received')) {
             return [];
         }
 
@@ -55,7 +55,7 @@ class PurchaseOrderReceived extends Notification implements ShouldBroadcast, Sho
         return [
             'type' => 'purchase_order',
             'title' => 'New Purchase Order Received',
-            'message' => 'You have received a new Purchase Order: ' . $this->purchaseOrder->po_number,
+            'message' => 'You have received a new Purchase Order: '.$this->purchaseOrder->po_number,
             'url' => route('procurement.po.show', $this->purchaseOrder->id),
             'action_text' => 'View Order',
             'po_id' => $this->purchaseOrder->id,

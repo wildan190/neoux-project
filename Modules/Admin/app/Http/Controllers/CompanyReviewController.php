@@ -3,8 +3,8 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Company\Models\Company;
 use Illuminate\Http\Request;
+use Modules\Company\Models\Company;
 
 class CompanyReviewController extends Controller
 {

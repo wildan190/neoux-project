@@ -27,7 +27,7 @@ class CatalogueItemImage extends Model
 
     /**
      * Get the correct URL for the image.
-     * 
+     *
      * @return string
      */
     public function getUrlAttribute()
@@ -36,6 +36,6 @@ class CatalogueItemImage extends Model
             return asset($this->image_path);
         }
 
-        return asset('storage/' . $this->image_path);
+        return asset('storage/'.$this->image_path);
     }
 }

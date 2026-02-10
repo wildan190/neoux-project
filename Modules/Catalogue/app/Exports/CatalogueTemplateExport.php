@@ -2,10 +2,10 @@
 
 namespace Modules\Catalogue\Exports;
 
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class CatalogueTemplateExport implements WithHeadings, FromArray
+class CatalogueTemplateExport implements FromArray, WithHeadings
 {
     public function headings(): array
     {

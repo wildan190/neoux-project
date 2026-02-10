@@ -4,9 +4,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
+use Illuminate\Support\Facades\Hash;
 use Modules\Company\Domain\Models\Company;
 use Modules\User\Domain\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 test('user can be created with valid data', function () {
     $user = User::factory()->create([

@@ -3,13 +3,13 @@
 namespace Modules\Catalogue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Modules\Catalogue\Models\CatalogueItem;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Catalogue\Models\CatalogueItem;
 
 class WarehouseController extends Controller
 {
@@ -37,6 +37,7 @@ class WarehouseController extends Controller
     {
         $companyId = session('selected_company_id');
         $warehouses = \Modules\Company\Models\Warehouse::where('company_id', $companyId)->where('is_active', true)->get();
+
         return view('warehouse.scan', compact('warehouses'));
     }
 
@@ -63,7 +64,7 @@ class WarehouseController extends Controller
             ->with(['product'])
             ->first();
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['status' => 'error', 'message' => 'Item not found.']);
         }
 
@@ -87,7 +88,6 @@ class WarehouseController extends Controller
         ]);
     }
 
-
     public function generateQr($id)
     {
         $companyId = session('selected_company_id');
@@ -95,7 +95,7 @@ class WarehouseController extends Controller
 
         $renderer = new ImageRenderer(
             new RendererStyle(200),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
         $writer = new Writer($renderer);
 
@@ -123,7 +123,7 @@ class WarehouseController extends Controller
             ->where('sku', $request->sku)
             ->first();
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['status' => 'error', 'message' => 'Item not found.']);
         }
 
@@ -173,6 +173,7 @@ class WarehouseController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['status' => 'error', 'message' => 'Failed to update stock.']);
         }
     }
