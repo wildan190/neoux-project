@@ -26,7 +26,7 @@ class PurchaseOrderController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $currentView = request('view', 'buyer');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -38,22 +38,40 @@ class PurchaseOrderController extends Controller
 
         // Separate POs by role
         // Buyer POs: where I'm the buyer (can receive goods)
-        $buyerPOs = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
+        $buyerPOsQuery = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
             ->where(function ($q) use ($selectedCompanyId) {
                 $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
                     $q2->where('company_id', $selectedCompanyId);
                 })->orWhere('company_id', $selectedCompanyId);
-            })
-            ->latest()
+            });
+
+        $buyerPOs = (clone $buyerPOsQuery)->latest()
             ->paginate(10, ['*'], 'buyer_page');
 
-        // Vendor POs: where I'm the vendor (can create invoice)
-        $vendorPOs = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
-            ->where('vendor_company_id', $selectedCompanyId)
+        // Recent Buyer POs: Last 7 days and not completed/cancelled
+        $recentBuyerPOs = (clone $buyerPOsQuery)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
             ->latest()
+            ->take(4)
+            ->get();
+
+        // Vendor POs: where I'm the vendor (can create invoice)
+        $vendorPOsQuery = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
+            ->where('vendor_company_id', $selectedCompanyId);
+
+        $vendorPOs = (clone $vendorPOsQuery)->latest()
             ->paginate(10, ['*'], 'vendor_page');
 
-        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'selectedCompanyId', 'currentView'));
+        // Recent Vendor POs: Last 7 days and active
+        $recentVendorPOs = (clone $vendorPOsQuery)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'recentBuyerPOs', 'recentVendorPOs', 'selectedCompanyId', 'currentView'));
     }
 
     public function show(PurchaseOrder $purchaseOrder)
@@ -64,7 +82,7 @@ class PurchaseOrderController extends Controller
         $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this Purchase Order.');
         }
 
@@ -91,7 +109,7 @@ class PurchaseOrderController extends Controller
         }
 
         if ($purchaseOrder->status !== 'issued') {
-            return back()->with('error', 'Purchase Order is already '.$purchaseOrder->status);
+            return back()->with('error', 'Purchase Order is already ' . $purchaseOrder->status);
         }
 
         DB::beginTransaction();
@@ -106,14 +124,14 @@ class PurchaseOrderController extends Controller
             // Notify Buyer (the user who created the PO)
             if ($purchaseOrder->createdBy) {
                 $purchaseOrder->createdBy->notify(new PurchaseOrderConfirmed($purchaseOrder));
-                \Illuminate\Support\Facades\Log::info('PO Confirmation notification sent to: '.$purchaseOrder->createdBy->email);
+                \Illuminate\Support\Facades\Log::info('PO Confirmation notification sent to: ' . $purchaseOrder->createdBy->email);
             }
 
             return redirect()->back()->with('success', 'Purchase Order confirmed successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to confirm Purchase Order: '.$e->getMessage());
+            return back()->with('error', 'Failed to confirm Purchase Order: ' . $e->getMessage());
         }
     }
 
@@ -125,7 +143,7 @@ class PurchaseOrderController extends Controller
         $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to print this Purchase Order.');
         }
 
@@ -142,7 +160,7 @@ class PurchaseOrderController extends Controller
         $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to download this Purchase Order.');
         }
 
@@ -150,7 +168,7 @@ class PurchaseOrderController extends Controller
 
         $pdf = Pdf::loadView('procurement.po.pdf', compact('purchaseOrder'));
 
-        return $pdf->download('PO-'.$purchaseOrder->po_number.'.pdf');
+        return $pdf->download('PO-' . $purchaseOrder->po_number . '.pdf');
     }
 
     public function generate(PurchaseRequisition $purchaseRequisition)
@@ -162,7 +180,7 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized to generate PO for this requisition.');
         }
 
-        if (! $purchaseRequisition->winning_offer_id) {
+        if (!$purchaseRequisition->winning_offer_id) {
             return back()->with('error', 'No winning offer selected for this requisition.');
         }
 
@@ -179,7 +197,7 @@ class PurchaseOrderController extends Controller
         DB::beginTransaction();
         try {
             // Generate PO Number (PO-YYYY-RANDOM)
-            $poNumber = 'PO-'.date('Y').'-'.strtoupper(Str::random(6));
+            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
 
             $purchaseOrder = PurchaseOrder::create([
                 'po_number' => $poNumber,
@@ -228,7 +246,7 @@ class PurchaseOrderController extends Controller
                 }
             } catch (\Exception $e) {
                 // Don't rollback if email fails, just log it
-                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: '.$e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
             }
 
             return redirect()->route('procurement.po.show', $purchaseOrder)
@@ -237,7 +255,7 @@ class PurchaseOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to generate Purchase Order: '.$e->getMessage());
+            return back()->with('error', 'Failed to generate Purchase Order: ' . $e->getMessage());
         }
     }
 
@@ -291,7 +309,7 @@ class PurchaseOrderController extends Controller
 
         try {
             $file = $request->file('file');
-            $fileName = time().'_'.$file->getClientOriginalName();
+            $fileName = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('temp_imports', $fileName, 'local');
 
             // Parse for preview
@@ -318,7 +336,7 @@ class PurchaseOrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to parse file: '.$e->getMessage(),
+                'message' => 'Failed to parse file: ' . $e->getMessage(),
             ], 422);
         }
     }
@@ -333,7 +351,7 @@ class PurchaseOrderController extends Controller
         try {
             $path = $request->temp_path;
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
+            if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($path)) {
                 return back()->with('error', 'Temporary file expired or not found.');
             }
 
@@ -343,7 +361,7 @@ class PurchaseOrderController extends Controller
             return redirect()->route('procurement.po.index')
                 ->with('success', 'Import has been queued. POs will appear in the list once processed.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to start import: '.$e->getMessage());
+            return back()->with('error', 'Failed to start import: ' . $e->getMessage());
         }
     }
 }

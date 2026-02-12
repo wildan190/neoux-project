@@ -54,6 +54,40 @@
     </div>
 
     @if($currentView === 'buyer')
+        @if($recentBuyerInvoices->isNotEmpty())
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recent Invoices</h3>
+                    <span class="text-[10px] text-gray-400 uppercase font-medium">Waiting for Matching/Approval</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($recentBuyerInvoices as $invoice)
+                        <a href="{{ route('procurement.invoices.show', $invoice) }}" 
+                           class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-primary-100 dark:border-primary-900/30 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            @if($invoice->created_at->gt(now()->subDay()))
+                                <div class="absolute top-0 right-0">
+                                    <div class="bg-primary-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter">NEW</div>
+                                </div>
+                            @endif
+                            <div class="flex flex-col h-full">
+                                <div class="mb-2">
+                                    <span class="text-xs font-bold text-primary-600 dark:text-primary-400">{{ $invoice->invoice_number }}</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ $invoice->created_at->diffForHumans() }}</p>
+                                </div>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate mb-1">PO: {{ $invoice->purchaseOrder->po_number }}</p>
+                                <p class="text-[10px] text-gray-500 truncate mb-1">From: {{ $invoice->purchaseOrder->vendorCompany->name }}</p>
+                                <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $invoice->formatted_total_amount }}</p>
+                                <div class="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded @if($invoice->status === 'matched') bg-green-100 text-green-700 @else bg-yellow-100 text-yellow-700 @endif">{{ $invoice->status }}</span>
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-primary-500 group-hover:translate-x-1 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Buyer Invoices Tab --}}
         <div id="buyerContent" class="space-y-6">
             @if($buyerInvoices->isEmpty())
@@ -121,6 +155,40 @@
             @endif
         </div>
     @else
+        @if($recentVendorInvoices->isNotEmpty())
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recently Submitted</h3>
+                    <span class="text-[10px] text-gray-400 uppercase font-medium">Pending Payment</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($recentVendorInvoices as $invoice)
+                        <a href="{{ route('procurement.invoices.show', $invoice) }}" 
+                           class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            @if($invoice->created_at->gt(now()->subDay()))
+                                <div class="absolute top-0 right-0">
+                                    <div class="bg-emerald-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter">NEW</div>
+                                </div>
+                            @endif
+                            <div class="flex flex-col h-full">
+                                <div class="mb-2">
+                                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{{ $invoice->invoice_number }}</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ $invoice->created_at->diffForHumans() }}</p>
+                                </div>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate mb-1">PO: {{ $invoice->purchaseOrder->po_number }}</p>
+                                <p class="text-[10px] text-gray-500 truncate mb-1">To: {{ $invoice->purchaseOrder->purchaseRequisition->company->name }}</p>
+                                <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $invoice->formatted_total_amount }}</p>
+                                <div class="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{{ $invoice->status }}</span>
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-emerald-500 group-hover:translate-x-1 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Vendor Invoices Tab --}}
         <div id="vendorContent" class="space-y-6">
             @if($vendorInvoices->isEmpty())
