@@ -42,7 +42,7 @@ class MarketplaceController extends Controller
 
     public function show(CatalogueProduct $product)
     {
-        if (! $product->is_active) {
+        if (!$product->is_active) {
             abort(404);
         }
 
@@ -69,7 +69,7 @@ class MarketplaceController extends Controller
         // Prompt says: 1. Choose items, 2. Insert Qty, 3. Insert delivery point, 4. Add to cart.
         // This implies per item.
 
-        $cartKey = $item->id.'_'.Str::slug($request->delivery_point);
+        $cartKey = $item->id . '_' . Str::slug($request->delivery_point);
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $request->quantity;
@@ -78,7 +78,7 @@ class MarketplaceController extends Controller
                 'sku_id' => $item->id,
                 'quantity' => $request->quantity,
                 'price' => $item->price,
-                'name' => $item->product->name.' ('.$item->sku.')',
+                'name' => $item->product->name . ' (' . $item->sku . ')',
                 'image' => $item->primaryImage->image_path ?? null,
                 'delivery_point' => $request->delivery_point,
             ];
@@ -109,6 +109,10 @@ class MarketplaceController extends Controller
 
     public function checkout(Request $request)
     {
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+        ]);
+
         $cart = session()->get('marketplace_cart', []);
 
         if (empty($cart)) {
@@ -119,14 +123,14 @@ class MarketplaceController extends Controller
         $companyId = session('selected_company_id');
 
         // Generate PR Number
-        $prNumber = 'PR-'.date('Y').'-'.strtoupper(Str::random(6));
+        $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
 
         // Create Purchase Requisition (B2B Tender)
         $pr = PurchaseRequisition::create([
             'pr_number' => $prNumber,
             'company_id' => $companyId,
             'user_id' => $user->id,
-            'title' => 'Tender Request - '.now()->format('d M Y'),
+            'title' => $request->title ?: 'Tender Request - ' . now()->format('d M Y'),
             'description' => 'Tender request from Marketplace',
             'status' => 'pending',
             'approval_status' => 'pending_head', // Initial approval state

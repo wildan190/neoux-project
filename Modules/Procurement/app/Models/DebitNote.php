@@ -67,4 +67,14 @@ class DebitNote extends Model
     {
         return 'Rp ' . number_format($this->deduction_amount, 0, ',', '.');
     }
+
+    public function isApprovedByVendor(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
 }

@@ -18,15 +18,15 @@
         <div
             class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             @forelse($notifications as $notification)
-                <div
-                    class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition flex items-start gap-4 {{ $notification->read_at ? 'opacity-75' : 'bg-primary-50/10 dark:bg-primary-900/5' }}">
+                <div onclick="markAsReadLocal('{{ $notification->id }}', '{{ $notification->data['url'] ?? '' }}')"
+                    class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition flex items-start gap-4 cursor-pointer {{ $notification->read_at ? 'opacity-75' : 'bg-primary-50/10 dark:bg-primary-900/5' }}">
                     <div class="p-2.5 rounded-xl flex-shrink-0
-                            @if($notification->data['type'] == 'purchase_order') bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400
-                            @elseif($notification->data['type'] == 'goods_receipt') bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400
-                            @elseif($notification->data['type'] == 'new_offer') bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400
-                            @elseif($notification->data['type'] == 'offer_accepted') bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400
-                            @elseif($notification->data['type'] == 'new_comment') bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400
-                            @else bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400 @endif">
+                                            @if($notification->data['type'] == 'purchase_order') bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400
+                                            @elseif($notification->data['type'] == 'goods_receipt') bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400
+                                            @elseif($notification->data['type'] == 'new_offer') bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400
+                                            @elseif($notification->data['type'] == 'offer_accepted') bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400
+                                            @elseif($notification->data['type'] == 'new_comment') bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400
+                                            @else bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400 @endif">
 
                         @if($notification->data['type'] == 'purchase_order') <i data-feather="file-text" class="w-5 h-5"></i>
                         @elseif($notification->data['type'] == 'goods_receipt') <i data-feather="truck" class="w-5 h-5"></i>
@@ -51,13 +51,10 @@
                         </p>
 
                         <div class="flex items-center gap-3">
-                            <form action="{{ route('notifications.mark-as-read', $notification->id) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="text-xs font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition">
-                                    {{ $notification->data['action_text'] ?? 'View Details' }}
-                                </button>
-                            </form>
+                            <span
+                                class="text-xs font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition">
+                                {{ $notification->data['action_text'] ?? 'View Details' }}
+                            </span>
 
                             @if(!$notification->read_at)
                                 <span class="w-1.5 h-1.5 rounded-full bg-primary-600"></span>

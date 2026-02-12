@@ -5,6 +5,13 @@ namespace Modules\User\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
+use Modules\Procurement\Models\DebitNote;
+use Modules\Procurement\Models\GoodsReturnRequest;
+use Modules\Procurement\Models\Invoice;
+use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseRequisition;
+use Modules\Procurement\Models\PurchaseRequisitionOffer;
+
 class NotificationController extends Controller
 {
     public function index()
@@ -56,9 +63,100 @@ class NotificationController extends Controller
 
     public function getUnreadCount()
     {
-        return response()->json([
-            'count' => Auth::user()->unreadNotifications->count(),
-        ]);
+        $user = Auth::user();
+        $selectedCompanyId = session('selected_company_id');
+
+        $counts = [
+            'notifications' => $user->unreadNotifications()->count(),
+            // Buyer Counts
+            'my_requisitions' => 0,
+            'purchase_orders_buyer' => 0,
+            'invoices_buyer' => 0,
+            'return_requests_buyer' => 0,
+            'debit_notes_buyer' => 0,
+            // Vendor Counts
+            'all_requests' => 0,
+            'my_offers' => 0,
+            'purchase_orders_vendor' => 0,
+            'invoices_vendor' => 0,
+            'return_requests_vendor' => 0,
+            'debit_notes_vendor' => 0,
+        ];
+
+        if ($selectedCompanyId) {
+            // My Requisitions
+            $counts['my_requisitions'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
+                ->where('approval_status', 'pending')
+                ->count();
+
+            // Buyer POs
+            $counts['purchase_orders_buyer'] = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->where('status', 'confirmed')
+                ->count();
+
+            // Buyer Invoices
+            $counts['invoices_buyer'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->where('status', 'pending')
+                ->count();
+
+            // Buyer Return Requests
+            $counts['return_requests_buyer'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->where('resolution_status', 'pending')
+                ->count();
+
+            // Buyer Debit Notes
+            $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->whereNull('approved_by_vendor_at')
+                ->count();
+
+            // All Requests
+            $counts['all_requests'] = PurchaseRequisition::where('company_id', '!=', $selectedCompanyId)
+                ->where('tender_status', 'open')
+                ->whereDoesntHave('offers', function ($q) use ($selectedCompanyId) {
+                    $q->where('company_id', $selectedCompanyId);
+                })
+                ->count();
+
+            // My Offers
+            $counts['my_offers'] = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
+                ->where('status', 'pending')
+                ->count();
+
+            // Vendor POs
+            $counts['purchase_orders_vendor'] = PurchaseOrder::where('vendor_company_id', $selectedCompanyId)
+                ->where('status', 'issued')
+                ->count();
+
+            // Vendor Invoices
+            $counts['invoices_vendor'] = Invoice::where('vendor_company_id', $selectedCompanyId)
+                ->where('status', 'pending')
+                ->count();
+
+            // Vendor Return Requests
+            $counts['return_requests_vendor'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            })
+                ->where('resolution_status', 'pending')
+                ->count();
+
+            // Vendor Debit Notes
+            $counts['debit_notes_vendor'] = DebitNote::where('purchase_order_id', '!=', null)
+                ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
+                    $q->where('vendor_company_id', $selectedCompanyId);
+                })
+                ->whereNull('approved_by_vendor_at')
+                ->count();
+        }
+
+        return response()->json($counts);
     }
 
     public function getLatestNotifications()

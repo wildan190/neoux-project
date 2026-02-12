@@ -19,7 +19,7 @@ class InvoiceController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $currentView = request('view', 'buyer');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -53,7 +53,7 @@ class InvoiceController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -61,7 +61,7 @@ class InvoiceController extends Controller
             }
         }
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -83,7 +83,7 @@ class InvoiceController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();
             if ($firstCompany) {
                 $selectedCompanyId = $firstCompany->id;
@@ -109,7 +109,7 @@ class InvoiceController extends Controller
             $subtotalAmount = 0;
 
             // Generate Invoice Number (INV-YYYY-RANDOM)
-            $invoiceNumber = 'INV-'.date('Y').'-'.strtoupper(Str::random(6));
+            $invoiceNumber = 'INV-' . date('Y') . '-' . strtoupper(Str::random(6));
 
             $invoice = Invoice::create([
                 'invoice_number' => $invoiceNumber,
@@ -146,11 +146,17 @@ class InvoiceController extends Controller
             $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
             $matchingService->match($invoice);
 
+            // Notify Buyer (PO Creator)
+            $buyerUser = $purchaseOrder->createdBy;
+            if ($buyerUser) {
+                $buyerUser->notify(new \Modules\Procurement\Notifications\InvoiceCreated($invoice));
+            }
+
             DB::commit();
 
-            $message = 'Invoice submitted successfully! Matching status: '.ucfirst($invoice->fresh()->status);
+            $message = 'Invoice submitted successfully! Matching status: ' . ucfirst($invoice->fresh()->status);
             if ($totalDeduction > 0) {
-                $message .= ' (Includes price adjustment: -Rp '.number_format($totalDeduction, 0, ',', '.').')';
+                $message .= ' (Includes price adjustment: -Rp ' . number_format($totalDeduction, 0, ',', '.') . ')';
             }
 
             return redirect()->route('procurement.po.show', $purchaseOrder)
@@ -159,7 +165,7 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Failed to submit Invoice: '.$e->getMessage());
+            return back()->with('error', 'Failed to submit Invoice: ' . $e->getMessage());
         }
     }
 
@@ -243,7 +249,7 @@ class InvoiceController extends Controller
         $isBuyer = $purchaseOrder->purchaseRequisition->company_id == $selectedCompanyId;
         $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
 
-        if (! $isBuyer && ! $isVendor) {
+        if (!$isBuyer && !$isVendor) {
             abort(403, 'Unauthorized to view this Invoice.');
         }
 
@@ -273,7 +279,7 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('procurement.invoices.pdf', compact('invoice'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('Invoice-'.$invoice->invoice_number.'.pdf');
+        return $pdf->download('Invoice-' . $invoice->invoice_number . '.pdf');
     }
 
     /**
@@ -293,14 +299,14 @@ class InvoiceController extends Controller
             ->whereMonth('tax_invoice_issued_at', date('m'))
             ->count() + 1;
 
-        $taxInvoiceNumber = 'FP-'.$year.$month.'-'.str_pad($sequential, 8, '0', STR_PAD_LEFT);
+        $taxInvoiceNumber = 'FP-' . $year . $month . '-' . str_pad($sequential, 8, '0', STR_PAD_LEFT);
 
         $invoice->update([
             'tax_invoice_number' => $taxInvoiceNumber,
             'tax_invoice_issued_at' => now(),
         ]);
 
-        return back()->with('success', 'Tax Invoice issued successfully! Number: '.$taxInvoiceNumber);
+        return back()->with('success', 'Tax Invoice issued successfully! Number: ' . $taxInvoiceNumber);
     }
 
     /**
@@ -308,7 +314,7 @@ class InvoiceController extends Controller
      */
     public function printTaxInvoice(Invoice $invoice)
     {
-        if (! $invoice->tax_invoice_number) {
+        if (!$invoice->tax_invoice_number) {
             return back()->with('error', 'Tax Invoice has not been issued yet.');
         }
 
@@ -322,7 +328,7 @@ class InvoiceController extends Controller
      */
     public function downloadTaxInvoicePdf(Invoice $invoice)
     {
-        if (! $invoice->tax_invoice_number) {
+        if (!$invoice->tax_invoice_number) {
             return back()->with('error', 'Tax Invoice has not been issued yet.');
         }
 
@@ -331,6 +337,6 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('procurement.invoices.tax-invoice-print', compact('invoice'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->download('Tax-Invoice-'.$invoice->tax_invoice_number.'.pdf');
+        return $pdf->download('Tax-Invoice-' . $invoice->tax_invoice_number . '.pdf');
     }
 }
