@@ -58,12 +58,15 @@
                 </svg>
             </div>
             <span class="ml-3">Dashboard</span>
-            @if(isset($sidebarCounts['notifications']) && $sidebarCounts['notifications'] > 0)
-                <span
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-lg shadow-lg">
-                    {{ $sidebarCounts['notifications'] }}
-                </span>
-            @endif
+            @php
+                $notifCount = $sidebarCounts['notifications'] ?? 0;
+                $showNotifBadge = $notifCount > 0 && !$isDashboardActive;
+            @endphp
+            <span id="badge-notifications"
+                class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full shadow-lg {{ $showNotifBadge ? '' : 'hidden' }}"
+                {!! $showNotifBadge ? '' : 'style="display: none"' !!}>
+                {{ $showNotifBadge ? $notifCount : '' }}
+            </span>
         </a>
 
         <a href="{{ route('companies.index') }}"
@@ -165,12 +168,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">My Requisitions</span>
-                @if(isset($sidebarCounts['my_requisitions']) && $sidebarCounts['my_requisitions'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['my_requisitions'] }}
-                    </span>
-                @endif
+                @php
+                    $prCount = $sidebarCounts['my_requisitions'] ?? 0;
+                    $showPrBadge = $prCount > 0 && !request()->routeIs('procurement.pr.index');
+                @endphp
+                <span id="badge-my_requisitions"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPrBadge ? '' : 'hidden' }}"
+                    {!! $showPrBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showPrBadge ? $prCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.po.index', ['view' => 'buyer']) }}"
@@ -186,12 +192,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Purchase Orders</span>
-                @if(isset($sidebarCounts['purchase_orders_buyer']) && $sidebarCounts['purchase_orders_buyer'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['purchase_orders_buyer'] }}
-                    </span>
-                @endif
+                @php
+                    $poBuyerCount = $sidebarCounts['purchase_orders_buyer'] ?? 0;
+                    $showPoBuyerBadge = $poBuyerCount > 0 && !request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*');
+                @endphp
+                <span id="badge-purchase_orders_buyer"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPoBuyerBadge ? '' : 'hidden' }}"
+                    {!! $showPoBuyerBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showPoBuyerBadge ? $poBuyerCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.invoices.index', ['view' => 'buyer']) }}"
@@ -206,12 +215,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Invoices (Pay)</span>
-                @if(isset($sidebarCounts['invoices_buyer']) && $sidebarCounts['invoices_buyer'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['invoices_buyer'] }}
-                    </span>
-                @endif
+                @php
+                    $invBuyerCount = $sidebarCounts['invoices_buyer'] ?? 0;
+                    $showInvBuyerBadge = $invBuyerCount > 0 && !request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*');
+                @endphp
+                <span id="badge-invoices_buyer"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showInvBuyerBadge ? '' : 'hidden' }}"
+                    {!! $showInvBuyerBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showInvBuyerBadge ? $invBuyerCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.grr.index') }}"
@@ -226,12 +238,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Goods Return</span>
-                @if(isset($sidebarCounts['grr']) && $sidebarCounts['grr'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['grr'] }}
-                    </span>
-                @endif
+                @php
+                    $grrBuyerCount = $sidebarCounts['return_requests_buyer'] ?? 0;
+                    $showGrrBuyerBadge = $grrBuyerCount > 0 && !request()->routeIs('procurement.grr.*');
+                @endphp
+                <span id="badge-return_requests_buyer"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showGrrBuyerBadge ? '' : 'hidden' }}"
+                    {!! $showGrrBuyerBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showGrrBuyerBadge ? $grrBuyerCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.debit-notes.index') }}"
@@ -249,12 +264,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Debit Notes</span>
-                @if(isset($sidebarCounts['debit_notes']) && $sidebarCounts['debit_notes'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['debit_notes'] }}
-                    </span>
-                @endif
+                @php
+                    $dnBuyerCount = $sidebarCounts['debit_notes_buyer'] ?? 0;
+                    $showDnBuyerBadge = $dnBuyerCount > 0 && !request()->routeIs('procurement.debit-notes.*');
+                @endphp
+                <span id="badge-debit_notes_buyer"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showDnBuyerBadge ? '' : 'hidden' }}"
+                    {!! $showDnBuyerBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showDnBuyerBadge ? $dnBuyerCount : '' }}
+                </span>
             </a>
 
             {{-- Sales Section (Selling) --}}
@@ -277,12 +295,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Opportunity Feed</span>
-                @if(isset($sidebarCounts['all_requests']) && $sidebarCounts['all_requests'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['all_requests'] }}
-                    </span>
-                @endif
+                @php
+                    $allReqCount = $sidebarCounts['all_requests'] ?? 0;
+                    $showAllReqBadge = $allReqCount > 0 && !request()->routeIs('procurement.pr.public-feed');
+                @endphp
+                <span id="badge-all_requests"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showAllReqBadge ? '' : 'hidden' }}"
+                    {!! $showAllReqBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showAllReqBadge ? $allReqCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.offers.my') }}"
@@ -297,12 +318,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">My Offers</span>
-                @if(isset($sidebarCounts['my_offers']) && $sidebarCounts['my_offers'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['my_offers'] }}
-                    </span>
-                @endif
+                @php
+                    $myOfferCount = $sidebarCounts['my_offers'] ?? 0;
+                    $showMyOfferBadge = $myOfferCount > 0 && !request()->routeIs('procurement.offers.*');
+                @endphp
+                <span id="badge-my_offers"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showMyOfferBadge ? '' : 'hidden' }}"
+                    {!! $showMyOfferBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showMyOfferBadge ? $myOfferCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.po.index', ['view' => 'vendor']) }}"
@@ -320,12 +344,15 @@
                     </svg>
                 </div>
                 <span class="ml-3">Incoming Orders</span>
-                @if(isset($sidebarCounts['purchase_orders_vendor']) && $sidebarCounts['purchase_orders_vendor'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['purchase_orders_vendor'] }}
-                    </span>
-                @endif
+                @php
+                    $poVendorCount = $sidebarCounts['purchase_orders_vendor'] ?? 0;
+                    $showPoVendorBadge = $poVendorCount > 0 && !request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*');
+                @endphp
+                <span id="badge-purchase_orders_vendor"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPoVendorBadge ? '' : 'hidden' }}"
+                    {!! $showPoVendorBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showPoVendorBadge ? $poVendorCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.invoices.index', ['view' => 'vendor']) }}"
@@ -339,12 +366,64 @@
                     </svg>
                 </div>
                 <span class="ml-3">Sent Invoices</span>
-                @if(isset($sidebarCounts['invoices_vendor']) && $sidebarCounts['invoices_vendor'] > 0)
-                    <span
-                        class="ml-auto inline-flex items-center justify-center px-1.5 h-4 text-[9px] font-bold text-white bg-primary-500 rounded-md">
-                        {{ $sidebarCounts['invoices_vendor'] }}
-                    </span>
-                @endif
+                @php
+                    $invVendorCount = $sidebarCounts['invoices_vendor'] ?? 0;
+                    $showInvVendorBadge = $invVendorCount > 0 && !request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*');
+                @endphp
+                <span id="badge-invoices_vendor"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showInvVendorBadge ? '' : 'hidden' }}"
+                    {!! $showInvVendorBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showInvVendorBadge ? $invVendorCount : '' }}
+                </span>
+            </a>
+
+            <a href="{{ route('procurement.grr.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.grr.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.grr.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Purchase Returns</span>
+                @php
+                    $grrVendorCount = $sidebarCounts['return_requests_vendor'] ?? 0;
+                    $showGrrVendorBadge = $grrVendorCount > 0 && !request()->routeIs('procurement.grr.*');
+                @endphp
+                <span id="badge-return_requests_vendor"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showGrrVendorBadge ? '' : 'hidden' }}"
+                    {!! $showGrrVendorBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showGrrVendorBadge ? $grrVendorCount : '' }}
+                </span>
+            </a>
+
+            <a href="{{ route('procurement.debit-notes.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <span class="ml-3">Debit Notes</span>
+                @php
+                    $dnVendorCount = $sidebarCounts['debit_notes_vendor'] ?? 0;
+                    $showDnVendorBadge = $dnVendorCount > 0 && !request()->routeIs('procurement.debit-notes.*');
+                @endphp
+                <span id="badge-debit_notes_vendor"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showDnVendorBadge ? '' : 'hidden' }}"
+                    {!! $showDnVendorBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showDnVendorBadge ? $dnVendorCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('team.index') }}"

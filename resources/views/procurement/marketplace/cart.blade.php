@@ -131,9 +131,14 @@
                         </div>
                         
                         <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label for="title" class="text-xs text-gray-400 font-bold uppercase tracking-widest">Request Title</label>
+                                <input type="text" name="title" id="title" form="checkout-form" placeholder="e.g. Project X Supplies" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+                            </div>
+
                             <p class="text-xs text-gray-400 font-medium italic">All selected items will be converted into a single Purchase Requisition (Tender Request).</p>
                             
-                            <form action="{{ route('procurement.marketplace.checkout') }}" method="POST">
+                            <form id="checkout-form" action="{{ route('procurement.marketplace.checkout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white rounded-[1.25rem] py-5 font-black text-base shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group">
                                     PROCESS TO CHECKOUT

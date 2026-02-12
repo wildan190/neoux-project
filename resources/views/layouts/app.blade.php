@@ -14,7 +14,6 @@
         rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="{{ asset('js/feather.min.js') }}" defer></script>
     @stack('styles')
     <style>
         @keyframes shimmer {
@@ -175,7 +174,7 @@
                                     class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition relative">
                                     <i data-feather="bell" class="w-5 h-5 text-gray-600 dark:text-gray-300"></i>
                                     <span id="notificationBadge"
-                                        class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden border-2 border-white dark:border-gray-800"></span>
+                                        class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full hidden border-2 border-white dark:border-gray-800 flex items-center justify-center"></span>
                                 </button>
 
                                 <div id="notificationMenu"
@@ -386,7 +385,7 @@
                     url = url.replace(/https?:\/\/localhost:8000/, window.location.origin);
                 }
 
-                fetch('/notifications/' + id + '/mark-as-read', {
+                fetch('/notifications/mark-as-read/' + id, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -429,21 +428,47 @@
                 fetch('{{ route('notifications.unread-count') }}')
                     .then(function(res) { return res.json(); })
                     .then(function(data) {
+                        // Update all potential badges
+                        Object.keys(data).forEach(function(key) {
+                            var badge = document.getElementById('badge-' + key);
+                            if (badge) {
+                                var count = data[key];
+                                // Don't show badge if it's the active page
+                                var link = badge.closest('a');
+                                var isActive = link && (link.classList.contains('bg-primary-500') || link.getAttribute('href') === window.location.pathname);
+                                
+                                if (count > 0 && !isActive) {
+                                    badge.innerText = count;
+                                    badge.classList.remove('hidden');
+                                    badge.style.display = '';
+                                } else {
+                                    badge.classList.add('hidden');
+                                    badge.innerText = '';
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        });
+
+                        // Special handling for notification badge in header
                         if (notifBadge) {
-                            if (data.count > 0) {
+                            if (data.notifications > 0) {
+                                notifBadge.innerText = data.notifications;
                                 notifBadge.classList.remove('hidden');
+                                notifBadge.style.display = '';
                             } else {
                                 notifBadge.classList.add('hidden');
+                                notifBadge.innerText = '';
+                                notifBadge.style.display = 'none';
                             }
                         }
 
-                        if (lastUnreadCount !== -1 && data.count > lastUnreadCount && triggerToast) {
+                        if (lastUnreadCount !== -1 && data.notifications > lastUnreadCount && triggerToast) {
                             window.showToast('You have a new notification', 'success');
                             if (notifMenu && !notifMenu.classList.contains('hidden')) {
                                 window.fetchLatestNotifications();
                             }
                         }
-                        lastUnreadCount = data.count;
+                        lastUnreadCount = data.notifications;
                     })
                     .catch(function(err) {
                         console.error('Failed to fetch unread count', err);
@@ -727,6 +752,8 @@
 
                 sidebarLinks.forEach(link => {
                     const isActive = (link === bestMatch);
+                    const badge = link.querySelector('span[id^="badge-"]');
+
                     if (isActive) {
                         link.classList.add('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
                         link.classList.remove('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
@@ -735,6 +762,13 @@
                         if (iconBox) {
                             iconBox.classList.add('bg-white/20');
                             iconBox.classList.remove('bg-gray-700/50', 'group-hover:bg-gray-600/50');
+                        }
+                        
+                        // Hide badge when active
+                        if (badge) {
+                            badge.classList.add('hidden');
+                            badge.style.display = 'none';
+                            badge.innerText = '';
                         }
                     } else {
                         link.classList.remove('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
@@ -745,6 +779,8 @@
                             iconBox.classList.remove('bg-white/20');
                             iconBox.classList.add('bg-gray-700/50', 'group-hover:bg-gray-600/50');
                         }
+                        
+                        // Badge will be shown/hidden by updateUnreadCount based on actual unread data
                     }
                 });
             }
