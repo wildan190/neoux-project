@@ -59,6 +59,39 @@
     </div>
 
     @if($currentView === 'buyer')
+        @if($recentBuyerPOs->isNotEmpty())
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recent Activity</h3>
+                    <span class="text-[10px] text-gray-400 uppercase font-medium">Last 7 Days</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($recentBuyerPOs as $po)
+                        <a href="{{ route('procurement.po.show', $po) }}" 
+                           class="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-primary-100 dark:border-primary-900/30 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            @if($po->created_at->gt(now()->subDay()))
+                                <div class="absolute top-0 right-0">
+                                    <div class="bg-primary-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter">NEW</div>
+                                </div>
+                            @endif
+                            <div class="flex flex-col h-full">
+                                <div class="mb-2">
+                                    <span class="text-xs font-bold text-primary-600 dark:text-primary-400">{{ $po->po_number }}</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ $po->created_at->diffForHumans() }}</p>
+                                </div>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate mb-1">{{ $po->vendorCompany->name ?? 'N/A' }}</p>
+                                <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $po->formatted_total_amount }}</p>
+                                <div class="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">{{ str_replace('_', ' ', $po->status) }}</span>
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-primary-500 group-hover:translate-x-1 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Buyer POs Tab --}}
         <div id="buyerContent">
             <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700">
@@ -135,6 +168,39 @@
             </div>
         </div>
     @else
+        @if($recentVendorPOs->isNotEmpty())
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recent Orders</h3>
+                    <span class="text-[10px] text-gray-400 uppercase font-medium">Action Required</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($recentVendorPOs as $po)
+                        <a href="{{ route('procurement.po.show', $po) }}" 
+                           class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            @if($po->created_at->gt(now()->subDay()))
+                                <div class="absolute top-0 right-0">
+                                    <div class="bg-emerald-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter">NEW</div>
+                                </div>
+                            @endif
+                            <div class="flex flex-col h-full">
+                                <div class="mb-2">
+                                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">{{ $po->po_number }}</span>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ $po->created_at->diffForHumans() }}</p>
+                                </div>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate mb-1">{{ $po->purchaseRequisition->company->name ?? 'N/A' }}</p>
+                                <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $po->formatted_total_amount }}</p>
+                                <div class="mt-4 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">{{ str_replace('_', ' ', $po->status) }}</span>
+                                    <i data-feather="arrow-right" class="w-4 h-4 text-emerald-500 group-hover:translate-x-1 transition-transform"></i>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Vendor POs Tab --}}
         <div id="vendorContent">
             <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700">

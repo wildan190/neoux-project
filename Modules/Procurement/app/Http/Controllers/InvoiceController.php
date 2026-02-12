@@ -29,24 +29,42 @@ class InvoiceController extends Controller
 
         // Get invoices grouped by PO
         // As Buyer: invoices from POs where I'm the buyer
-        $buyerInvoices = Invoice::with(['purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition'])
+        $buyerInvoicesQuery = Invoice::with(['purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition'])
             ->whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
                 $q->where('company_id', $selectedCompanyId);
-            })
-            ->latest()
+            });
+
+        $buyerInvoices = (clone $buyerInvoicesQuery)->latest()
             ->get()
             ->groupBy('purchase_order_id');
+
+        // Recent Buyer Invoices: Last 7 days and not paid
+        $recentBuyerInvoices = (clone $buyerInvoicesQuery)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->where('status', '!=', 'paid')
+            ->latest()
+            ->take(4)
+            ->get();
 
         // As Vendor: invoices from POs where I'm the vendor
-        $vendorInvoices = Invoice::with(['purchaseOrder.purchaseRequisition.company'])
+        $vendorInvoicesQuery = Invoice::with(['purchaseOrder.purchaseRequisition.company'])
             ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
                 $q->where('vendor_company_id', $selectedCompanyId);
-            })
-            ->latest()
+            });
+
+        $vendorInvoices = (clone $vendorInvoicesQuery)->latest()
             ->get()
             ->groupBy('purchase_order_id');
 
-        return view('procurement.invoices.index', compact('buyerInvoices', 'vendorInvoices', 'currentView'));
+        // Recent Vendor Invoices: Last 7 days and not paid
+        $recentVendorInvoices = (clone $vendorInvoicesQuery)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->where('status', '!=', 'paid')
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('procurement.invoices.index', compact('buyerInvoices', 'vendorInvoices', 'recentBuyerInvoices', 'recentVendorInvoices', 'currentView'));
     }
 
     public function create(PurchaseOrder $purchaseOrder)
