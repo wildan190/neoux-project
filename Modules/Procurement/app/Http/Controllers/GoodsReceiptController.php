@@ -36,8 +36,8 @@ class GoodsReceiptController extends Controller
             }
         }
 
-        // Only Buyer can create GR
-        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+        // Only Buyer with 'access goods receipt' permission can create GR
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'access goods receipt')) {
             abort(403, 'Unauthorized to create Goods Receipt.');
         }
 

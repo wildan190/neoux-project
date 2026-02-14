@@ -90,6 +90,7 @@ class OfferController extends Controller
         }
 
         // Check if company already submitted an offer
+        /** @var PurchaseRequisitionOffer|null $existingOffer */
         $existingOffer = PurchaseRequisitionOffer::where('purchase_requisition_id', $purchaseRequisition->id)
             ->where('company_id', $selectedCompanyId)
             ->first();
@@ -107,7 +108,7 @@ class OfferController extends Controller
             }
 
             // Create offer
-            if ($existingOffer) {
+            if ($existingOffer instanceof PurchaseRequisitionOffer) {
                 $existingOffer->update([
                     'status' => 'pending', // Reset to pending after update so buyer knows it's new
                     'total_price' => $totalPrice,
@@ -229,9 +230,9 @@ class OfferController extends Controller
         $purchaseRequisition = $offer->purchaseRequisition;
         $selectedCompanyId = session('selected_company_id');
 
-        // Authorization: only users from the PR creator's company
-        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
-            abort(403, 'Unauthorized to accept offers for this requisition.');
+        // Authorization: only users from the PR creator's company with 'approve pr' permission
+        if ($purchaseRequisition->company_id !== $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve pr')) {
+            abort(403, 'Unauthorized to award winners for this requisition.');
         }
 
         if (!in_array($offer->status, ['pending', 'negotiating'])) {
@@ -266,16 +267,12 @@ class OfferController extends Controller
     public function approveWinner(PurchaseRequisitionOffer $offer)
     {
         $purchaseRequisition = $offer->purchaseRequisition;
+        $companyId = $purchaseRequisition->company_id;
 
-        // Authorization: only Head Approver, Company Owner/Admin, or Admin
-        $selectedCompanyId = session('selected_company_id');
-        $isCompanyManager = Auth::user()->companies()
-            ->where('companies.id', $purchaseRequisition->company_id)
-            ->wherePivotIn('role', ['owner', 'admin'])
-            ->exists();
-
-        if (Auth::id() !== $purchaseRequisition->head_approver_id && !$isCompanyManager && !Auth::user()->is_admin) {
-            abort(403, 'Only the Head Approver, Company Owner/Admin, or Purchasing Manager can approve the winner.');
+        // Authorization: Only Owner or Purchasing Manager/Admin
+        // Authorization: Only those who can approve PR (which includes choosing winner)
+        if (!Auth::user()->hasCompanyPermission($companyId, 'approve pr')) {
+            abort(403, 'Only owners or purchasing managers can approve the winner.');
         }
 
         if ($offer->status !== 'winning') {
@@ -345,8 +342,9 @@ class OfferController extends Controller
         $purchaseRequisition = $offer->purchaseRequisition;
         $selectedCompanyId = session('selected_company_id');
 
-        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
-            abort(403, 'Unauthorized.');
+        // Authorization: only users from the PR creator's company with 'negotiation' permission
+        if ($purchaseRequisition->company_id !== $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'negotiation')) {
+            abort(403, 'Unauthorized to negotiate for this requisition.');
         }
 
         // Validation handled by FormRequest

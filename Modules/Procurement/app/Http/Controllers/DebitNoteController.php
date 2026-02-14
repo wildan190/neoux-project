@@ -26,20 +26,28 @@ class DebitNoteController extends Controller
             }
         }
 
-        $debitNotes = DebitNote::with([
+        $view = $request->get('view', 'buyer'); // Default to buyer view
+
+        $query = DebitNote::with([
             'goodsReturnRequest.goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition.company',
             'purchaseOrder.vendorCompany',
-        ])
-            ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
-                $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
-                    $q2->where('company_id', $selectedCompanyId);
-                })
-                    ->orWhere('vendor_company_id', $selectedCompanyId);
-            })
-            ->latest()
-            ->paginate(10);
+        ]);
 
-        return view('procurement.debit-notes.index', compact('debitNotes'));
+        if ($view === 'vendor') {
+            $query->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            });
+        } else {
+            $query->whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            });
+        }
+
+        $debitNotes = $query->latest()
+            ->paginate(10)
+            ->appends(['view' => $view]);
+
+        return view('procurement.debit-notes.index', compact('debitNotes', 'view'));
     }
 
     /**
@@ -197,9 +205,9 @@ class DebitNoteController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $debitNote->purchaseOrder;
 
-        // Only buyer can approve
-        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
-            abort(403, 'Only buyer can approve Debit Note.');
+        // Only buyer with 'approve debit notes' permission can approve
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve debit notes')) {
+            abort(403, 'Only authorized buyers can approve Debit Note.');
         }
 
         $debitNote->update([

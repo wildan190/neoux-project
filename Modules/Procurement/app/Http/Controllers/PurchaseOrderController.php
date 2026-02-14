@@ -11,13 +11,15 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Company\Models\Company;
 use Modules\Procurement\Emails\PurchaseOrderSent;
-use Modules\Procurement\Http\Exports\PurchaseOrderTemplateExport;
-use Modules\Procurement\Http\Imports\PurchaseOrderHistoryImport;
+use Modules\Procurement\Exports\PurchaseOrderTemplateExport;
+use Modules\Procurement\Imports\PurchaseOrderHistoryImport;
+use Modules\Procurement\Jobs\ProcessPurchaseOrderImport;
 use Modules\Procurement\Models\PurchaseOrder;
 use Modules\Procurement\Models\PurchaseOrderItem;
 use Modules\Procurement\Models\PurchaseRequisition;
 use Modules\Procurement\Models\PurchaseRequisitionOffer;
 use Modules\Procurement\Notifications\PurchaseOrderConfirmed;
+use Modules\Procurement\Notifications\PurchaseOrderReceived;
 
 class PurchaseOrderController extends Controller
 {
@@ -201,6 +203,7 @@ class PurchaseOrderController extends Controller
 
             $purchaseOrder = PurchaseOrder::create([
                 'po_number' => $poNumber,
+                'company_id' => $purchaseRequisition->company_id,
                 'purchase_requisition_id' => $purchaseRequisition->id,
                 'offer_id' => $offer->id,
                 'vendor_company_id' => $offer->company_id,
@@ -236,13 +239,16 @@ class PurchaseOrderController extends Controller
 
             DB::commit();
 
-            // Send Email Notification to Vendor
             try {
                 // Find contact person to email: The user who created the winning offer
                 $vendorUser = $offer->user;
                 if ($vendorUser) {
+                    // 1. Send Email Notification
                     \Illuminate\Support\Facades\Mail::to($vendorUser->email)
                         ->send(new PurchaseOrderSent($purchaseOrder));
+
+                    // 2. Send System Notification
+                    $vendorUser->notify(new PurchaseOrderReceived($purchaseOrder));
                 }
             } catch (\Exception $e) {
                 // Don't rollback if email fails, just log it
@@ -273,6 +279,19 @@ class PurchaseOrderController extends Controller
             'vendor_accepted_at' => now(),
             'vendor_notes' => $request->notes,
         ]);
+
+        // Notify the Buyer (PO Creator)
+        try {
+            if ($purchaseOrder->createdBy) {
+                // 1. Send Email Notification (if you have a Mailable for confirmed PO, otherwise skip or create one)
+                // \Mail::to($purchaseOrder->createdBy->email)->send(new \Modules\Procurement\Emails\PurchaseOrderConfirmed($purchaseOrder));
+
+                // 2. Send System Notification
+                $purchaseOrder->createdBy->notify(new PurchaseOrderConfirmed($purchaseOrder));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send PO confirmation notification: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'You have accepted the Purchase Order. You can now prepare the delivery.');
     }
@@ -356,7 +375,7 @@ class PurchaseOrderController extends Controller
             }
 
             // Dispatch Queue Job
-            \App\Jobs\ProcessPurchaseOrderImport::dispatch($path, Auth::id(), session('selected_company_id'), $request->import_role);
+            ProcessPurchaseOrderImport::dispatch($path, Auth::id(), session('selected_company_id'), $request->import_role);
 
             return redirect()->route('procurement.po.index')
                 ->with('success', 'Import has been queued. POs will appear in the list once processed.');

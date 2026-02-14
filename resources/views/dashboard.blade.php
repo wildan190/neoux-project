@@ -8,6 +8,13 @@
 
 @section('content')
 
+@php
+    $user = auth()->user();
+    $hasCompanies = $companies->isNotEmpty();
+    $isOwner = $user->ownedCompanies()->exists();
+    $isRestricted = $hasCompanies && !$isOwner;
+@endphp
+
 @if($companies->isEmpty())
     {{-- No Companies - Show Create Button --}}
     <div class="flex flex-col items-center justify-center min-h-[60vh] p-4">
@@ -30,10 +37,12 @@
                 <h2 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Select Company</h2>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">Choose a company workspace to continue working.</p>
             </div>
+            @if(!$isRestricted)
             <a href="{{ route('companies.create') }}" class="hidden md:inline-flex items-center px-5 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
                 <i data-feather="plus" class="w-4 h-4 mr-2"></i>
                 New Company
             </a>
+            @endif
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -94,6 +103,7 @@
                 </div>
             @endforeach
 
+            @if(!$isRestricted)
             {{-- Add New Company Card --}}
             <a href="{{ route('companies.create') }}" class="group bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all duration-300 flex flex-col items-center justify-center h-full min-h-[300px] md:min-h-[380px] cursor-pointer">
                 <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -102,6 +112,7 @@
                 <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">Register New Company</h3>
                 <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">Add another business entity</p>
             </a>
+            @endif
         </div>
     </div>
 @endif

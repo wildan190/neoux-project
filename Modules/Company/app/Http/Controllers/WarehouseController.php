@@ -12,8 +12,12 @@ class WarehouseController extends Controller
     public function index()
     {
         $selectedCompanyId = session('selected_company_id');
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             return redirect()->back()->with('error', 'Please select a company first.');
+        }
+
+        if (!auth()->user()->hasCompanyPermission($selectedCompanyId, 'access warehouse')) {
+            abort(403, 'Unauthorized to access warehouse.');
         }
 
         $warehouses = Warehouse::where('company_id', $selectedCompanyId)->get();
@@ -29,13 +33,13 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $selectedCompanyId = session('selected_company_id');
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             abort(403);
         }
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:warehouses,code,NULL,id,company_id,'.$selectedCompanyId,
+            'code' => 'required|string|max:50|unique:warehouses,code,NULL,id,company_id,' . $selectedCompanyId,
             'address' => 'nullable|string',
         ]);
 
@@ -81,7 +85,7 @@ class WarehouseController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:warehouses,code,'.$warehouse->id.',id,company_id,'.$selectedCompanyId,
+            'code' => 'required|string|max:50|unique:warehouses,code,' . $warehouse->id . ',id,company_id,' . $selectedCompanyId,
             'address' => 'nullable|string',
         ]);
 

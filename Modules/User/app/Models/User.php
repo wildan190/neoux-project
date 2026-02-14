@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasUuids, Notifiable, TwoFactorAuthenticatable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -102,6 +103,61 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if user is the owner of the given company.
+     */
+    public function isOwner($companyId): bool
+    {
+        return $this->ownedCompanies()->where('id', $companyId)->exists();
+    }
+
+    /**
+     * Get user's role in a specific company.
+     */
+    public function getRoleInCompany($companyId): ?string
+    {
+        // Set the team ID for Spatie
+        setPermissionsTeamId($companyId);
+
+        // Owner has 'owner' virtual role
+        if ($this->isOwner($companyId)) {
+            return 'owner';
+        }
+
+        return $this->getRoleNames()->first();
+    }
+
+    /**
+     * Check if user has one of the given roles in a specific company.
+     * 'owner' always bypasses and returns true.
+     */
+    public function hasCompanyRole($companyId, $roles): bool
+    {
+        if ($this->isOwner($companyId)) {
+            return true;
+        }
+
+        setPermissionsTeamId($companyId);
+
+        $roles = (array) $roles;
+        return $this->hasAnyRole($roles);
+    }
+
+    /**
+     * Check if user has a specific permission in a specific company.
+     * 'owner' always bypasses and returns true.
+     */
+    public function hasCompanyPermission($companyId, $permission): bool
+    {
+        if ($this->isOwner($companyId)) {
+            return true;
+        }
+
+        setPermissionsTeamId($companyId);
+
+        return $this->hasPermissionTo($permission);
+    }
+
+    /**
      * Get the user's notification settings.
      */
     public function notificationSettings()
@@ -122,6 +178,6 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function receivesBroadcastNotificationsOn(): string
     {
-        return 'users.'.$this->id;
+        return 'users.' . $this->id;
     }
 }

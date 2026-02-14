@@ -39,11 +39,17 @@ class TeamController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'role' => 'required|in:admin,manager,buyer,staff,approver,purchasing_manager,finance',
+            'role' => 'required|in:admin,manager,purchasing_manager,finance,staff',
         ]);
 
         $companyId = session('selected_company_id');
         $company = Company::findOrFail($companyId);
+
+        // Authorization: Only Owner or Manager/Admin/Staff can invite
+        // Authorization: Only Owner or those who can manage users can invite
+        if (!Auth::user()->hasCompanyPermission($companyId, 'manage users') && !Auth::user()->hasCompanyPermission($companyId, 'manage roles') && !Auth::user()->hasCompanyPermission($companyId, 'negotiation')) {
+            abort(403, 'Only owners, managers, or staff can invite new members.');
+        }
 
         // Check if user is already a member
         $existingUser = User::where('email', $request->email)->first();
@@ -142,6 +148,10 @@ class TeamController extends Controller
         // Attach user to company if not already attached
         if (!$invitation->company->members()->where('user_id', $user->id)->exists()) {
             $invitation->company->members()->attach($user->id, ['role' => $invitation->role]);
+
+            // Sync with Spatie Roles
+            setPermissionsTeamId($invitation->company_id);
+            $user->assignRole($invitation->role);
         }
 
         // Update invitation status
@@ -159,9 +169,21 @@ class TeamController extends Controller
         $companyId = session('selected_company_id');
         $company = Company::findOrFail($companyId);
 
+        // Authorization: Only Owner or Manager/Admin can remove members
+        // Authorization: Only Owner or those who can manage users can remove members
+        if (!Auth::user()->hasCompanyPermission($companyId, 'manage users')) {
+            abort(403, 'Only owners or managers can remove members.');
+        }
+
         // Prevent removing self or owner
         if ($userId == Auth::id() || $userId == $company->user_id) {
             return back()->withErrors(['error' => 'Cannot remove yourself or the company owner.']);
+        }
+
+        $member = User::find($userId);
+        if ($member) {
+            setPermissionsTeamId($companyId);
+            $member->syncRoles([]); // Clear roles for this team
         }
 
         $company->members()->detach($userId);
@@ -174,12 +196,25 @@ class TeamController extends Controller
      */
     public function updateRole(Request $request, $userId)
     {
-        $request->validate(['role' => 'required|in:admin,manager,buyer,staff,approver,purchasing_manager,finance']);
+        $request->validate(['role' => 'required|in:admin,manager,purchasing_manager,finance,staff']);
 
         $companyId = session('selected_company_id');
         $company = Company::findOrFail($companyId);
 
+        // Authorization: Only Owner or Manager/Admin can update roles
+        // Authorization: Only Owner or those who can manage roles can update roles
+        if (!Auth::user()->hasCompanyPermission($companyId, 'manage roles')) {
+            abort(403, 'Only owners or managers can update member roles.');
+        }
+
         $company->members()->updateExistingPivot($userId, ['role' => $request->role]);
+
+        // Sync with Spatie Roles
+        $member = User::find($userId);
+        if ($member) {
+            setPermissionsTeamId($companyId);
+            $member->syncRoles([$request->role]);
+        }
 
         return back()->with('success', 'Role updated successfully.');
     }
