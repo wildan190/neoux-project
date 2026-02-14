@@ -38,40 +38,58 @@ class PurchaseOrderController extends Controller
             }
         }
 
-        // Separate POs by role
-        // Buyer POs: where I'm the buyer (can receive goods)
-        $buyerPOsQuery = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
-            ->where(function ($q) use ($selectedCompanyId) {
-                $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
-                    $q2->where('company_id', $selectedCompanyId);
-                })->orWhere('company_id', $selectedCompanyId);
-            });
+        // Base Query Builders (Lightweight)
+        $buyerQuery = PurchaseOrder::where(function ($q) use ($selectedCompanyId) {
+            $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
+                $q2->where('company_id', $selectedCompanyId);
+            })->orWhere('company_id', $selectedCompanyId);
+        });
 
-        $buyerPOs = (clone $buyerPOsQuery)->latest()
-            ->paginate(10, ['*'], 'buyer_page');
+        $vendorQuery = PurchaseOrder::where('vendor_company_id', $selectedCompanyId);
 
-        // Recent Buyer POs: Last 7 days and not completed/cancelled
-        $recentBuyerPOs = (clone $buyerPOsQuery)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
-            ->latest()
-            ->take(4)
-            ->get();
+        if ($currentView === 'buyer') {
+            // Full Load for Buyer
+            $buyerPOs = (clone $buyerQuery)->with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
+                ->latest()
+                ->paginate(10, ['*'], 'buyer_page');
 
-        // Vendor POs: where I'm the vendor (can create invoice)
-        $vendorPOsQuery = PurchaseOrder::with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
-            ->where('vendor_company_id', $selectedCompanyId);
+            $recentBuyerPOs = (clone $buyerQuery)->with(['purchaseRequisition', 'vendorCompany', 'createdBy'])
+                ->where('created_at', '>=', now()->subDays(7))
+                ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
+                ->latest()
+                ->take(4)
+                ->get();
 
-        $vendorPOs = (clone $vendorPOsQuery)->latest()
-            ->paginate(10, ['*'], 'vendor_page');
+            // Count Only for Vendor (Lightweight Paginator for Badge)
+            $vendorCount = $vendorQuery->count();
+            $vendorPOs = new \Illuminate\Pagination\LengthAwarePaginator([], $vendorCount, 10);
+            $recentVendorPOs = collect();
 
-        // Recent Vendor POs: Last 7 days and active
-        $recentVendorPOs = (clone $vendorPOsQuery)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
-            ->latest()
-            ->take(4)
-            ->get();
+        } elseif ($currentView === 'vendor') {
+            // Full Load for Vendor
+            $vendorPOs = (clone $vendorQuery)->with(['purchaseRequisition.company', 'vendorCompany', 'createdBy'])
+                ->latest()
+                ->paginate(10, ['*'], 'vendor_page');
+
+            $recentVendorPOs = (clone $vendorQuery)->with(['purchaseRequisition.company', 'vendorCompany', 'createdBy'])
+                ->where('created_at', '>=', now()->subDays(7))
+                ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
+                ->latest()
+                ->take(4)
+                ->get();
+
+            // Count Only for Buyer (Lightweight Paginator for Badge)
+            $buyerCount = $buyerQuery->count();
+            $buyerPOs = new \Illuminate\Pagination\LengthAwarePaginator([], $buyerCount, 10);
+            $recentBuyerPOs = collect();
+
+        } else {
+            // Fallback (should not happen usually)
+            $buyerPOs = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+            $vendorPOs = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+            $recentBuyerPOs = collect();
+            $recentVendorPOs = collect();
+        }
 
         return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'recentBuyerPOs', 'recentVendorPOs', 'selectedCompanyId', 'currentView'));
     }
@@ -92,7 +110,10 @@ class PurchaseOrderController extends Controller
             'items.purchaseRequisitionItem.catalogueItem',
             'items.goodsReceiptItems.goodsReturnRequest',
             'vendorCompany',
+            'buyerCompany', // Added: For Ship To fallback
+            'purchaseRequisition.company', // Added: For Ship To address
             'createdBy',
+            'deliveryOrders', // Added: Step 3 check
             'goodsReceipts.items.goodsReturnRequest',
             'goodsReceipts.receivedBy',
             'invoices',

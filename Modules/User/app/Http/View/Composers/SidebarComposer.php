@@ -42,96 +42,11 @@ class SidebarComposer
         ];
 
         if ($selectedCompanyId) {
-            // === BUYER SIDE ===
-
-            // My Requisitions - PRs belonging to company that are pending approval
-            $counts['my_requisitions'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
-                ->where('approval_status', 'pending')
-                ->count();
-
-            // Buyer POs - Confirmed (Ready to receive)
-            // Note: We count confirmed here as actionable for buyer to create GR
-            $counts['purchase_orders_buyer'] = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
-                ->where('status', 'confirmed')
-                ->count();
-
-            // Buyer Invoices - Pending Payment (Received from vendor)
-            $counts['invoices_buyer'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
-                ->where('status', 'pending')
-                ->count();
-
-            // Buyer Return Requests - Pending (Sent to vendor, waiting response)
-            // Maybe less actionable for buyer (waiting), but good to track
-            $counts['return_requests_buyer'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
-                ->where('resolution_status', 'pending')
-                ->count();
-
-            // Buyer Debit Notes - Received (checking if approved?)
-            // Usually buyer issues DN? No, in this system, GRR resolutions create DN.
-            // If Buyer returns goods -> Vendor issues Credit Note/Debit Note?
-            // Model says "approved_by_vendor_at".
-            $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
-                ->whereNull('approved_by_vendor_at')
-                ->count();
-
-            // === VENDOR SIDE ===
-
-            // All Requests (Marketplace Feed) - PRs from OTHER companies
-            $counts['all_requests'] = PurchaseRequisition::where('company_id', '!=', $selectedCompanyId)
-                ->where('tender_status', 'open')
-                ->whereDoesntHave('offers', function ($q) use ($selectedCompanyId) {
-                    $q->where('company_id', $selectedCompanyId);
-                })
-                ->count();
-
-            // My Offers - Pending
-            $counts['my_offers'] = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
-                ->where('status', 'pending')
-                ->count();
-
-            // Vendor POs - Issued (Needs Confirmation)
-            $counts['purchase_orders_vendor'] = PurchaseOrder::where('vendor_company_id', $selectedCompanyId)
-                ->where('status', 'issued')
-                ->count();
-
-            // Vendor Invoices - Pending (Sent to buyer)
-            $counts['invoices_vendor'] = Invoice::where('vendor_company_id', $selectedCompanyId)
-                ->where('status', 'pending')
-                ->count();
-
-            // Vendor Return Requests - Pending (Received from buyer, needs action)
-            $counts['return_requests_vendor'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
-                $q->where('vendor_company_id', $selectedCompanyId);
-            })
-                ->where('resolution_status', 'pending')
-                ->count();
-
-            // Vendor Debit Notes - Pending Approval
-            $counts['debit_notes_vendor'] = DebitNote::where('purchase_order_id', '!=', null)
-                ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
-                    $q->where('vendor_company_id', $selectedCompanyId);
-                })
-                ->whereNull('approved_by_vendor_at')
-                ->count();
-
-            // Quick Approvals Counts
-            $counts['pending_prs'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
-                ->where('approval_status', 'like', 'pending%')
-                ->count();
-
-            $counts['pending_invoices'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
-                ->whereIn('status', ['matched', 'vendor_approved', 'purchasing_approved'])
-                ->count();
+            // OPTIMIZATION:
+            // We removed the heavy queries here because they are already being fetched
+            // via AJAX by window.updateUnreadCount() in app.blade.php calling NotificationController@getUnreadCount.
+            // This saves ~14 DB queries on every page load.
+            // The badges will simply pop-in via JS after page load.
         }
 
         $view->with('sidebarCounts', $counts);
