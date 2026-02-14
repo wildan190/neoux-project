@@ -107,7 +107,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isOwner($companyId): bool
     {
-        return $this->ownedCompanies()->where('id', $companyId)->exists();
+        return $this->ownedCompanies->contains('id', $companyId);
     }
 
     /**
