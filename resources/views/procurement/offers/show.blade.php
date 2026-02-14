@@ -225,14 +225,13 @@
     {{-- Actions --}}
     {{-- Actions --}}
     @php
-        $isCompanyManager = Auth::user()->companies()->where('companies.id', $purchaseRequisition->company_id)->wherePivotIn('role', ['owner', 'admin'])->exists();
-        $isHeadApprover = Auth::id() === $purchaseRequisition->head_approver_id || Auth::user()->is_admin || $isCompanyManager;
+        $canApprove = Auth::user()->hasCompanyPermission($purchaseRequisition->company_id, 'approve pr');
+        $isHeadApprover = $canApprove; // Both awarding and approving PM use same permission now
         
         // Vendor check: Offer Creator OR Company Owner OR Company Member
         $isVendor = Auth::id() === $offer->user_id || Auth::id() === $offer->company->user_id || $offer->company->members->contains(Auth::id());
 
-        $showActions = ($isCompanyManager && in_array($offer->status, ['pending', 'negotiating'])) || 
-                      ($isHeadApprover && $offer->status === 'winning') ||
+        $showActions = ($canApprove && in_array($offer->status, ['pending', 'negotiating', 'winning'])) || 
                       ($isVendor && $offer->status === 'negotiating');
         
         // Ensure headApprover is available for name display
@@ -271,7 +270,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    @if($isCompanyManager && in_array($offer->status, ['pending', 'negotiating']))
+                    @if($canApprove && in_array($offer->status, ['pending', 'negotiating']))
                         @if($offer->status === 'pending')
                             <button type="button" onclick="document.getElementById('negotiateModal').classList.remove('hidden')"
                                 class="px-6 py-3 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-sm font-bold rounded-lg transition">

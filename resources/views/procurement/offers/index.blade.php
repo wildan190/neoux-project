@@ -294,7 +294,7 @@
                                 <td class="px-4 py-3"></td>
                                 @foreach($offers->take(3) as $offer)
                                     <td class="px-6 py-4 {{ $loop->first ? 'bg-yellow-50/30 dark:bg-yellow-900/10' : '' }}">
-                                        @if($offer->status === 'pending')
+                                        @if($offer->status === 'pending' && $canApprove)
                                             <form action="{{ route('procurement.offers.accept', $offer) }}" method="POST">
                                                 @csrf
                                                 <button type="submit" 
@@ -459,8 +459,8 @@
                             </div>
 
                             @php
-                                $isCompanyManager = Auth::user()->companies()->where('companies.id', $purchaseRequisition->company_id)->wherePivotIn('role', ['owner', 'admin'])->exists();
-                                $isApprover = (Auth::id() === $purchaseRequisition->head_approver_id || Auth::user()->is_admin || $isCompanyManager);
+                                $canApprove = Auth::user()->hasCompanyPermission($purchaseRequisition->company_id, 'approve pr');
+                                $isApprover = $canApprove;
                             @endphp
 
                             @if($offer->status === 'pending' || $offer->status === 'negotiating')

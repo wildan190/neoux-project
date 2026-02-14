@@ -14,13 +14,13 @@ class CompanyDashboardController extends Controller
     {
         $selectedCompanyId = session('selected_company_id');
 
-        if (! $selectedCompanyId) {
+        if (!$selectedCompanyId) {
             return redirect()->route('dashboard')->with('error', 'Please select a company first.');
         }
 
         $company = Company::find($selectedCompanyId);
 
-        if (! $company) {
+        if (!$company) {
             return redirect()->route('dashboard')->with('error', 'Company not found.');
         }
 
@@ -33,7 +33,118 @@ class CompanyDashboardController extends Controller
         // Calculate monthly chart data
         $chartData = $this->getChartData($company, $isBuyer, $isVendor);
 
-        return view('company-dashboard', compact('company', 'stats', 'chartData', 'isBuyer', 'isVendor'));
+        // Fetch Tasks
+        $tasks = $this->getTasks($company, $isBuyer, $isVendor);
+
+        return view('company-dashboard', compact('company', 'stats', 'chartData', 'isBuyer', 'isVendor', 'tasks'));
+    }
+
+    private function getTasks(Company $company, bool $isBuyer, bool $isVendor): array
+    {
+        $tasks = [];
+        $user = auth()->user();
+        $companyId = $company->id;
+
+        if ($isBuyer) {
+            // 1. Purchasing Manager Tasks
+            if ($user->hasCompanyPermission($companyId, 'approve pr')) {
+                // Pending PRs
+                $pendingPRs = $company->purchaseRequisitions()
+                    ->where('approval_status', 'pending')
+                    ->get();
+                foreach ($pendingPRs as $pr) {
+                    $tasks[] = [
+                        'type' => 'pr_approval',
+                        'title' => 'PR Approval Required',
+                        'description' => "Requisition #{$pr->pr_number} needs your approval.",
+                        'url' => route('procurement.pr.show', $pr),
+                        'priority' => 'high',
+                    ];
+                }
+
+                // Offers needing winner approval
+                $pendingWinners = $company->purchaseRequisitions()
+                    ->where('tender_status', 'pending_winner_approval')
+                    ->with('winningOffer')
+                    ->get();
+                foreach ($pendingWinners as $pr) {
+                    $tasks[] = [
+                        'type' => 'winner_approval',
+                        'title' => 'Bid Winner Approval',
+                        'description' => "Winner for #{$pr->pr_number} needs final approval.",
+                        'url' => route('procurement.offers.show', $pr->winning_offer_id),
+                        'priority' => 'high',
+                    ];
+                }
+
+                // Invoices needing purchasing approval
+                $invoicesPurchasing = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })
+                    ->where('status', 'vendor_approved')
+                    ->get();
+                foreach ($invoicesPurchasing as $inv) {
+                    $tasks[] = [
+                        'type' => 'invoice_purchasing',
+                        'title' => 'Invoice Validation',
+                        'description' => "Invoice #{$inv->invoice_number} needs purchasing validation.",
+                        'url' => route('procurement.invoices.show', $inv),
+                        'priority' => 'medium',
+                    ];
+                }
+            }
+
+            // 2. Finance Tasks
+            if ($user->hasCompanyPermission($companyId, 'approve invoice')) {
+                $invoicesFinance = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })
+                    ->where('status', 'purchasing_approved')
+                    ->get();
+                foreach ($invoicesFinance as $inv) {
+                    $tasks[] = [
+                        'type' => 'invoice_finance',
+                        'title' => 'Payment Required',
+                        'description' => "Invoice #{$inv->invoice_number} is ready for payment.",
+                        'url' => route('procurement.invoices.show', $inv),
+                        'priority' => 'high',
+                    ];
+                }
+            }
+
+            // 3. General Tasks (Staff/Anyone)
+            $myRejectedPRs = $company->purchaseRequisitions()
+                ->where('user_id', $user->id)
+                ->where('approval_status', 'rejected')
+                ->get();
+            foreach ($myRejectedPRs as $pr) {
+                $tasks[] = [
+                    'type' => 'pr_rejected',
+                    'title' => 'PR Rejected',
+                    'description' => "Your requisition #{$pr->pr_number} was rejected.",
+                    'url' => route('procurement.pr.show', $pr),
+                    'priority' => 'medium',
+                ];
+            }
+        }
+
+        if ($isVendor) {
+            // Vendor Tasks: New POs to accept
+            $pendingPOs = PurchaseOrder::where('vendor_company_id', $companyId)
+                ->where('status', 'pending_vendor_acceptance')
+                ->get();
+            foreach ($pendingPOs as $po) {
+                $tasks[] = [
+                    'type' => 'po_acceptance',
+                    'title' => 'New Purchase Order',
+                    'description' => "New PO #{$po->po_number} received. Please accept/reject.",
+                    'url' => route('procurement.po.show', $po),
+                    'priority' => 'high',
+                ];
+            }
+        }
+
+        return $tasks;
     }
 
     private function calculateStats(Company $company, bool $isBuyer, bool $isVendor): array
@@ -74,9 +185,9 @@ class CompanyDashboardController extends Controller
                 'total_purchases' => $poTotalAmount,
                 'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0),
                 'active_orders' => $activePOs,
-                'orders_change' => '+'.rand(1, 10).'%',
+                'orders_change' => '+' . rand(1, 10) . '%',
                 'total_vendors' => $vendorsCount,
-                'vendors_change' => '+'.rand(1, 5).'%',
+                'vendors_change' => '+' . rand(1, 5) . '%',
                 'pending_pr' => $company->purchaseRequisitions()->where('status', 'pending')->count(),
                 'pending_change' => '0%',
             ];
@@ -103,13 +214,13 @@ class CompanyDashboardController extends Controller
 
             $stats = [
                 'total_sales' => $poTotalAmount,
-                'sales_change' => '+'.rand(5, 15).'%',
+                'sales_change' => '+' . rand(5, 15) . '%',
                 'active_orders' => $approvedPOs,
-                'orders_change' => '+'.rand(1, 10).'%',
+                'orders_change' => '+' . rand(1, 10) . '%',
                 'total_invoices' => $totalInvoices,
                 'invoice_amount' => $invoiceAmount,
                 'active_products' => $catalogueItems,
-                'products_change' => rand(-5, 10).'%',
+                'products_change' => rand(-5, 10) . '%',
             ];
         }
 
@@ -157,6 +268,6 @@ class CompanyDashboardController extends Controller
         $change = (($current - $previous) / $previous) * 100;
         $prefix = $change >= 0 ? '+' : '';
 
-        return $prefix.number_format($change, 1).'%';
+        return $prefix . number_format($change, 1) . '%';
     }
 }

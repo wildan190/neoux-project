@@ -90,16 +90,22 @@ class PurchaseRequisitionController extends Controller
             DB::transaction(function () use ($request) {
                 $companyId = session('selected_company_id');
 
-                if (! $companyId) {
+                if (!$companyId) {
                     $companyId = Auth::user()->allCompanies()->first()?->id;
                 }
 
-                if (! $companyId) {
+                if (!$companyId) {
                     throw new \Exception('No company found for this user.');
                 }
 
                 // Generate PR Number
-                $prNumber = 'PR-'.date('Y').'-'.strtoupper(Str::random(6));
+                $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
+
+                // No auto-approval; everything starts as draft.
+                $approvalStatus = 'draft';
+                $status = 'draft';
+                $tenderStatus = null;
+                $submittedAt = null;
 
                 $requisition = PurchaseRequisition::create([
                     'pr_number' => $prNumber,
@@ -107,7 +113,10 @@ class PurchaseRequisitionController extends Controller
                     'user_id' => Auth::id(),
                     'title' => $request->title,
                     'description' => $request->description,
-                    'status' => 'pending',
+                    'status' => $status,
+                    'approval_status' => $approvalStatus,
+                    'tender_status' => $tenderStatus,
+                    'submitted_at' => $submittedAt,
                 ]);
 
                 foreach ($request->items as $item) {
@@ -124,8 +133,8 @@ class PurchaseRequisitionController extends Controller
                     foreach ($request->file('documents') as $file) {
                         $originalName = $file->getClientOriginalName();
                         $extension = $file->getClientOriginalExtension();
-                        $filename = Str::uuid().'.'.$extension;
-                        $path = $file->storeAs('procurement/documents/'.$requisition->id, $filename, 'public');
+                        $filename = Str::uuid() . '.' . $extension;
+                        $path = $file->storeAs('procurement/documents/' . $requisition->id, $filename, 'public');
 
                         PurchaseRequisitionDocument::create([
                             'purchase_requisition_id' => $requisition->id,
@@ -144,7 +153,7 @@ class PurchaseRequisitionController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to create Purchase Requisition: '.$e->getMessage());
+                ->with('error', 'Failed to create Purchase Requisition: ' . $e->getMessage());
         }
     }
 
@@ -238,9 +247,9 @@ class PurchaseRequisitionController extends Controller
         // Optional: Add authorization check here
         // e.g., if ($document->purchaseRequisition->company_id !== Auth::user()->companies->first()->id) abort(403);
 
-        $filePath = storage_path('app/public/'.$document->file_path);
+        $filePath = storage_path('app/public/' . $document->file_path);
 
-        if (! file_exists($filePath)) {
+        if (!file_exists($filePath)) {
             abort(404, 'File not found');
         }
 
@@ -262,7 +271,11 @@ class PurchaseRequisitionController extends Controller
         ]);
 
         if ($comment && $purchaseRequisition->user_id !== Auth::id()) {
-            $purchaseRequisition->user->notify(new NewCommentAdded($comment));
+            /** @var \Modules\User\Models\User $user */
+            $user = $purchaseRequisition->user;
+            if ($user) {
+                $user->notify(new \Modules\User\Notifications\NewCommentAdded($comment));
+            }
         }
 
         return back()->with('success', 'Comment posted successfully.');
@@ -273,47 +286,20 @@ class PurchaseRequisitionController extends Controller
      */
     public function submitForApproval(Request $request, PurchaseRequisition $purchaseRequisition)
     {
-        $request->validate([
-            'approver_id' => 'required|exists:users,id',
-            'head_approver_id' => 'required|exists:users,id',
-        ]);
+        $companyId = $purchaseRequisition->company_id;
 
-        // Ensure user has permission (is owner or has admin/manager role)
-        $userRole = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
-        $isAdminOrManager = in_array($userRole, ['admin', 'manager']);
-
-        if ($purchaseRequisition->user_id !== Auth::id() && ! $isAdminOrManager) {
+        // Ensure user has permission (is owner or can create PR)
+        if ($purchaseRequisition->user_id !== Auth::id() && !Auth::user()->hasCompanyPermission($companyId, 'create pr')) {
             abort(403, 'Unauthorized to submit this requisition.');
         }
 
         $purchaseRequisition->update([
-            'approver_id' => $request->approver_id,
-            'head_approver_id' => $request->head_approver_id,
             'submitted_at' => now(),
-            'approval_status' => 'pending_supervisor', // Step 1
+            'approval_status' => 'pending',
         ]);
 
-        // Auto-approve if single user company
-        $memberCount = $purchaseRequisition->company->members()->count();
-        if ($memberCount <= 1 || $request->approver_id == Auth::id() && $request->head_approver_id == Auth::id()) {
-            // If the user assigned themselves (or no other members), auto-advance to approved if they are owner/admin
-            $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
-            $isOwner = $purchaseRequisition->company->user_id === Auth::id();
-
-            if ($isAdmin || $isOwner) {
-                $purchaseRequisition->update([
-                    'approval_status' => 'approved',
-                    'status' => 'open',
-                    'tender_status' => 'open',
-                ]);
-
-                return back()->with('success', 'Purchase Requisition submitted and auto-approved.');
-            }
-        }
-
-        // TODO: Send notification to supervisor
-
-        return back()->with('success', 'Purchase Requisition submitted for Supervisor approval.');
+        // TODO: Send notification to all Purchasing Managers
+        return back()->with('success', 'Purchase Requisition submitted for approval.');
     }
 
     /**
@@ -321,123 +307,103 @@ class PurchaseRequisitionController extends Controller
      */
     public function approve(Request $request, PurchaseRequisition $purchaseRequisition)
     {
-        $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
-        $isOwner = $purchaseRequisition->company->user_id === Auth::id();
+        $companyId = $purchaseRequisition->company_id;
 
-        // Universal Bypass: Owner/Admin can approve anything
-        if (! $isAdmin && ! $isOwner) {
-            if ($purchaseRequisition->approval_status === 'pending_supervisor' && $purchaseRequisition->approver_id !== Auth::id()) {
-                abort(403, 'Only assigned supervisor can approve this step.');
-            }
-            if ($purchaseRequisition->approval_status === 'pending_head' && $purchaseRequisition->head_approver_id !== Auth::id()) {
-                abort(403, 'Only assigned Head can approve this step.');
+        // Only Owner or those with 'approve pr' permission can approve
+        if (!Auth::user()->hasCompanyPermission($companyId, 'approve pr')) {
+            abort(403, 'Only owners or those with approval permission can approve this requisition.');
+        }
+
+        $purchaseRequisition->update([
+            'approval_status' => 'approved',
+            'approval_notes' => $request->approval_notes,
+            'status' => 'open', // Becomes active Tender
+            'tender_status' => 'open',
+        ]);
+
+        // Notify all potential vendors (users in other companies)
+        if ($purchaseRequisition->type === 'tender') {
+            $vendors = \Modules\User\Models\User::where('id', '!=', Auth::id())->get();
+            foreach ($vendors as $vendor) {
+                $vendor->notify(new TenderPublished($purchaseRequisition));
             }
         }
 
-        if ($purchaseRequisition->approval_status === 'pending_supervisor') {
-            $purchaseRequisition->update([
-                'approval_status' => 'pending_head',
-                'approval_notes' => $request->approval_notes,
-            ]);
+        // HANDLE DIRECT PURCHASE: Auto-generate PO(s)
+        if ($purchaseRequisition->type === 'direct') {
+            // Group items by Vendor (Catalogue Item's Company)
+            $itemsByVendor = $purchaseRequisition->items->groupBy(function ($item) {
+                return $item->catalogueItem->company_id;
+            });
 
-            // TODO: Notify Head
-            return back()->with('success', 'Supervisor approval completed. Now pending Head approval.');
-        }
+            foreach ($itemsByVendor as $vendorId => $items) {
+                // Generate PO for this Vendor
+                $poNumber = 'PO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
 
-        if ($purchaseRequisition->approval_status === 'pending_head') {
-            $purchaseRequisition->update([
-                'approval_status' => 'approved',
-                'approval_notes' => $request->approval_notes,
-                'status' => 'open', // Becomes active Tender
-                'tender_status' => 'open',
-            ]);
-
-            // Notify all potential vendors (users in other companies)
-            if ($purchaseRequisition->type === 'tender') {
-                $vendors = \Modules\User\Models\User::where('id', '!=', Auth::id())->get();
-                foreach ($vendors as $vendor) {
-                    $vendor->notify(new TenderPublished($purchaseRequisition));
-                }
-            }
-
-            // HANDLE DIRECT PURCHASE: Auto-generate PO(s)
-            if ($purchaseRequisition->type === 'direct') {
-                // Group items by Vendor (Catalogue Item's Company)
-                $itemsByVendor = $purchaseRequisition->items->groupBy(function ($item) {
-                    return $item->catalogueItem->company_id;
+                $totalAmount = $items->sum(function ($item) {
+                    return $item->quantity * $item->price;
                 });
 
-                foreach ($itemsByVendor as $vendorId => $items) {
-                    // Generate PO for this Vendor
-                    $poNumber = 'PO-'.date('Y').'-'.strtoupper(\Illuminate\Support\Str::random(6));
+                $po = \Modules\Procurement\Models\PurchaseOrder::create([
+                    'po_number' => $poNumber,
+                    'purchase_requisition_id' => $purchaseRequisition->id,
+                    'vendor_company_id' => $vendorId,
+                    'created_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'total_amount' => $totalAmount,
+                    'status' => 'issued', // Immediately issued
+                ]);
 
-                    $totalAmount = $items->sum(function ($item) {
-                        return $item->quantity * $item->price;
-                    });
-
-                    $po = \Modules\Procurement\Models\PurchaseOrder::create([
-                        'po_number' => $poNumber,
-                        'purchase_requisition_id' => $purchaseRequisition->id,
-                        'vendor_company_id' => $vendorId,
-                        'created_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
-                        'total_amount' => $totalAmount,
-                        'status' => 'issued', // Immediately issued
+                foreach ($items as $item) {
+                    \Modules\Procurement\Models\PurchaseOrderItem::create([
+                        'purchase_order_id' => $po->id,
+                        'purchase_requisition_item_id' => $item->id,
+                        'quantity_ordered' => $item->quantity,
+                        'quantity_received' => 0,
+                        'unit_price' => $item->price,
+                        'subtotal' => $item->quantity * $item->price,
                     ]);
 
-                    foreach ($items as $item) {
-                        \Modules\Procurement\Models\PurchaseOrderItem::create([
-                            'purchase_order_id' => $po->id,
-                            'purchase_requisition_item_id' => $item->id,
-                            'quantity_ordered' => $item->quantity,
-                            'quantity_received' => 0,
-                            'unit_price' => $item->price,
-                            'subtotal' => $item->quantity * $item->price,
-                        ]);
-
-                        // Deduct Stock from Vendor (Seller)
-                        $catalogueItem = $item->catalogueItem;
-                        if ($catalogueItem) {
-                            $catalogueItem->decrement('stock', $item->quantity);
-                        }
-                    }
-
-                    // Notify Vendor Company Owner
-                    $vendorCompany = \Modules\Company\Models\Company::find($vendorId);
-                    if ($vendorCompany && $vendorCompany->user) {
-                        $vendorCompany->user->notify(new PurchaseOrderReceived($po));
-                    }
-
-                    // Send Email Notification to Vendor
-                    try {
-                        // 1. Try Company Email
-                        $company = \Modules\Company\Models\Company::find($vendorId);
-                        $email = $company->email;
-
-                        // 2. Fallback to Owner Email
-                        if (! $email && $company->user) {
-                            $email = $company->user->email;
-                        }
-
-                        if ($email) {
-                            \Illuminate\Support\Facades\Mail::to($email)
-                                ->send(new PurchaseOrderSent($po));
-                        }
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: '.$e->getMessage());
+                    // Deduct Stock from Vendor (Seller)
+                    $catalogueItem = $item->catalogueItem;
+                    if ($catalogueItem) {
+                        $catalogueItem->decrement('stock', $item->quantity);
                     }
                 }
 
-                // Update PR status to ordered
-                $purchaseRequisition->update([
-                    'status' => 'ordered',
-                    'po_generated_at' => now(),
-                ]);
+                // Notify Vendor Company Owner
+                $vendorCompany = \Modules\Company\Models\Company::find($vendorId);
+                if ($vendorCompany && $vendorCompany->user) {
+                    $vendorCompany->user->notify(new PurchaseOrderReceived($po));
+                }
+
+                // Send Email Notification to Vendor
+                try {
+                    // 1. Try Company Email
+                    $company = \Modules\Company\Models\Company::find($vendorId);
+                    $email = $company->email;
+
+                    // 2. Fallback to Owner Email
+                    if (!$email && $company->user) {
+                        $email = $company->user->email;
+                    }
+
+                    if ($email) {
+                        \Illuminate\Support\Facades\Mail::to($email)
+                            ->send(new PurchaseOrderSent($po));
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
+                }
             }
 
-            return back()->with('success', 'Request approved successfully.');
+            // Update PR status to ordered
+            $purchaseRequisition->update([
+                'status' => 'ordered',
+                'po_generated_at' => now(),
+            ]);
         }
 
-        return back()->with('error', 'Invalid approval state.');
+        return back()->with('success', 'Request approved successfully.');
     }
 
     /**
@@ -445,11 +411,11 @@ class PurchaseRequisitionController extends Controller
      */
     public function reject(Request $request, PurchaseRequisition $purchaseRequisition)
     {
-        $isApprover = $purchaseRequisition->approver_id === Auth::id();
-        $isAdmin = Auth::user()->companies->find($purchaseRequisition->company_id)?->pivot->role === 'admin';
+        $companyId = $purchaseRequisition->company_id;
 
-        if (! $isApprover && ! $isAdmin) {
-            abort(403, 'Unauthorized');
+        // Only Owner or those with 'approve pr' permission can reject
+        if (!Auth::user()->hasCompanyPermission($companyId, 'approve pr')) {
+            abort(403, 'Only owners or those with approval permission can reject this requisition.');
         }
 
         $purchaseRequisition->update([
@@ -462,22 +428,10 @@ class PurchaseRequisitionController extends Controller
     }
 
     /**
-     * Assign PR to Staff
+     * Assign feature removed (legacy placeholder)
      */
     public function assign(Request $request, PurchaseRequisition $purchaseRequisition)
     {
-        $request->validate([
-            'assigned_to' => 'required|exists:users,id',
-        ]);
-
-        // Only Admin/Manager can assign
-        // Simplification for now: check if user belongs to company with role
-        // For now, allow any member to assign (collaboration) or restrict to admin/manager
-
-        $purchaseRequisition->update([
-            'assigned_to' => $request->assigned_to,
-        ]);
-
-        return back()->with('success', 'Assigned successfully.');
+        return back()->with('error', 'Assign feature is no longer active.');
     }
 }

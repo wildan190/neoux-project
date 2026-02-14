@@ -197,6 +197,12 @@ class InvoiceController extends Controller
             abort(403);
         }
 
+        // Authorization: Only Owner or Manager/Purchasing Manager of Vendor
+        // Authorization: Only those who can approve invoice
+        if (!Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve invoice')) {
+            abort(403, 'Unauthorized to approve invoice as vendor.');
+        }
+
         if ($invoice->status !== 'matched' && $invoice->status !== 'pending') {
             return back()->with('error', 'Invoice cannot be approved at this stage.');
         }
@@ -212,8 +218,16 @@ class InvoiceController extends Controller
     public function purchasingApprove(Invoice $invoice)
     {
         $selectedCompanyId = session('selected_company_id');
-        if ($invoice->purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+        $companyId = $invoice->purchaseOrder->purchaseRequisition->company_id;
+
+        if ($companyId != $selectedCompanyId) {
             abort(403);
+        }
+
+        // Authorization: Only Owner or Purchasing Manager
+        // Authorization: Only those who can approve invoice
+        if (!Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve invoice')) {
+            abort(403, 'Only purchasing managers or owners can approve this step.');
         }
 
         if ($invoice->status !== 'vendor_approved') {
@@ -231,9 +245,16 @@ class InvoiceController extends Controller
     public function financeApprove(Invoice $invoice)
     {
         $selectedCompanyId = session('selected_company_id');
-        // In a real app, check for Finance role
-        if ($invoice->purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
+        $companyId = $invoice->purchaseOrder->purchaseRequisition->company_id;
+
+        if ($companyId != $selectedCompanyId) {
             abort(403);
+        }
+
+        // Authorization: Only Owner or Finance
+        // Authorization: Only those who can approve invoice (Finance/Manager/Owner)
+        if (!Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve invoice')) {
+            abort(403, 'Only finance or owners can mark this invoice as paid.');
         }
 
         if ($invoice->status !== 'purchasing_approved') {
@@ -250,6 +271,14 @@ class InvoiceController extends Controller
      */
     public function reject(Request $request, Invoice $invoice)
     {
+        $selectedCompanyId = session('selected_company_id');
+
+        // Authorization: Owner, Purchasing Manager, or Finance
+        // Authorization: Anyone who can approve invoice
+        if (!Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve invoice')) {
+            abort(403, 'Unauthorized to reject invoice.');
+        }
+
         $invoice->update([
             'status' => 'rejected',
             'match_status' => array_merge($invoice->match_status ?? [], ['rejection_reason' => $request->reason]),

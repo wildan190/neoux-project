@@ -29,19 +29,24 @@ class GoodsReturnRequestController extends Controller
         }
 
         $filter = $request->get('filter', 'all');
+        $view = $request->get('view', 'buyer'); // Default to buyer view
 
         $query = GoodsReturnRequest::with([
             'goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition.company',
             'goodsReceiptItem.goodsReceipt.purchaseOrder.vendorCompany',
             'goodsReceiptItem.purchaseOrderItem.purchaseRequisitionItem.catalogueItem',
             'createdBy',
-        ])
-            ->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
-                $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
-                    $q2->where('company_id', $selectedCompanyId);
-                })
-                    ->orWhere('vendor_company_id', $selectedCompanyId);
+        ]);
+
+        if ($view === 'vendor') {
+            $query->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
             });
+        } else {
+            $query->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            });
+        }
 
         // Apply filters
         if ($filter === 'pending') {
@@ -52,22 +57,32 @@ class GoodsReturnRequestController extends Controller
             $query->whereIn('resolution_status', ['approved_by_vendor', 'rejected_by_vendor']);
         }
 
-        $grrList = $query->latest()->paginate(10)->appends(['filter' => $filter]);
+        $grrList = $query->latest()->paginate(10)->appends(['filter' => $filter, 'view' => $view]);
 
-        // Counts for badges
-        $pendingCount = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
-            $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
-                $q2->where('company_id', $selectedCompanyId);
-            })->orWhere('vendor_company_id', $selectedCompanyId);
-        })->where('resolution_status', 'pending')->count();
+        // Counts for badges (also filtered by view)
+        $pendingQuery = GoodsReturnRequest::where('resolution_status', 'pending');
+        $resolvedQuery = GoodsReturnRequest::where('resolution_status', 'resolved');
 
-        $resolvedCount = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
-            $q->whereHas('purchaseRequisition', function ($q2) use ($selectedCompanyId) {
-                $q2->where('company_id', $selectedCompanyId);
-            })->orWhere('vendor_company_id', $selectedCompanyId);
-        })->where('resolution_status', 'resolved')->count();
+        if ($view === 'vendor') {
+            $pendingQuery->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            });
+            $resolvedQuery->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            });
+        } else {
+            $pendingQuery->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            });
+            $resolvedQuery->whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            });
+        }
 
-        return view('procurement.grr.index', compact('grrList', 'filter', 'pendingCount', 'resolvedCount'));
+        $pendingCount = $pendingQuery->count();
+        $resolvedCount = $resolvedQuery->count();
+
+        return view('procurement.grr.index', compact('grrList', 'filter', 'pendingCount', 'resolvedCount', 'view'));
     }
 
     /**
@@ -177,9 +192,9 @@ class GoodsReturnRequestController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
 
-        // Only buyer can set resolution type
-        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
-            abort(403, 'Only buyer can set resolution type.');
+        // Only buyer with 'approve goods return' permission can set resolution type
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'approve goods return')) {
+            abort(403, 'Only authorized buyers can set resolution type.');
         }
 
         $goodsReturnRequest->update([
@@ -293,8 +308,9 @@ class GoodsReturnRequestController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $purchaseOrder = $goodsReturnRequest->goodsReceiptItem->goodsReceipt->purchaseOrder;
 
-        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId) {
-            abort(403, 'Only buyer can confirm receipt.');
+        // Only buyer with 'access goods receipt' permission can confirm receipt
+        if ($purchaseOrder->purchaseRequisition->company_id != $selectedCompanyId || !Auth::user()->hasCompanyPermission($selectedCompanyId, 'access goods receipt')) {
+            abort(403, 'Only authorized buyers can confirm receipt.');
         }
 
         DB::beginTransaction();

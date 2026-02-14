@@ -19,11 +19,27 @@ class CompanyController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        $isMember = $user->companies()->exists();
+        $isOwner = $user->ownedCompanies()->exists();
+
+        if ($isMember && !$isOwner) {
+            return redirect()->route('companies.index')->with('error', 'Only owners can create additional companies while tied to an existing company.');
+        }
+
         return view('company.create');
     }
 
     public function store(StoreCompanyRequest $request)
     {
+        $user = Auth::user();
+        $isMember = $user->companies()->exists();
+        $isOwner = $user->ownedCompanies()->exists();
+
+        if ($isMember && !$isOwner) {
+            abort(403, 'Unauthorized. Only owners can create additional companies while tied to an existing company.');
+        }
+
         $data = $request->validated();
         $data['user_id'] = Auth::id();
         $data['status'] = 'pending';
@@ -37,7 +53,7 @@ class CompanyController extends Controller
 
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (! empty($location)) {
+                if (!empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }
@@ -128,7 +144,7 @@ class CompanyController extends Controller
         $company->locations()->delete();
         if ($request->has('locations')) {
             foreach ($request->locations as $location) {
-                if (! empty($location)) {
+                if (!empty($location)) {
                     $company->locations()->create(['address' => $location]);
                 }
             }

@@ -344,11 +344,25 @@
                         </div>
 
                         @if($isBuyer && $purchaseOrder->status === 'issued' && $purchaseOrder->items->sum('quantity_received') < $purchaseOrder->items->sum('quantity_ordered'))
-                            <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" 
-                               class="w-full py-4 bg-white dark:bg-gray-800 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white transition flex items-center justify-center gap-2 rounded-2xl font-black text-sm shadow-xl shadow-primary-500/5">
-                                <i data-feather="plus-circle" class="w-4 h-4"></i>
-                                Log Receipt
-                            </a>
+                            @php
+                                $hasShippedDO = $purchaseOrder->deliveryOrders()->where('status', 'shipped')->exists();
+                            @endphp
+                            
+                            @if($hasShippedDO)
+                                <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" 
+                                   class="w-full py-4 bg-white dark:bg-gray-800 border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white transition flex items-center justify-center gap-2 rounded-2xl font-black text-sm shadow-xl shadow-primary-500/5">
+                                    <i data-feather="plus-circle" class="w-4 h-4"></i>
+                                    Log Receipt
+                                </a>
+                            @else
+                                <button disabled class="w-full py-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed flex items-center justify-center gap-2 rounded-2xl font-black text-sm">
+                                    <i data-feather="clock" class="w-4 h-4"></i>
+                                    Waiting for Shipment
+                                </button>
+                                <p class="text-[10px] text-center text-gray-400 mt-2 italic">
+                                    You can log receipt once the vendor marks the order as shipped.
+                                </p>
+                            @endif
                         @endif
                     </div>
                 </div>

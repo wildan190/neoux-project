@@ -8,10 +8,14 @@ use Modules\Procurement\Http\Controllers\GoodsReceiptController;
 use Modules\Procurement\Http\Controllers\GoodsReturnRequestController;
 use Modules\Procurement\Http\Controllers\InvoiceController;
 use Modules\Procurement\Http\Controllers\OfferController;
+use Modules\Procurement\Http\Controllers\ProcurementApprovalController;
 use Modules\Procurement\Http\Controllers\PurchaseOrderController;
 use Modules\Procurement\Http\Controllers\PurchaseRequisitionController;
 
 Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('procurement.')->group(function () {
+
+    // Approvals Dashboard
+    Route::get('/approvals', [ProcurementApprovalController::class, 'index'])->name('approvals.index');
 
     // Marketplace Routes
     Route::prefix('marketplace')->name('marketplace.')->group(function () {

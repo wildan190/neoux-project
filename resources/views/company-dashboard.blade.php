@@ -151,6 +151,56 @@
 
     </div>
 
+    {{-- MY TASKS SECTION --}}
+    @if(count($tasks) > 0)
+    <div class="mt-10">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Tugas Saya</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Aksi yang memerlukan perhatian Anda</p>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400">
+                {{ count($tasks) }} Pending
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($tasks as $task)
+            <a href="{{ $task['url'] }}" class="group p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                        {{ $task['priority'] === 'high' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' }}">
+                        @if($task['type'] === 'pr_approval')
+                            <i data-feather="check-square" class="w-5 h-5"></i>
+                        @elseif($task['type'] === 'winner_approval' || $task['type'] === 'po_acceptance')
+                            <i data-feather="award" class="w-5 h-5"></i>
+                        @elseif($task['type'] === 'invoice_purchasing' || $task['type'] === 'invoice_finance')
+                            <i data-feather="credit-card" class="w-5 h-5"></i>
+                        @else
+                            <i data-feather="alert-circle" class="w-5 h-5"></i>
+                        @endif
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ $task['title'] }}</h4>
+                            <span class="text-[10px] uppercase font-bold tracking-wider {{ $task['priority'] === 'high' ? 'text-red-600' : 'text-orange-600' }}">
+                                {{ $task['priority'] }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                            {{ $task['description'] }}
+                        </p>
+                        <div class="mt-3 flex items-center text-primary-600 dark:text-primary-400 text-xs font-bold group-hover:gap-2 transition-all">
+                            Selesaikan Sekarang <i data-feather="arrow-right" class="w-3 h-3 ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 
     {{-- CHART --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-10">

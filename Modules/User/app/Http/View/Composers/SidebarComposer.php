@@ -16,7 +16,7 @@ class SidebarComposer
     public function compose(View $view)
     {
         $user = Auth::user();
-        if (! $user) {
+        if (!$user) {
             return;
         }
 
@@ -37,6 +37,8 @@ class SidebarComposer
             'invoices_vendor' => 0,
             'return_requests_vendor' => 0,
             'debit_notes_vendor' => 0,
+            'pending_prs' => 0,
+            'pending_invoices' => 0,
         ];
 
         if ($selectedCompanyId) {
@@ -118,6 +120,17 @@ class SidebarComposer
                     $q->where('vendor_company_id', $selectedCompanyId);
                 })
                 ->whereNull('approved_by_vendor_at')
+                ->count();
+
+            // Quick Approvals Counts
+            $counts['pending_prs'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
+                ->where('approval_status', 'like', 'pending%')
+                ->count();
+
+            $counts['pending_invoices'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->whereIn('status', ['matched', 'vendor_approved', 'purchasing_approved'])
                 ->count();
         }
 

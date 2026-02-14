@@ -125,6 +125,11 @@ class MarketplaceController extends Controller
         // Generate PR Number
         $prNumber = 'PR-' . date('Y') . '-' . strtoupper(Str::random(6));
 
+        $approvalStatus = 'pending'; // For marketplace, default to pending instead of draft
+        $status = 'pending';
+        $tenderStatus = 'closed';
+        $submittedAt = now();
+
         // Create Purchase Requisition (B2B Tender)
         $pr = PurchaseRequisition::create([
             'pr_number' => $prNumber,
@@ -132,11 +137,12 @@ class MarketplaceController extends Controller
             'user_id' => $user->id,
             'title' => $request->title ?: 'Tender Request - ' . now()->format('d M Y'),
             'description' => 'Tender request from Marketplace',
-            'status' => 'pending',
-            'approval_status' => 'pending_head', // Initial approval state
+            'status' => $status,
+            'approval_status' => $approvalStatus,
             'type' => 'tender',
-            'tender_status' => 'closed', // Will open after approval
-            'delivery_point' => $cart[array_key_first($cart)]['delivery_point'] ?? null, // Use first item's as general if needed
+            'tender_status' => $tenderStatus,
+            'submitted_at' => $submittedAt,
+            'delivery_point' => $cart[array_key_first($cart)]['delivery_point'] ?? null,
         ]);
 
         foreach ($cart as $id => $details) {

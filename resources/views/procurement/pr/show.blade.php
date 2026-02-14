@@ -34,42 +34,28 @@
                 </div>
             </div>
 
-            <!-- Step 2: Supervisor Approval -->
-            <div class="bg-white dark:bg-gray-800 px-4">
-                <div class="flex flex-col items-center">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white mb-2
-                        {{ in_array($purchaseRequisition->approval_status, ['pending_head', 'approved', 'awarded', 'ordered']) ? 'bg-green-600' : 
-                          ($purchaseRequisition->approval_status === 'pending_supervisor' ? 'bg-blue-600 animate-pulse' : 'bg-gray-300 dark:bg-gray-600') }}">
-                         @if(in_array($purchaseRequisition->approval_status, ['pending_head', 'approved', 'awarded', 'ordered'])) <i data-feather="check" class="w-4 h-4"></i> @else 2 @endif
-                    </div>
-                    <span class="text-xs font-bold 
-                        {{ in_array($purchaseRequisition->approval_status, ['pending_head', 'approved', 'awarded', 'ordered']) ? 'text-green-600' : 
-                          ($purchaseRequisition->approval_status === 'pending_supervisor' ? 'text-blue-600' : 'text-gray-500') }}">Supervisor</span>
-                </div>
-            </div>
-
-            <!-- Step 3: Head Approval -->
+            <!-- Step 2: Pending Approval -->
             <div class="bg-white dark:bg-gray-800 px-4">
                 <div class="flex flex-col items-center">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white mb-2
                         {{ in_array($purchaseRequisition->approval_status, ['approved', 'awarded', 'ordered']) ? 'bg-green-600' : 
-                          ($purchaseRequisition->approval_status === 'pending_head' ? 'bg-blue-600 animate-pulse' : 'bg-gray-300 dark:bg-gray-600') }}">
-                         @if(in_array($purchaseRequisition->approval_status, ['approved', 'awarded', 'ordered'])) <i data-feather="check" class="w-4 h-4"></i> @else 3 @endif
+                          ($purchaseRequisition->approval_status === 'pending' ? 'bg-blue-600 animate-pulse' : 'bg-gray-300 dark:bg-gray-600') }}">
+                         @if(in_array($purchaseRequisition->approval_status, ['approved', 'awarded', 'ordered'])) <i data-feather="check" class="w-4 h-4"></i> @else 2 @endif
                     </div>
                     <span class="text-xs font-bold 
                         {{ in_array($purchaseRequisition->approval_status, ['approved', 'awarded', 'ordered']) ? 'text-green-600' : 
-                          ($purchaseRequisition->approval_status === 'pending_head' ? 'text-blue-600' : 'text-gray-500') }}">Head Approver</span>
+                          ($purchaseRequisition->approval_status === 'pending' ? 'text-blue-600' : 'text-gray-500') }}">Approval</span>
                 </div>
             </div>
 
-             <!-- Step 4: Approved/Tender -->
-             <div class="bg-white dark:bg-gray-800 px-4">
+            <!-- Step 3: Approved/Tender -->
+            <div class="bg-white dark:bg-gray-800 px-4">
                 <div class="flex flex-col items-center">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white mb-2
-                        {{ $purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered' ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600' }}">
-                        @if($purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered') <i data-feather="check" class="w-4 h-4"></i> @else 4 @endif
+                        {{ $purchaseRequisition->approval_status === 'approved' || $purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered' ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600' }}">
+                         @if($purchaseRequisition->approval_status === 'approved' || $purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered') <i data-feather="check" class="w-4 h-4"></i> @else 3 @endif
                     </div>
-                    <span class="text-xs font-bold {{ $purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered' ? 'text-green-600' : 'text-gray-500' }}">
+                    <span class="text-xs font-bold {{ $purchaseRequisition->approval_status === 'approved' || $purchaseRequisition->status === 'open' || $purchaseRequisition->status === 'awarded' || $purchaseRequisition->status === 'ordered' ? 'text-green-600' : 'text-gray-500' }}">
                         {{ $purchaseRequisition->type === 'tender' ? 'Tender Open' : 'Approved' }}
                     </span>
                 </div>
@@ -80,27 +66,17 @@
     {{-- Approval Actions Section --}}
     @php
         $currentUser = Auth::user();
-        $userRole = $currentUser->companies->find($purchaseRequisition->company_id)?->pivot->role ?? 'staff';
-        $isSupervisor = $purchaseRequisition->approver_id === $currentUser->id;
-        $isHead = $purchaseRequisition->head_approver_id === $currentUser->id;
+        $companyId = $purchaseRequisition->company_id;
         $isCreator = $purchaseRequisition->user_id === $currentUser->id;
-        $isCompanyOwner = $purchaseRequisition->company->user_id === $currentUser->id;
-        $isAdmin = $userRole === 'admin';
-        $isManager = $userRole === 'manager';
         
-        $canApproveSupervisor = $purchaseRequisition->approval_status === 'pending_supervisor' && ($isSupervisor || $isAdmin || $isCompanyOwner);
-        $canApproveHead = $purchaseRequisition->approval_status === 'pending_head' && ($isHead || $isAdmin || $isCompanyOwner);
+        $canApprove = str_starts_with($purchaseRequisition->approval_status, 'pending') && $currentUser->hasCompanyPermission($companyId, 'approve pr');
     @endphp
 
-    @if($canApproveSupervisor || $canApproveHead)
+    @if($canApprove)
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border-l-4 border-yellow-500 p-6 mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Approval Required</h3>
             <p class="text-gray-600 dark:text-gray-400 mb-4">
-                @if($canApproveSupervisor)
-                    This requisition is waiting for <strong>Supervisor</strong> approval.
-                @else
-                    This requisition is waiting for <strong>Head</strong> approval.
-                @endif
+                This requisition is waiting for <strong>Purchasing Manager</strong> approval.
             </p>
             <form action="{{ route('procurement.pr.approve', $purchaseRequisition) }}" method="POST" class="inline-block" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
@@ -119,45 +95,14 @@
     @endif
 
     {{-- Submission Section --}}
-    @if(($purchaseRequisition->approval_status === 'draft' || $purchaseRequisition->approval_status === 'rejected') && ($isCreator || $isAdmin))
+    @if(($purchaseRequisition->approval_status === 'draft' || $purchaseRequisition->approval_status === 'rejected') && ($isCreator || Auth::user()->hasCompanyPermission($companyId, 'create pr')))
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Submit for Approval</h3>
             <form action="{{ route('procurement.pr.submit-approval', $purchaseRequisition) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Supervisor</label>
-                        <select name="approver_id" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                             <option value="">-- Choose Supervisor --</option>
-                             @foreach($purchaseRequisition->company->members as $member)
-                                 @if(in_array($member->pivot->role, ['admin', 'manager', 'approver']))
-                                     <option value="{{ $member->id }}">{{ $member->name }} ({{ ucfirst($member->pivot->role) }})</option>
-                                 @endif
-                             @endforeach
-                             @if($purchaseRequisition->company->user && !in_array($purchaseRequisition->company->user->pivot->role ?? '', ['admin', 'manager', 'approver']))
-                                <option value="{{ $purchaseRequisition->company->user_id }}">
-                                    {{ $purchaseRequisition->company->user->name }} (Owner)
-                                </option>
-                             @endif
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select Head Approver</label>
-                        <select name="head_approver_id" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                             <option value="">-- Choose Head Approver --</option>
-                             @foreach($purchaseRequisition->company->members as $member)
-                                 @if(in_array($member->pivot->role, ['admin', 'manager']))
-                                     <option value="{{ $member->id }}">{{ $member->name }} ({{ ucfirst($member->pivot->role) }})</option>
-                                 @endif
-                             @endforeach
-                             @if($purchaseRequisition->company->user)
-                                <option value="{{ $purchaseRequisition->company->user_id }}">
-                                    {{ $purchaseRequisition->company->user->name }} (Owner)
-                                </option>
-                             @endif
-                        </select>
-                    </div>
-                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Ready to submit? This request will be sent to the Purchasing Manager for final review and approval.
+                </p>
                 <div class="flex justify-end">
                     <button type="submit" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow-sm transition">
                         Submit PR for Approval
@@ -167,38 +112,7 @@
         </div>
     @endif
 
-    {{-- Assignment Section (Admin/Manager/Owner) --}}
-    @if($isAdmin || $isManager || $isCompanyOwner)
-         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Task Assignment</h3>
-             <form action="{{ route('procurement.pr.assign', $purchaseRequisition) }}" method="POST" class="max-w-md" onsubmit="return handlePrFormSubmit(this)">
-                @csrf
-                <div class="flex gap-4 items-end">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign To</label>
-                        <select name="assigned_to" required class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500">
-                             <option value="">Select Member</option>
-                             {{-- Add Owner Explicitly if not in members list --}}
-                             @if($purchaseRequisition->company->user)
-                                <option value="{{ $purchaseRequisition->company->user_id }}" {{ $purchaseRequisition->assigned_to == $purchaseRequisition->company->user_id ? 'selected' : '' }}>
-                                    {{ $purchaseRequisition->company->user->name }} (Owner)
-                                </option>
-                             @endif
-                             
-                             @foreach($purchaseRequisition->company->members as $member)
-                                 <option value="{{ $member->id }}" {{ $purchaseRequisition->assigned_to == $member->id ? 'selected' : '' }}>
-                                     {{ $member->name }} ({{ ucfirst($member->pivot->role) }})
-                                 </option>
-                             @endforeach
-                        </select>
-                    </div>
-                    <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-sm transition">
-                        Assign
-                    </button>
-                </div>
-            </form>
-        </div>
-    @endif
+
 
     <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">

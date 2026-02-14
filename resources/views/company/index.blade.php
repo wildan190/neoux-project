@@ -7,16 +7,25 @@
 ])
 
 @section('content')
+
+@php
+    $user = auth()->user();
+    $hasCompanies = $companies->isNotEmpty();
+    $isOwner = $user->ownedCompanies()->exists();
+    $isRestricted = $hasCompanies && !$isOwner;
+@endphp
     {{-- Header Section --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
         <div>
             <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">My Companies</h2>
             <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">Manage your registered entities and businesses.</p>
         </div>
+        @if(!$isRestricted)
         <a href="{{ route('companies.create') }}" class="w-full md:w-auto group relative inline-flex items-center justify-center px-6 py-3 text-sm md:text-base font-medium text-white transition-all duration-200 bg-primary-600 border border-transparent rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50">
             <i data-feather="plus" class="w-5 h-5 mr-2 -ml-1 transition-transform group-hover:rotate-90"></i>
             Register New Company
         </a>
+        @endif
     </div>
 
     @if(session('success'))
@@ -92,6 +101,7 @@
         </div>
         @endforeach
         
+        @if(!$isRestricted)
         {{-- Add New Card (Empty State) --}}
         <a href="{{ route('companies.create') }}" class="group bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-all duration-300 flex flex-col items-center justify-center h-full min-h-[300px] md:min-h-[380px] cursor-pointer">
             <div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -100,6 +110,7 @@
             <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">Register New Company</h3>
             <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1">Add another business entity</p>
         </a>
+        @endif
     </div>
 
     @if($companies->isEmpty())
