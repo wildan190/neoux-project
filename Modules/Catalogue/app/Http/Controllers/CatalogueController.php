@@ -37,7 +37,7 @@ class CatalogueController extends Controller
         }
 
         $query = CatalogueProduct::where('company_id', $companyId)
-            ->with(['category', 'items']); // Load items to show count or price range
+            ->with(['category', 'items.images']); // Added items.images to prevent N+1 on thumbnail
 
         if ($request->has('category') && $request->category) {
             $query->where('category_id', $request->category);

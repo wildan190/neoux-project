@@ -194,7 +194,12 @@
             <div class="h-48 bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
                 @php
                     $firstItem = $product->items->first();
-                    $image = $firstItem ? $firstItem->primaryImage : null;
+                    // Use eager loaded 'images' collection instead of 'primaryImage' relationship
+                    $image = $firstItem ? $firstItem->images->firstWhere('is_primary', true) : null;
+                    // Fallback to first image if no primary is marked
+                    if (!$image && $firstItem) {
+                        $image = $firstItem->images->first();
+                    }
                 @endphp
                 
                 @if($image)
