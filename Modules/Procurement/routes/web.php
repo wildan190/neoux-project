@@ -9,6 +9,7 @@ use Modules\Procurement\Http\Controllers\GoodsReturnRequestController;
 use Modules\Procurement\Http\Controllers\InvoiceController;
 use Modules\Procurement\Http\Controllers\OfferController;
 use Modules\Procurement\Http\Controllers\ProcurementApprovalController;
+use Modules\Procurement\Http\Controllers\ProcurementController;
 use Modules\Procurement\Http\Controllers\PurchaseOrderController;
 use Modules\Procurement\Http\Controllers\PurchaseRequisitionController;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
 
     // Approvals Dashboard
     Route::get('/approvals', [ProcurementApprovalController::class, 'index'])->name('approvals.index');
+
+    // Guide
+    Route::get('/guide', [ProcurementController::class, 'guide'])->name('guide');
 
     // Marketplace Routes
     Route::prefix('marketplace')->name('marketplace.')->group(function () {
