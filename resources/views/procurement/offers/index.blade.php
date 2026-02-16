@@ -8,6 +8,10 @@
 ])
 
 @section('content')
+    @php
+        $canApprove = Auth::user()->hasCompanyPermission($purchaseRequisition->company_id, 'approve pr');
+    @endphp
+
     {{-- PR Summary Card --}}
     <div
         class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-6">
@@ -459,7 +463,6 @@
                             </div>
 
                             @php
-                                $canApprove = Auth::user()->hasCompanyPermission($purchaseRequisition->company_id, 'approve pr');
                                 $isApprover = $canApprove;
                             @endphp
 

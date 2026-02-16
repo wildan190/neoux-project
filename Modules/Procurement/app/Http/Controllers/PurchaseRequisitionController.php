@@ -59,9 +59,20 @@ class PurchaseRequisitionController extends Controller
     {
         // Fetch catalogue items for the dropdown
         $companyId = session('selected_company_id');
-        $catalogueItems = CatalogueItem::where('company_id', $companyId)->get();
 
-        return view('procurement.pr.create', compact('catalogueItems'));
+        // My Catalogue Items
+        $myItems = CatalogueItem::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->with(['product'])
+            ->get();
+
+        // Marketplace Items (Everything else)
+        $marketplaceItems = CatalogueItem::where('company_id', '!=', $companyId)
+            ->where('is_active', true)
+            ->with(['product', 'company'])
+            ->get();
+
+        return view('procurement.pr.create', compact('myItems', 'marketplaceItems'));
     }
 
     public function store(Request $request)
@@ -104,7 +115,7 @@ class PurchaseRequisitionController extends Controller
                 // No auto-approval; everything starts as draft.
                 $approvalStatus = 'draft';
                 $status = 'draft';
-                $tenderStatus = null;
+                $tenderStatus = 'draft'; // Fix: Default to 'draft' instead of null
                 $submittedAt = null;
 
                 $requisition = PurchaseRequisition::create([

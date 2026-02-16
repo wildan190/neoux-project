@@ -139,7 +139,8 @@
 
     <script>
         let itemIndex = 0;
-        const catalogueItems = @json($catalogueItems);
+        const myItems = @json($myItems);
+        const marketplaceItems = @json($marketplaceItems);
 
         function addItem() {
             const container = document.getElementById('items-container');
@@ -151,17 +152,58 @@
             itemDiv.id = `item-row-${itemIndex}`;
             itemDiv.className = 'bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group relative transition-all hover:border-primary-200 dark:hover:border-primary-800';
             
-            // Generate options list for custom dropdown
+            // Generate options list for custom dropdown with Groups
             let optionsHtml = '';
-            catalogueItems.forEach(item => {
-                optionsHtml += `
-                    <li class="custom-select-option px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-200" 
-                        data-value="${item.id}" data-text="${item.name} (${item.sku})">
-                        <div class="font-medium">${item.name}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">${item.sku}</div>
-                    </li>
-                `;
-            });
+
+            // Group 1: My Catalogue
+            if (myItems.length > 0) {
+                optionsHtml += `<li class="px-3 py-1 text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 dark:bg-gray-800">My Catalogue</li>`;
+                myItems.forEach(item => {
+                    // Fallback name if product relation is missing
+                    let itemName = item.name; 
+                    if (!itemName && item.product) itemName = item.product.name;
+                    if (!itemName) itemName = 'Unnamed Item';
+
+                    optionsHtml += `
+                        <li class="custom-select-option px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-200 pl-6 border-l-2 border-transparent hover:border-primary-500" 
+                            data-value="${item.id}" data-text="${itemName} (${item.sku})" data-price="${item.price}">
+                            <div class="font-medium">${itemName}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
+                                <span>${item.sku}</span>
+                                <span class="font-semibold text-primary-600">Rp ${new Intl.NumberFormat('id-ID').format(item.price)}</span>
+                            </div>
+                        </li>
+                    `;
+                });
+            }
+
+            // Group 2: Marketplace
+            if (marketplaceItems.length > 0) {
+                optionsHtml += `<li class="px-3 py-1 text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-100 dark:bg-gray-800 mt-2">Marketplace</li>`;
+                marketplaceItems.forEach(item => {
+                    let itemName = item.name; 
+                    if (!itemName && item.product) itemName = item.product.name;
+                    if (!itemName) itemName = 'Unnamed Item';
+                    
+                    let vendorName = item.company ? item.company.name : 'Unknown Vendor';
+
+                    optionsHtml += `
+                        <li class="custom-select-option px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-sm text-gray-700 dark:text-gray-200 pl-6 border-l-2 border-transparent hover:border-blue-500" 
+                            data-value="${item.id}" data-text="${itemName} (${vendorName})" data-price="${item.price}">
+                            <div class="font-medium flex items-center justify-between">
+                                ${itemName}
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                    ${vendorName}
+                                </span>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 flex justify-between mt-0.5">
+                                <span>${item.sku}</span>
+                                <span class="font-semibold text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(item.price)}</span>
+                            </div>
+                        </li>
+                    `;
+                });
+            }
 
             itemDiv.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
@@ -292,9 +334,16 @@
                 
                 const value = option.getAttribute('data-value');
                 const text = option.getAttribute('data-text');
+                const price = option.getAttribute('data-price');
 
                 // Update hidden input
                 input.value = value;
+                
+                // Auto-fill price input
+                const priceInput = container.closest('.grid').querySelector('input[name$="[price]"]');
+                if (priceInput && price) {
+                    priceInput.value = price;
+                }
                 
                 // Update trigger text
                 const span = trigger.querySelector('span');
