@@ -60,4 +60,25 @@ class ProcurementController extends Controller
     {
         return view('procurement.guide');
     }
+
+    /**
+     * Switch between Buyer and Vendor modes.
+     */
+    public function switchMode(Request $request)
+    {
+        $mode = $request->input('mode');
+
+        if (!in_array($mode, ['buyer', 'vendor'])) {
+            return back()->with('error', 'Invalid mode.');
+        }
+
+        session(['procurement_mode' => $mode]);
+
+        // Redirect based on the selected mode
+        if ($mode === 'vendor') {
+            return redirect()->route('procurement.pr.public-feed')->with('success', 'Switched to Selling mode.');
+        }
+
+        return redirect()->route('procurement.pr.index')->with('success', 'Switched to Buying mode.');
+    }
 }

@@ -7,50 +7,13 @@
 ])
 
 @section('content')
-    {{-- Role Indicator Banner --}}
-    <div class="mb-6 rounded-2xl p-4 flex items-center justify-between border {{ $currentView === 'vendor' ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800' : 'bg-primary-50 border-primary-100 dark:bg-primary-900/10 dark:border-primary-800' }}">
-        <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center {{ $currentView === 'vendor' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' }}">
-                <i data-feather="{{ $currentView === 'vendor' ? 'file-text' : 'credit-card' }}" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h2 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Viewing as</h2>
-                <p class="text-xl font-black {{ $currentView === 'vendor' ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary-600 dark:text-primary-400' }}">
-                    {{ $currentView === 'vendor' ? 'VENDOR (Selling)' : 'BUYER (Buying)' }}
-                </p>
-            </div>
-        </div>
-        <div class="hidden md:block text-right">
-            <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs italic">
-                {{ $currentView === 'vendor' ? 'Track invoices you have sent to customers and monitor payment statuses.' : 'Review and manage invoices received from vendors for goods and services.' }}
-            </p>
-        </div>
-    </div>
-
-    {{-- Tabs Navigation --}}
     <div class="mb-6">
-        <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex space-x-8">
-                <a href="{{ route('procurement.invoices.index', ['view' => 'buyer']) }}"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                           {{ $currentView === 'buyer' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    <i data-feather="file-text" class="w-4 h-4 inline mr-2"></i>
-                    Received Invoices (Buyer)
-                    <span class="ml-2 py-0.5 px-2 rounded-full text-xs {{ $currentView === 'buyer' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }}">
-                        {{ $buyerInvoices->flatten()->count() }}
-                    </span>
-                </a>
-                <a href="{{ route('procurement.invoices.index', ['view' => 'vendor']) }}"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                           {{ $currentView === 'vendor' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                    <i data-feather="send" class="w-4 h-4 inline mr-2"></i>
-                    Submitted Invoices (Vendor)
-                    <span class="ml-2 py-0.5 px-2 rounded-full text-xs {{ $currentView === 'vendor' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }}">
-                        {{ $vendorInvoices->flatten()->count() }}
-                    </span>
-                </a>
-            </nav>
-        </div>
+        <h1 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+            {{ $currentView === 'vendor' ? 'Sent Invoices (Sales)' : 'Received Invoices (Procurement)' }}
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ $currentView === 'vendor' ? 'Track invoices you have sent to customers and monitor payment statuses.' : 'Review and manage invoices received from vendors for goods and services.' }}
+        </p>
     </div>
 
     @if($currentView === 'buyer')

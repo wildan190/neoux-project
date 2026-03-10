@@ -26,7 +26,7 @@ class DebitNoteController extends Controller
             }
         }
 
-        $view = $request->get('view', 'buyer'); // Default to buyer view
+        $view = $request->get('view', session('procurement_mode', 'buyer')); // Default to session mode
 
         $query = DebitNote::with([
             'goodsReturnRequest.goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition.company',

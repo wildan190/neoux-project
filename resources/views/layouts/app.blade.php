@@ -202,6 +202,22 @@
                                 </div>
                             </div>
 
+                            {{-- Switch Buyer/Vendor mode --}}
+                            @php
+                                $procurementMode = session('procurement_mode', 'buyer');
+                            @endphp
+                            <form action="{{ route('procurement.mode.switch') }}" method="POST" class="hidden md:block">
+                                @csrf
+                                <input type="hidden" name="mode" value="{{ $procurementMode === 'buyer' ? 'vendor' : 'buyer' }}">
+                                <button type="submit" 
+                                    class="px-4 py-1.5 rounded-lg border-2 font-bold text-sm transition-all
+                                    {{ $procurementMode === 'buyer' 
+                                        ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white dark:border-primary-400 dark:text-primary-400' 
+                                        : 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white dark:border-green-400 dark:text-green-400' }}">
+                                    Switch to {{ $procurementMode === 'buyer' ? 'Selling' : 'Buying' }}
+                                </button>
+                            </form>
+
                             {{-- Dark Mode --}}
                             <button id="darkModeToggle"
                                 class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">

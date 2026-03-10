@@ -108,6 +108,9 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::post('/{offer}/approve-winner', [OfferController::class, 'approveWinner'])->name('approve-winner');
     });
 
+    // Global Mode Switch
+    Route::post('/switch-mode', [ProcurementController::class, 'switchMode'])->name('mode.switch');
+
     // Goods Return Requests (GRR)
     Route::prefix('grr')->name('grr.')->group(function () {
         Route::get('/', [GoodsReturnRequestController::class, 'index'])->name('index');
