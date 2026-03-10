@@ -86,40 +86,39 @@ class NotificationController extends Controller
         ];
 
         if ($selectedCompanyId) {
-            // My Requisitions
+            // My Requisitions - Pending Approvals for this company
             $counts['my_requisitions'] = PurchaseRequisition::where('company_id', $selectedCompanyId)
                 ->where('approval_status', 'pending')
                 ->count();
 
-            // Buyer POs
-            $counts['purchase_orders_buyer'] = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($selectedCompanyId) {
-                $q->where('company_id', $selectedCompanyId);
-            })
+            // Buyer POs - Direct lookup using company_id on PO
+            $counts['purchase_orders_buyer'] = PurchaseOrder::where('company_id', $selectedCompanyId)
                 ->where('status', 'confirmed')
                 ->count();
 
-            // Buyer Invoices
-            $counts['invoices_buyer'] = Invoice::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+            // Buyer Invoices - Join via PurchaseOrder (which has company_id)
+            $counts['invoices_buyer'] = Invoice::whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
                 $q->where('company_id', $selectedCompanyId);
             })
                 ->where('status', 'pending')
                 ->count();
 
-            // Buyer Return Requests
-            $counts['return_requests_buyer'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+            // Buyer Return Requests - Deep join simplified to join via PurchaseOrder
+            $counts['return_requests_buyer'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
                 $q->where('company_id', $selectedCompanyId);
             })
                 ->where('resolution_status', 'pending')
                 ->count();
 
-            // Buyer Debit Notes
-            $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+            // Buyer Debit Notes - Join via PurchaseOrder
+            $counts['debit_notes_buyer'] = DebitNote::whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
                 $q->where('company_id', $selectedCompanyId);
             })
                 ->whereNull('approved_by_vendor_at')
                 ->count();
 
-            // All Requests
+            // Vendor Section: All Requests (Tenders from other companies)
+            // Note: This is still a bit heavy, but indexed status 'open' helps.
             $counts['all_requests'] = PurchaseRequisition::where('company_id', '!=', $selectedCompanyId)
                 ->where('tender_status', 'open')
                 ->whereDoesntHave('offers', function ($q) use ($selectedCompanyId) {
@@ -132,28 +131,27 @@ class NotificationController extends Controller
                 ->where('status', 'pending')
                 ->count();
 
-            // Vendor POs
+            // Vendor POs - Direct lookup using vendor_company_id on PO
             $counts['purchase_orders_vendor'] = PurchaseOrder::where('vendor_company_id', $selectedCompanyId)
                 ->where('status', 'pending_vendor_acceptance')
                 ->count();
 
-            // Vendor Invoices
+            // Vendor Invoices - Direct lookup using vendor_company_id on Invoice
             $counts['invoices_vendor'] = Invoice::where('vendor_company_id', $selectedCompanyId)
                 ->where('status', 'pending')
                 ->count();
 
-            // Vendor Return Requests
+            // Vendor Return Requests - Simplified join via PurchaseOrder
             $counts['return_requests_vendor'] = GoodsReturnRequest::whereHas('goodsReceiptItem.goodsReceipt.purchaseOrder', function ($q) use ($selectedCompanyId) {
                 $q->where('vendor_company_id', $selectedCompanyId);
             })
                 ->where('resolution_status', 'pending')
                 ->count();
 
-            // Vendor Debit Notes
-            $counts['debit_notes_vendor'] = DebitNote::where('purchase_order_id', '!=', null)
-                ->whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
-                    $q->where('vendor_company_id', $selectedCompanyId);
-                })
+            // Vendor Debit Notes - Simplified join via PurchaseOrder
+            $counts['debit_notes_vendor'] = DebitNote::whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('vendor_company_id', $selectedCompanyId);
+            })
                 ->whereNull('approved_by_vendor_at')
                 ->count();
 

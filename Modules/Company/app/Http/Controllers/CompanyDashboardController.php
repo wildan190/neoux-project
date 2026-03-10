@@ -151,39 +151,32 @@ class CompanyDashboardController extends Controller
     {
         $stats = [];
         $now = Carbon::now();
-        $lastMonth = Carbon::now()->subMonth();
+        $startOfThisMonth = $now->copy()->startOfMonth();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
 
         if ($isBuyer) {
-            // Total Purchase Requisitions
+            // Total Purchase Requisitions (Consolidate if possible, but these stay for now)
             $prTotal = $company->purchaseRequisitions()->count();
-            $prLastMonth = $company->purchaseRequisitions()
-                ->where('created_at', '<', $now->startOfMonth())
-                ->where('created_at', '>=', $lastMonth->startOfMonth())
-                ->count();
+
+            // Requisitions by month
             $prThisMonth = $company->purchaseRequisitions()
-                ->where('created_at', '>=', $now->startOfMonth())
+                ->where('created_at', '>=', $startOfThisMonth)
                 ->count();
 
-            // Total Purchase Orders (as buyer)
-            $poQuery = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
-                $q->where('company_id', $company->id);
-            });
-            $poTotal = $poQuery->count();
-            $poTotalAmount = $poQuery->sum('total_amount');
+            // Total Purchase Orders (as buyer) - Direct lookup using company_id on PO
+            $poBaseQuery = PurchaseOrder::where('company_id', $company->id);
+
+            $poTotalAmount = (float) $poBaseQuery->sum('total_amount');
 
             // Active POs
-            $activePOs = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
-                $q->where('company_id', $company->id);
-            })->whereIn('status', ['pending', 'approved', 'received'])->count();
+            $activePOs = (clone $poBaseQuery)->whereIn('status', ['pending', 'approved', 'received'])->count();
 
             // Vendors count (unique vendors from POs)
-            $vendorsCount = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
-                $q->where('company_id', $company->id);
-            })->distinct('vendor_company_id')->count('vendor_company_id');
+            $vendorsCount = (clone $poBaseQuery)->distinct('vendor_company_id')->count('vendor_company_id');
 
             $stats = [
                 'total_purchases' => $poTotalAmount,
-                'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0),
+                'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0), // Placeholder logic for now
                 'active_orders' => $activePOs,
                 'orders_change' => '+' . rand(1, 10) . '%',
                 'total_vendors' => $vendorsCount,
@@ -193,18 +186,15 @@ class CompanyDashboardController extends Controller
             ];
         } else {
             // For Vendor/Supplier
-            $poQuery = PurchaseOrder::where('vendor_company_id', $company->id);
-            $poTotal = $poQuery->count();
-            $poTotalAmount = $poQuery->sum('total_amount');
+            $poBaseQuery = PurchaseOrder::where('vendor_company_id', $company->id);
+            $poTotalAmount = (float) $poBaseQuery->sum('total_amount');
 
             // Approved/Won POs
-            $approvedPOs = PurchaseOrder::where('vendor_company_id', $company->id)
-                ->where('status', 'approved')
-                ->count();
+            $approvedPOs = (clone $poBaseQuery)->where('status', 'approved')->count();
 
             // Total Invoices
             $totalInvoices = Invoice::where('vendor_company_id', $company->id)->count();
-            $invoiceAmount = Invoice::where('vendor_company_id', $company->id)->sum('total_amount');
+            $invoiceAmount = (float) Invoice::where('vendor_company_id', $company->id)->sum('total_amount');
 
             // Catalogue items
             $catalogueItems = $company->catalogueItems()->count();
@@ -231,26 +221,32 @@ class CompanyDashboardController extends Controller
     {
         $months = [];
         $values = [];
+        $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
 
+        // 1. Fetch all relevant POs for the last 6 months in ONE query
+        if ($isBuyer) {
+            $pos = PurchaseOrder::where('company_id', $company->id)
+                ->where('created_at', '>=', $sixMonthsAgo)
+                ->select(['total_amount', 'created_at'])
+                ->get();
+        } else {
+            $pos = PurchaseOrder::where('vendor_company_id', $company->id)
+                ->where('created_at', '>=', $sixMonthsAgo)
+                ->select(['total_amount', 'created_at'])
+                ->get();
+        }
+
+        // 2. Group by month in PHP to save DB roundtrips and avoid complex group/format SQL
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
             $months[] = $date->format('M');
 
-            if ($isBuyer) {
-                $amount = PurchaseOrder::whereHas('purchaseRequisition', function ($q) use ($company) {
-                    $q->where('company_id', $company->id);
-                })
-                    ->whereYear('created_at', $date->year)
-                    ->whereMonth('created_at', $date->month)
-                    ->sum('total_amount');
-            } else {
-                $amount = PurchaseOrder::where('vendor_company_id', $company->id)
-                    ->whereYear('created_at', $date->year)
-                    ->whereMonth('created_at', $date->month)
-                    ->sum('total_amount');
-            }
+            $monthlySum = $pos->filter(function ($po) use ($monthKey) {
+                return $po->created_at->format('Y-m') === $monthKey;
+            })->sum('total_amount');
 
-            $values[] = round($amount / 1000000, 1); // Convert to millions
+            $values[] = round($monthlySum / 1000000, 1); // Convert to millions
         }
 
         return [
