@@ -325,96 +325,108 @@ class PurchaseRequisitionController extends Controller
             abort(403, 'Only owners or those with approval permission can approve this requisition.');
         }
 
-        $purchaseRequisition->update([
-            'approval_status' => 'approved',
-            'approval_notes' => $request->approval_notes,
-            'status' => 'open', // Becomes active Tender
-            'tender_status' => 'open',
-        ]);
+        DB::beginTransaction();
+        try {
+            $purchaseRequisition->update([
+                'approval_status' => 'approved',
+                'approval_notes' => $request->approval_notes,
+                'status' => 'open', // Becomes active Tender
+                'tender_status' => 'open',
+            ]);
 
-        // Notify all potential vendors (users in other companies)
-        if ($purchaseRequisition->type === 'tender') {
-            $vendors = \Modules\User\Models\User::where('id', '!=', Auth::id())->get();
-            foreach ($vendors as $vendor) {
-                $vendor->notify(new TenderPublished($purchaseRequisition));
+            // Notify all potential vendors (users in other companies)
+            if ($purchaseRequisition->type === 'tender') {
+                $vendors = \Modules\User\Models\User::where('id', '!=', Auth::id())->get();
+                foreach ($vendors as $vendor) {
+                    $vendor->notify(new TenderPublished($purchaseRequisition));
+                }
             }
-        }
 
-        // HANDLE DIRECT PURCHASE: Auto-generate PO(s)
-        if ($purchaseRequisition->type === 'direct') {
-            // Group items by Vendor (Catalogue Item's Company)
-            $itemsByVendor = $purchaseRequisition->items->groupBy(function ($item) {
-                return $item->catalogueItem->company_id;
-            });
+            // HANDLE DIRECT PURCHASE: Auto-generate PO(s)
+            if ($purchaseRequisition->type === 'direct') {
+                // Eager load items and their catalogue items to avoid N+1
+                $purchaseRequisition->load('items.catalogueItem');
 
-            foreach ($itemsByVendor as $vendorId => $items) {
-                // Generate PO for this Vendor
-                $poNumber = 'PO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
-
-                $totalAmount = $items->sum(function ($item) {
-                    return $item->quantity * $item->price;
+                // Group items by Vendor (Catalogue Item's Company)
+                $itemsByVendor = $purchaseRequisition->items->groupBy(function ($item) {
+                    return $item->catalogueItem->company_id;
                 });
 
-                $po = \Modules\Procurement\Models\PurchaseOrder::create([
-                    'po_number' => $poNumber,
-                    'purchase_requisition_id' => $purchaseRequisition->id,
-                    'vendor_company_id' => $vendorId,
-                    'created_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
-                    'total_amount' => $totalAmount,
-                    'status' => 'issued', // Immediately issued
-                ]);
+                foreach ($itemsByVendor as $vendorId => $items) {
+                    // Generate PO for this Vendor
+                    $poNumber = 'PO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
 
-                foreach ($items as $item) {
-                    \Modules\Procurement\Models\PurchaseOrderItem::create([
-                        'purchase_order_id' => $po->id,
-                        'purchase_requisition_item_id' => $item->id,
-                        'quantity_ordered' => $item->quantity,
-                        'quantity_received' => 0,
-                        'unit_price' => $item->price,
-                        'subtotal' => $item->quantity * $item->price,
+                    $totalAmount = $items->sum(function ($item) {
+                        return $item->quantity * $item->price;
+                    });
+
+                    $po = \Modules\Procurement\Models\PurchaseOrder::create([
+                        'po_number' => $poNumber,
+                        'purchase_requisition_id' => $purchaseRequisition->id,
+                        'vendor_company_id' => $vendorId,
+                        'created_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
+                        'total_amount' => $totalAmount,
+                        'status' => 'issued', // Immediately issued
                     ]);
 
-                    // Deduct Stock from Vendor (Seller)
-                    $catalogueItem = $item->catalogueItem;
-                    if ($catalogueItem) {
-                        $catalogueItem->decrement('stock', $item->quantity);
+                    foreach ($items as $item) {
+                        \Modules\Procurement\Models\PurchaseOrderItem::create([
+                            'purchase_order_id' => $po->id,
+                            'purchase_requisition_item_id' => $item->id,
+                            'quantity_ordered' => $item->quantity,
+                            'quantity_received' => 0,
+                            'unit_price' => $item->price,
+                            'subtotal' => $item->quantity * $item->price,
+                        ]);
+
+                        // Deduct Stock from Vendor (Seller)
+                        $catalogueItem = $item->catalogueItem;
+                        if ($catalogueItem) {
+                            $catalogueItem->decrement('stock', $item->quantity);
+                        }
+                    }
+
+                    // Notify Vendor Company Owner
+                    $vendorCompany = \Modules\Company\Models\Company::find($vendorId);
+                    if ($vendorCompany && $vendorCompany->user) {
+                        $vendorCompany->user->notify(new PurchaseOrderReceived($po));
+                    }
+
+                    // Send Email Notification to Vendor
+                    try {
+                        // 1. Try Company Email
+                        $company = \Modules\Company\Models\Company::find($vendorId);
+                        $email = $company->email;
+
+                        // 2. Fallback to Owner Email
+                        if (!$email && $company->user) {
+                            $email = $company->user->email;
+                        }
+
+                        if ($email) {
+                            \Illuminate\Support\Facades\Mail::to($email)
+                                ->send(new PurchaseOrderSent($po));
+                        }
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
                     }
                 }
 
-                // Notify Vendor Company Owner
-                $vendorCompany = \Modules\Company\Models\Company::find($vendorId);
-                if ($vendorCompany && $vendorCompany->user) {
-                    $vendorCompany->user->notify(new PurchaseOrderReceived($po));
-                }
-
-                // Send Email Notification to Vendor
-                try {
-                    // 1. Try Company Email
-                    $company = \Modules\Company\Models\Company::find($vendorId);
-                    $email = $company->email;
-
-                    // 2. Fallback to Owner Email
-                    if (!$email && $company->user) {
-                        $email = $company->user->email;
-                    }
-
-                    if ($email) {
-                        \Illuminate\Support\Facades\Mail::to($email)
-                            ->send(new PurchaseOrderSent($po));
-                    }
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
-                }
+                // Update PR status to ordered
+                $purchaseRequisition->update([
+                    'status' => 'ordered',
+                    'po_generated_at' => now(),
+                ]);
             }
 
-            // Update PR status to ordered
-            $purchaseRequisition->update([
-                'status' => 'ordered',
-                'po_generated_at' => now(),
-            ]);
-        }
+            DB::commit();
+            return back()->with('success', 'Request approved successfully.');
 
-        return back()->with('success', 'Request approved successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('PR Approval failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to approve request: ' . $e->getMessage());
+        }
     }
 
     /**
