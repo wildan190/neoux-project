@@ -74,6 +74,8 @@ class NotificationController extends Controller
             'invoices_buyer' => 0,
             'return_requests_buyer' => 0,
             'debit_notes_buyer' => 0,
+            'quick_approvals_buyer' => 0,
+            'quick_approvals_vendor' => 0,
             // Vendor Counts
             'all_requests' => 0,
             'my_offers' => 0,
@@ -132,7 +134,7 @@ class NotificationController extends Controller
 
             // Vendor POs
             $counts['purchase_orders_vendor'] = PurchaseOrder::where('vendor_company_id', $selectedCompanyId)
-                ->where('status', 'issued')
+                ->where('status', 'pending_vendor_acceptance')
                 ->count();
 
             // Vendor Invoices
@@ -154,6 +156,10 @@ class NotificationController extends Controller
                 })
                 ->whereNull('approved_by_vendor_at')
                 ->count();
+
+            // Unified Quick Approval Counts
+            $counts['quick_approvals_buyer'] = $counts['my_requisitions'] + $counts['invoices_buyer'] + $counts['return_requests_buyer'] + $counts['debit_notes_buyer'];
+            $counts['quick_approvals_vendor'] = $counts['purchase_orders_vendor'] + $counts['invoices_vendor'];
         }
 
         return response()->json($counts);

@@ -47,21 +47,21 @@
             {{-- Header --}}
             <header
                 class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-                <div class="px-6 py-4">
-                    <div class="flex items-center justify-between">
+                <div class="px-4 md:px-6 py-4">
+                    <div class="flex items-center justify-between gap-3">
 
                         {{-- Left --}}
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
                             {{-- Mobile Menu Button --}}
                             <button id="toggleSidebar"
-                                class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                class="md:hidden flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                 <i data-feather="menu" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                             </button>
-
-                            <div id="header-content-area">
+                            
+                            <div id="header-content-area" class="min-w-0 flex-1">
                                 @if(isset($title))
-                                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white" id="page-title">{{ $title }}</h1>
-                                    <div id="breadcrumb-area">
+                                    <h1 class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white truncate" id="page-title">{{ $title }}</h1>
+                                    <div id="breadcrumb-area" class="hidden sm:block">
                                         @include('layouts.partials.breadcrumbs')
                                     </div>
                                 @endif
@@ -206,21 +206,22 @@
                             @php
                                 $procurementMode = session('procurement_mode', 'buyer');
                             @endphp
-                            <form action="{{ route('procurement.mode.switch') }}" method="POST" class="hidden md:block">
+                            <form action="{{ route('procurement.mode.switch') }}" method="POST" class="flex items-center">
                                 @csrf
                                 <input type="hidden" name="mode" value="{{ $procurementMode === 'buyer' ? 'vendor' : 'buyer' }}">
                                 <button type="submit" 
-                                    class="px-4 py-1.5 rounded-lg border-2 font-bold text-sm transition-all
+                                    class="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg border-2 font-bold text-[10px] sm:text-xs transition-all
                                     {{ $procurementMode === 'buyer' 
                                         ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white dark:border-primary-400 dark:text-primary-400' 
                                         : 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white dark:border-green-400 dark:text-green-400' }}">
-                                    Switch to {{ $procurementMode === 'buyer' ? 'Selling' : 'Buying' }}
+                                    <span class="hidden sm:inline">Switch to {{ $procurementMode === 'buyer' ? 'Selling' : 'Buying' }}</span>
+                                    <span class="sm:hidden">{{ $procurementMode === 'buyer' ? 'Sell' : 'Buy' }}</span>
                                 </button>
                             </form>
 
                             {{-- Dark Mode --}}
                             <button id="darkModeToggle"
-                                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition flex-shrink-0">
                                 <i id="darkIcon" data-feather="moon"
                                     class="w-5 h-5 text-gray-600 dark:text-gray-300"></i>
                             </button>
@@ -396,11 +397,46 @@
             }
 
             window.markAsReadLocal = function(id, url) {
-                // Fix for absolute URLs pointing to localhost in database
-                if (url && url.includes('localhost:8000')) {
-                    url = url.replace(/https?:\/\/localhost:8000/, window.location.origin);
+                // 1. Immediate Visual Feedback
+                // Update dropdown if it exists
+                const dropdownItems = document.querySelectorAll('#notificationList a');
+                dropdownItems.forEach(item => {
+                    if (item.onclick && item.onclick.toString().includes(id)) {
+                        item.classList.add('opacity-60');
+                        const dot = item.querySelector('.bg-primary-600');
+                        if (dot) dot.classList.replace('bg-primary-600', 'bg-transparent');
+                    }
+                });
+
+                // Update main list if it exists (on notifications.index)
+                const mainItems = document.querySelectorAll('[onclick*="markAsReadLocal(\'' + id + '\'"]');
+                mainItems.forEach(item => {
+                    item.classList.add('opacity-75');
+                    item.classList.remove('bg-primary-50/10', 'dark:bg-primary-900/5');
+                    const dot = item.querySelector('.bg-primary-600');
+                    if (dot) dot.remove();
+                });
+
+                // 2. Sanitize URL
+                let targetUrl = url;
+                if (targetUrl && (targetUrl !== 'null' && targetUrl !== 'undefined')) {
+                    // Replace any host (including localhost:8000) with current origin for internal links
+                    if (targetUrl.includes('://')) {
+                        try {
+                            const urlObj = new URL(targetUrl);
+                            // If it matches a likely internal pattern or common local development pattern
+                            if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+                                targetUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+                            }
+                        } catch (e) {
+                            console.error('URL parsing failed', e);
+                        }
+                    }
+                } else {
+                    targetUrl = null;
                 }
 
+                // 3. Backend Request
                 fetch('/notifications/mark-as-read/' + id, {
                     method: 'POST',
                     headers: {
@@ -408,14 +444,15 @@
                         'Accept': 'application/json'
                     }
                 }).finally(function() {
-                    if (url && url !== 'null' && url !== 'undefined') {
+                    if (targetUrl) {
                         // Use the SPA loader if available, otherwise standard redirect
-                        if (typeof loadPage === 'function' && url.startsWith(window.location.origin)) {
-                            loadPage(url);
+                        if (typeof loadPage === 'function' && (targetUrl.startsWith('/') || targetUrl.startsWith(window.location.origin))) {
+                            loadPage(targetUrl);
                         } else {
-                            window.location.href = url;
+                            window.location.href = targetUrl;
                         }
                     } else {
+                        // If no URL (rare), just refresh to update counts
                         window.location.reload();
                     }
                 });
@@ -816,6 +853,11 @@
                     link.addEventListener('click', function(e) {
                         const href = this.getAttribute('href');
                         if (href && (href.startsWith('/') || href.startsWith(window.location.origin))) {
+                            // Enforce Hard Reload for Dashboard
+                            if (href.includes('/dashboard') || href.includes('/company-dashboard')) {
+                                return; // Let default browser navigation handle it
+                            }
+
                             // Don't intercept if it's the same URL
                             if (href === window.location.href || href === window.location.pathname + window.location.search) {
                                 e.preventDefault();
