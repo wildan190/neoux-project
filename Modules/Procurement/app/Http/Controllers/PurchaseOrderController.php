@@ -26,7 +26,7 @@ class PurchaseOrderController extends Controller
     public function index()
     {
         $selectedCompanyId = session('selected_company_id');
-        $currentView = request('view', 'buyer');
+        $currentView = request('view', session('procurement_mode', 'buyer'));
 
         if (!$selectedCompanyId) {
             $firstCompany = Auth::user()->companies()->first();

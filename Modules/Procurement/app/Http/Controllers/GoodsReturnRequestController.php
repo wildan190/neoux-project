@@ -29,7 +29,7 @@ class GoodsReturnRequestController extends Controller
         }
 
         $filter = $request->get('filter', 'all');
-        $view = $request->get('view', 'buyer'); // Default to buyer view
+        $view = $request->get('view', session('procurement_mode', 'buyer')); // Default to session mode
 
         $query = GoodsReturnRequest::with([
             'goodsReceiptItem.goodsReceipt.purchaseOrder.purchaseRequisition.company',
