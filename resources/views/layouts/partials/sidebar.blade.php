@@ -46,7 +46,7 @@
             $isDashboardActive = request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
         @endphp
 
-        <a href="{{ $dashboardRoute }}"
+        <a href="{{ $dashboardRoute }}" data-no-pjax
             class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ $isDashboardActive ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
             <div
                 class="w-9 h-9 rounded-lg flex items-center justify-center {{ $isDashboardActive ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
@@ -132,12 +132,13 @@
                 </div>
                 <span class="ml-3">Quick Approvals</span>
                 @php
-                    $pendingTotal = ($sidebarCounts['pending_prs'] ?? 0) + ($sidebarCounts['pending_invoices'] ?? 0);
-                    $showPendingBadge = $pendingTotal > 0 && !request()->routeIs('procurement.approvals.index');
+                    $quickBuyerCount = $sidebarCounts['quick_approvals_buyer'] ?? 0;
+                    $showQuickBuyerBadge = $quickBuyerCount > 0 && !request()->routeIs('procurement.approvals.index');
                 @endphp
-                <span
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full {{ $showPendingBadge ? '' : 'hidden' }}">
-                    {{ $showPendingBadge ? $pendingTotal : '' }}
+                <span id="badge-quick_approvals_buyer"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full {{ $showQuickBuyerBadge ? '' : 'hidden' }}"
+                    {!! $showQuickBuyerBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showQuickBuyerBadge ? $quickBuyerCount : '' }}
                 </span>
             </a>
 
@@ -300,6 +301,29 @@
                     </svg>
                 </div>
                 <span class="ml-3">Warehouse</span>
+            </a>
+
+            <a href="{{ route('procurement.approvals.index') }}"
+                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <div
+                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.approvals.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-5 h-5">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                </div>
+                <span class="ml-3">Quick Approvals</span>
+                @php
+                    $quickVendorCount = $sidebarCounts['quick_approvals_vendor'] ?? 0;
+                    $showQuickVendorBadge = $quickVendorCount > 0 && !request()->routeIs('procurement.approvals.index');
+                @endphp
+                <span id="badge-quick_approvals_vendor"
+                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full {{ $showQuickVendorBadge ? '' : 'hidden' }}"
+                    {!! $showQuickVendorBadge ? '' : 'style="display: none"' !!}>
+                    {{ $showQuickVendorBadge ? $quickVendorCount : '' }}
+                </span>
             </a>
 
             <a href="{{ route('procurement.pr.public-feed') }}"

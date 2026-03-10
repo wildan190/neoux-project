@@ -7,23 +7,21 @@
 ])
 
 @section('content')
-    <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
-            {{ $currentView === 'vendor' ? 'Customer Orders (Sales)' : 'My Purchase Orders (Procurement)' }}
-        </h1>
-        <div class="flex items-center gap-2">
-            @if($currentView === 'buyer')
-                <a href="{{ route('procurement.po.export-template') }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-bold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150 text-center">
-                    <i data-feather="download" class="w-4 h-4 mr-2"></i> Export Template
-                </a>
-                <button type="button" onclick="openImportModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:bg-primary-500 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg shadow-primary-500/30">
-                    <i data-feather="upload" class="w-4 h-4 mr-2"></i> Import History
-                </button>
-            @endif
-        </div>
-    </div>
-
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     @if($currentView === 'buyer')
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-end gap-3">
+            <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                <a href="{{ route('procurement.po.export-template') }}" target="_blank" class="inline-flex items-center justify-center px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-bold text-[10px] text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 text-center">
+                    <i data-feather="download" class="w-3.5 h-3.5 mr-2"></i> Export
+                </a>
+                <button type="button" onclick="openImportModal()" class="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 border border-transparent rounded-xl font-bold text-[10px] text-white uppercase tracking-widest hover:bg-primary-500 active:bg-primary-700 transition duration-150 shadow-lg shadow-primary-500/30">
+                    <i data-feather="upload" class="w-3.5 h-3.5 mr-2"></i> Import
+                </button>
+            </div>
+        </div>
+
         @if($recentBuyerPOs->isNotEmpty())
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
@@ -65,7 +63,7 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Orders you have issued to various vendors</p>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
@@ -124,6 +122,65 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile List View -->
+                <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                    @forelse($buyerPOs as $po)
+                        <div x-data="{ expanded: false }" class="p-4 bg-white dark:bg-gray-800">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-primary-600 dark:text-primary-400">{{ $po->po_number }}</span>
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-tight">{{ $po->created_at->format('d M Y') }}</span>
+                                </div>
+                                <span class="px-2 py-0.5 text-[9px] font-black rounded-full uppercase tracking-wider
+                                    @if($po->status === 'completed') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+                                    @elseif($po->status === 'cancelled') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                                    @elseif($po->status === 'issued') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                    @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                    {{ str_replace('_', ' ', $po->status) }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $po->vendorCompany->name ?? 'N/A' }}</p>
+                                    <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $po->formatted_total_amount }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button @click="expanded = !expanded" class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                        <i x-show="!expanded" data-feather="chevron-down" class="w-5 h-5"></i>
+                                        <i x-show="expanded" data-feather="chevron-up" class="w-5 h-5" x-cloak></i>
+                                    </button>
+                                    <a href="{{ route('procurement.po.show', $po) }}" class="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg">
+                                        <i data-feather="eye" class="w-5 h-5"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div x-show="expanded" x-collapse x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
+                                <div class="grid grid-cols-2 gap-y-3">
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase font-black mb-0.5">Reference PR</p>
+                                        <p class="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            {{ $po->purchaseRequisition->pr_number ?? 'N/A' }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase font-black mb-0.5">Created By</p>
+                                        <p class="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            {{ $po->createdBy->name ?? 'N/A' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i data-feather="shopping-bag" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600"></i>
+                            <p class="font-bold">No purchase orders found</p>
+                        </div>
+                    @endforelse
+                </div>
                 
                 @if($buyerPOs->hasPages())
                     <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
@@ -174,7 +231,7 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">New or ongoing orders sent by your clients</p>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700/50">
                             <tr>
@@ -232,6 +289,65 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile List View (Vendor) -->
+                <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                    @forelse($vendorPOs as $po)
+                        <div x-data="{ expanded: false }" class="p-4 bg-white dark:bg-gray-800">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ $po->po_number }}</span>
+                                    <span class="text-[10px] text-gray-400 uppercase tracking-tight">{{ $po->created_at->format('d M Y') }}</span>
+                                </div>
+                                <span class="px-2 py-0.5 text-[9px] font-black rounded-full uppercase tracking-wider
+                                    @if($po->status === 'completed') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
+                                    @elseif($po->status === 'cancelled') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                                    @elseif($po->status === 'issued') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                    @else bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                    {{ str_replace('_', ' ', $po->status) }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $po->purchaseRequisition->company->name ?? 'N/A' }}</p>
+                                    <p class="text-xs font-black text-gray-700 dark:text-gray-300">{{ $po->formatted_total_amount }}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button @click="expanded = !expanded" class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                        <i x-show="!expanded" data-feather="chevron-down" class="w-5 h-5"></i>
+                                        <i x-show="expanded" data-feather="chevron-up" class="w-5 h-5" x-cloak></i>
+                                    </button>
+                                    <a href="{{ route('procurement.po.show', $po) }}" class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                        <i data-feather="eye" class="w-5 h-5"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div x-show="expanded" x-collapse x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
+                                <div class="grid grid-cols-2 gap-y-3">
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase font-black mb-0.5">Reference PR</p>
+                                        <p class="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            {{ $po->purchaseRequisition->pr_number ?? 'N/A' }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 uppercase font-black mb-0.5">Created By</p>
+                                        <p class="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                            {{ $po->createdBy->name ?? 'N/A' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <i data-feather="truck" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600"></i>
+                            <p class="font-bold">No customer orders found</p>
+                        </div>
+                    @endforelse
                 </div>
                 
                 @if($vendorPOs->hasPages())

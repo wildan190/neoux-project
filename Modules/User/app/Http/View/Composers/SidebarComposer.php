@@ -37,8 +37,8 @@ class SidebarComposer
             'invoices_vendor' => 0,
             'return_requests_vendor' => 0,
             'debit_notes_vendor' => 0,
-            'pending_prs' => 0,
-            'pending_invoices' => 0,
+            'quick_approvals_buyer' => 0,
+            'quick_approvals_vendor' => 0,
         ];
 
         if ($selectedCompanyId) {
