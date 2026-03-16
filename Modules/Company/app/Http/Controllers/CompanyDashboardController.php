@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Modules\Company\Models\Company;
 use Modules\Procurement\Models\Invoice;
 use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseOrderItem;
 
 class CompanyDashboardController extends Controller
 {
@@ -150,39 +151,131 @@ class CompanyDashboardController extends Controller
     private function calculateStats(Company $company, bool $isBuyer, bool $isVendor): array
     {
         $stats = [];
-        $now = Carbon::now();
-        $startOfThisMonth = $now->copy()->startOfMonth();
-        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
+        $companyId = $company->id;
 
         if ($isBuyer) {
-            // Total Purchase Requisitions (Consolidate if possible, but these stay for now)
-            $prTotal = $company->purchaseRequisitions()->count();
+            // --- 1. Spend Analyst ---
+            $poBaseQuery = PurchaseOrder::where('company_id', $companyId);
+            $totalSpend = (float) $poBaseQuery->sum('total_amount');
+            
+            // Maverick Spend (POs without PR)
+            $maverickSpend = (float) (clone $poBaseQuery)->whereNull('purchase_requisition_id')->sum('total_amount');
+            
+            // Spend by Supplier
+            $spendBySupplier = (clone $poBaseQuery)
+                ->selectRaw('vendor_company_id, SUM(total_amount) as total')
+                ->groupBy('vendor_company_id')
+                ->with('vendorCompany:id,name')
+                ->get()
+                ->map(fn($item) => [
+                    'name' => $item->vendorCompany->name ?? 'Unknown',
+                    'total' => (float) $item->total
+                ]);
 
-            // Requisitions by month
-            $prThisMonth = $company->purchaseRequisitions()
-                ->where('created_at', '>=', $startOfThisMonth)
-                ->count();
+            // --- 2. Supplier Performance ---
+            // Average Lead Time (Acceptance to Receipt)
+            $poWithReceipts = (clone $poBaseQuery)
+                ->whereNotNull('vendor_accepted_at')
+                ->whereHas('goodsReceipts')
+                ->with('goodsReceipts')
+                ->get();
 
-            // Total Purchase Orders (as buyer) - Direct lookup using company_id on PO
-            $poBaseQuery = PurchaseOrder::where('company_id', $company->id);
+            $totalLeadTimeDays = 0;
+            $leadTimeCount = 0;
+            foreach ($poWithReceipts as $po) {
+                $firstReceipt = $po->goodsReceipts->sortBy('received_at')->first();
+                if ($firstReceipt && $po->vendor_accepted_at) {
+                    $totalLeadTimeDays += $po->vendor_accepted_at->diffInDays($firstReceipt->received_at);
+                    $leadTimeCount++;
+                }
+            }
+            $avgLeadTime = $leadTimeCount > 0 ? round($totalLeadTimeDays / $leadTimeCount, 1) : 0;
 
-            $poTotalAmount = (float) $poBaseQuery->sum('total_amount');
+            // Fill Rate (Received vs Ordered)
+            $poItems = PurchaseOrderItem::whereHas('purchaseOrder', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })->selectRaw('SUM(quantity_ordered) as ordered, SUM(quantity_received) as received')->first();
+            
+            $fillRate = 0;
+            if ($poItems && $poItems->ordered > 0) {
+                $fillRate = round(($poItems->received / $poItems->ordered) * 100, 1);
+            }
 
-            // Active POs
-            $activePOs = (clone $poBaseQuery)->whereIn('status', ['pending', 'approved', 'received'])->count();
+            // --- 3. Operational Efficiency ---
+            $poStatus = (clone $poBaseQuery)
+                ->selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->get()
+                ->pluck('count', 'status')
+                ->toArray();
 
-            // Vendors count (unique vendors from POs)
-            $vendorsCount = (clone $poBaseQuery)->distinct('vendor_company_id')->count('vendor_company_id');
+            $prStatus = $company->purchaseRequisitions()
+                ->selectRaw('approval_status, COUNT(*) as count')
+                ->groupBy('approval_status')
+                ->get()
+                ->pluck('count', 'approval_status')
+                ->toArray();
+
+            // PO Cycle Time (PR created to PO generated)
+            $prsWithPOs = $company->purchaseRequisitions()
+                ->whereNotNull('po_generated_at')
+                ->get();
+            
+            $totalCycleDays = 0;
+            $cycleCount = 0;
+            foreach ($prsWithPOs as $pr) {
+                $totalCycleDays += $pr->created_at->diffInDays($pr->po_generated_at);
+                $cycleCount++;
+            }
+            $avgCycleTime = $cycleCount > 0 ? round($totalCycleDays / $cycleCount, 1) : 0;
+
+            // --- 4. Cost Management ---
+            // Cost Saving (Highest Offer vs Winning Offer)
+            $costSavings = 0;
+            $prsWithMultipleOffers = $company->purchaseRequisitions()
+                ->whereHas('offers', null, '>', 1)
+                ->whereNotNull('winning_offer_id')
+                ->with(['offers', 'winningOffer'])
+                ->get();
+
+            foreach ($prsWithMultipleOffers as $pr) {
+                $highestOffer = $pr->offers->max('total_price');
+                $winningPrice = $pr->winningOffer->total_price;
+                $costSavings += ($highestOffer - $winningPrice);
+            }
+
+            // Purchase Price Variance (Actual vs Average Offer)
+            $totalPPV = 0;
+            foreach ($prsWithMultipleOffers as $pr) {
+                $avgOfferPrice = $pr->offers->avg('total_price');
+                $winningPrice = $pr->winningOffer->total_price;
+                $totalPPV += ($winningPrice - $avgOfferPrice); // Positive variance means we paid more than average
+            }
 
             $stats = [
-                'total_purchases' => $poTotalAmount,
-                'purchases_change' => $this->calculatePercentChange($poTotalAmount, 0), // Placeholder logic for now
-                'active_orders' => $activePOs,
-                'orders_change' => '+' . rand(1, 10) . '%',
-                'total_vendors' => $vendorsCount,
-                'vendors_change' => '+' . rand(1, 5) . '%',
-                'pending_pr' => $company->purchaseRequisitions()->where('status', 'pending')->count(),
-                'pending_change' => '0%',
+                'spend_analyst' => [
+                    'total_spend' => $totalSpend,
+                    'maverick_spend' => $maverickSpend,
+                    'spend_by_supplier' => $spendBySupplier,
+                ],
+                'supplier_performance' => [
+                    'avg_lead_time' => $avgLeadTime,
+                    'fill_rate' => $fillRate,
+                ],
+                'operational_efficiency' => [
+                    'po_status' => $poStatus,
+                    'pr_status' => $prStatus,
+                    'avg_cycle_time' => $avgCycleTime,
+                ],
+                'cost_management' => [
+                    'ppV' => $totalPPV,
+                    'cost_savings' => $costSavings,
+                ],
+                // Backward compatibility for existing widgets (optional, but good)
+                'total_purchases' => $totalSpend,
+                'active_orders' => (clone $poBaseQuery)->whereIn('status', ['pending', 'approved', 'received'])->count(),
+                'total_vendors' => (clone $poBaseQuery)->distinct('vendor_company_id')->count('vendor_company_id'),
+                'pending_pr' => $company->purchaseRequisitions()->where('approval_status', 'pending')->count(),
             ];
         } else {
             // For Vendor/Supplier

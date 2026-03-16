@@ -23,67 +23,165 @@
     </div>
 
     {{-- WIDGET TOP --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         @if($isBuyer)
-            {{-- Buyer Widgets --}}
-            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i data-feather="shopping-cart" class="w-6 h-6 text-primary-600 dark:text-primary-400"></i>
-                    </div>
-                    <span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <i data-feather="trending-up" class="w-3 h-3"></i> {{ $stats['purchases_change'] ?? '+0%' }}
-                    </span>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Pembelian</p>
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">Rp {{ number_format(($stats['total_purchases'] ?? 0) / 1000000, 1) }}M</h2>
-                </div>
+            {{-- Category 1: Spend Analyst --}}
+            <div class="lg:col-span-3 mt-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i data-feather="pie-chart" class="w-5 h-5 text-blue-500"></i> Spend Analyst
+                </h3>
             </div>
-
-            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-secondary-50 dark:bg-secondary-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i data-feather="package" class="w-6 h-6 text-secondary-600 dark:text-secondary-400"></i>
-                    </div>
-                    <span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <i data-feather="trending-up" class="w-3 h-3"></i> {{ $stats['orders_change'] ?? '+0%' }}
-                    </span>
-                </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">PO Aktif</p>
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['active_orders'] ?? 0 }}</h2>
-                </div>
-            </div>
-
+            
             <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i data-feather="users" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+                        <i data-feather="dollar-sign" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
                     </div>
-                    <span class="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <i data-feather="trending-up" class="w-3 h-3"></i> {{ $stats['vendors_change'] ?? '+0%' }}
-                    </span>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Vendor</p>
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['total_vendors'] ?? 0 }}</h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Spend</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Rp {{ number_format(($stats['spend_analyst']['total_spend'] ?? 0) / 1000000, 1) }}M</h2>
                 </div>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-feather="alert-triangle" class="w-6 h-6 text-red-600 dark:text-red-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Maverick Spend</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Rp {{ number_format(($stats['spend_analyst']['maverick_spend'] ?? 0) / 1000000, 1) }}M</h2>
+                    <p class="text-[10px] text-gray-400 mt-1">Purchase without Requisitions</p>
+                </div>
+            </div>
+
+            {{-- Spend by Supplier Breakdown --}}
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3">Top 3 Suppliers</h4>
+                <div class="space-y-3">
+                    @foreach($stats['spend_analyst']['spend_by_supplier']->sortByDesc('total')->take(3) as $supplier)
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] mb-1">
+                            <span class="text-gray-500 truncate mr-2">{{ $supplier['name'] }}</span>
+                            <span class="font-bold text-gray-700 dark:text-gray-300">Rp{{ number_format($supplier['total']/1000000, 1) }}M</span>
+                        </div>
+                        <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1">
+                            @php $p = ($stats['spend_analyst']['total_spend'] > 0) ? ($supplier['total'] / $stats['spend_analyst']['total_spend'] * 100) : 0; @endphp
+                            <div class="bg-blue-500 h-1 rounded-full" style="width: {{ $p }}%"></div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Category 2: Supplier Performance --}}
+            <div class="lg:col-span-3 mt-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i data-feather="award" class="w-5 h-5 text-green-500"></i> Supplier Performance
+                </h3>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-feather="clock" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Lead Time</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['supplier_performance']['avg_lead_time'] ?? 0 }} Days</h2>
+                    <p class="text-[10px] text-gray-400 mt-1">PO Acceptance to Goods Receipt</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-feather="check-circle" class="w-6 h-6 text-emerald-600 dark:text-emerald-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Fill Rate</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['supplier_performance']['fill_rate'] ?? 0 }}%</h2>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
+                        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $stats['supplier_performance']['fill_rate'] ?? 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden lg:block"></div> {{-- Spacer to keep grid balanced if needed, or we can leave it to flow --}}
+
+            {{-- Category 3: Operational Efficiency --}}
+            <div class="lg:col-span-3 mt-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i data-feather="zap" class="w-5 h-5 text-orange-500"></i> Operational Efficiency
+                </h3>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-feather="activity" class="w-6 h-6 text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">PO Cycle Time</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['operational_efficiency']['avg_cycle_time'] ?? 0 }} Days</h2>
+                    <p class="text-[10px] text-gray-400 mt-1">PR Submission to PO Generation</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group flex flex-col justify-center">
+                <p class="text-xs font-medium text-gray-500 mb-2">PO Status Active</p>
+                <div class="flex items-end gap-2">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $stats['active_orders'] ?? 0 }}</h2>
+                    <span class="text-[10px] text-orange-500 font-bold mb-1">Items Pending Approval</span>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group flex flex-col justify-center">
+                <p class="text-xs font-medium text-gray-500 mb-2">PR Pending Approval</p>
+                <div class="flex items-end gap-2">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $stats['pending_pr'] ?? 0 }}</h2>
+                    <span class="text-[10px] text-blue-500 font-bold mb-1">Awaiting Review</span>
+                </div>
+            </div>
+
+            {{-- Category 4: Cost Management --}}
+            <div class="lg:col-span-3 mt-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i data-feather="trending-down" class="w-5 h-5 text-purple-500"></i> Cost Management
+                </h3>
             </div>
 
             <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <i data-feather="file-text" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+                        <i data-feather="shield" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
                     </div>
-                    <span class="text-xs font-bold text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <i data-feather="clock" class="w-3 h-3"></i> Pending
-                    </span>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">PR Pending</p>
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ $stats['pending_pr'] ?? 0 }}</h2>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Cost Savings</p>
+                    <h2 class="text-2xl font-bold text-green-600 mt-1">Rp {{ number_format(($stats['cost_management']['cost_savings'] ?? 0) / 1000000, 1) }}M</h2>
+                    <p class="text-[10px] text-gray-400 mt-1">Saving from Highest Quotation</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i data-feather="bar-chart-2" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Purchase Price Variance</p>
+                    <h2 class="text-2xl font-bold {{ ($stats['cost_management']['ppV'] ?? 0) > 0 ? 'text-red-500' : 'text-green-500' }} mt-1">
+                        Rp {{ number_format(abs(($stats['cost_management']['ppV'] ?? 0)) / 1000000, 1) }}M
+                    </h2>
+                    <p class="text-[10px] text-gray-400 mt-1">vs Average Quotation</p>
                 </div>
             </div>
         @else
@@ -202,7 +300,7 @@
     @endif
 
 
-    {{-- CHART --}}
+    {{-- CHART & BREAKDOWN --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-10">
 
         {{-- Sales/Purchases Chart --}}
@@ -214,9 +312,6 @@
                     </h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Overview 6 bulan terakhir</p>
                 </div>
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <i data-feather="more-horizontal" class="w-5 h-5 text-gray-400"></i>
-                </button>
             </div>
             <div class="relative h-80 w-full">
                 <canvas id="salesChart"></canvas>
@@ -224,14 +319,15 @@
         </div>
 
         {{-- Quick Stats --}}
-        <div class="p-8 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Statistik Cepat</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Ringkasan aktivitas</p>
+        <div class="space-y-6">
+            <div class="p-8 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Statistik Cepat</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Ringkasan aktivitas</p>
+                    </div>
                 </div>
-            </div>
-            <div class="space-y-4">
+                <div class="space-y-4">
                 @if($isBuyer)
                     <a href="{{ route('procurement.pr.index') }}" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         <div class="flex items-center gap-3">

@@ -38,6 +38,7 @@ class PurchaseRequisition extends Model
 
     protected $casts = [
         'po_generated_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     /**
