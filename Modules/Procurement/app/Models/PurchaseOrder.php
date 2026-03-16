@@ -34,6 +34,8 @@ class PurchaseOrder extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'confirmed_at' => 'datetime',
+        'vendor_accepted_at' => 'datetime',
+        'vendor_rejected_at' => 'datetime',
     ];
 
     public function purchaseRequisition(): BelongsTo
