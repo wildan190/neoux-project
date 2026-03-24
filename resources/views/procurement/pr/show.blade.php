@@ -270,25 +270,10 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <a href="{{ route('procurement.offers.show', $offer) }}" class="text-gray-500 hover:text-gray-700" title="View Details">
-                                            <i data-feather="eye" class="w-4 h-4"></i>
-                                        </a>
-                                        @if(in_array($offer->status, ['pending', 'negotiating']))
-                                            @if($offer->status === 'pending')
-                                                <button onclick="openNegotiateModal('{{ route('procurement.offers.submit-negotiation', $offer) }}')" 
-                                                        class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-lg transition" title="Negotiate">
-                                                    <i data-feather="message-circle" class="w-4 h-4"></i>
-                                                </button>
-                                            @endif
-                                            <form action="{{ route('procurement.offers.reject', $offer) }}" method="POST" class="inline" onsubmit="return confirm('Reject this offer?')">
-                                                @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition" title="Reject">
-                                                    <i data-feather="x" class="w-4 h-4"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
+                                    <a href="{{ route('procurement.offers.show', $offer) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-semibold transition">
+                                        <i data-feather="eye" class="w-3.5 h-3.5"></i>
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

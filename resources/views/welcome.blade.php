@@ -129,7 +129,7 @@
         @endif
 
         {{-- PRODUCT GRID --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             @forelse($featuredProducts as $item)
                 <!-- Product Card -->
                 <a href="{{ route('market.show', $item->id) }}" data-aos="fade-up" data-aos-delay="{{ ($loop->iteration % 8) * 50 }}" class="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col block">
