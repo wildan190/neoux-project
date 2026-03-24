@@ -122,7 +122,7 @@
                     <a href="{{ route('market.index', ['search' => $product->company?->name]) }}" class="text-primary-600 hover:underline font-medium text-sm">Lihat Semua Vendor</a>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     @foreach($relatedProducts as $related)
                         <a href="{{ route('market.show', $related->id) }}" class="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
                             <div class="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-700 p-4 flex items-center justify-center">
