@@ -16,8 +16,18 @@ Route::get('/', function (Request $request) {
     $query = CatalogueItem::with(['product', 'primaryImage', 'company'])->where('is_active', true);
 
     if ($search) {
-        $query->whereHas('product', function($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%");
+        $searchLower = strtolower($search);
+        $query->where(function($q) use ($searchLower) {
+            $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
+              ->orWhereRaw('LOWER(sku) LIKE ?', ["%{$searchLower}%"])
+              ->orWhereRaw('LOWER(tags) LIKE ?', ["%{$searchLower}%"])
+              ->orWhereHas('product', function($pq) use ($searchLower) {
+                  $pq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
+                     ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchLower}%"]);
+              })
+              ->orWhereHas('company', function($cq) use ($searchLower) {
+                  $cq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"]);
+              });
         });
     }
 
