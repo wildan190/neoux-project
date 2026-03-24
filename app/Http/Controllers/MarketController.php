@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Modules\Catalogue\Models\CatalogueItem;
+
+class MarketController extends Controller
+{
+    /**
+     * Display a listing of the products.
+     */
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+
+        $query = CatalogueItem::with(['product', 'primaryImage', 'company'])
+            ->where('is_active', true);
+
+        if ($search) {
+            $query->whereHas('product', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->latest()->paginate(16);
+
+        return view('market.index', compact('products', 'search'));
+    }
+
+    /**
+     * Display the specified product.
+     */
+    public function show($id)
+    {
+        $product = CatalogueItem::with([
+            'product', 
+            'images', 
+            'company',
+            'product.category',
+            'attributes'
+        ])->where('is_active', true)->findOrFail($id);
+
+        // Fetch related products from the same company or category
+        $relatedProducts = CatalogueItem::with(['product', 'primaryImage', 'company'])
+            ->where('is_active', true)
+            ->where('id', '!=', $id)
+            ->where(function($q) use ($product) {
+                $q->where('company_id', $product->company_id);
+            })
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('market.show', compact('product', 'relatedProducts'));
+    }
+}

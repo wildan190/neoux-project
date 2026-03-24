@@ -40,7 +40,7 @@
 
             {{-- Footer / Links --}}
             <div class="mt-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-                &copy; {{ date('Y') }} MyApp. All rights reserved.
+                &copy; {{ date('Y') }} Huntr. All rights reserved.
             </div>
         </div>
     </div>
