@@ -335,6 +335,69 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Purchase Order has been rejected.');
     }
 
+    /**
+     * Buyer pays escrow (deposits funds)
+     */
+    public function escrowPay(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+
+        // Only buyer can pay escrow
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
+        if (!$isBuyer) {
+            abort(403, 'Only the buyer can pay escrow.');
+        }
+
+        // PO must be accepted (issued) by vendor first
+        if (!in_array($purchaseOrder->status, ['issued', 'confirmed'])) {
+            return back()->with('error', 'PO must be accepted by vendor before escrow payment.');
+        }
+
+        if ($purchaseOrder->escrow_status !== 'pending') {
+            return back()->with('error', 'Escrow has already been paid or processed.');
+        }
+
+        $request->validate([
+            'escrow_reference' => 'required|string|max:100',
+        ]);
+
+        $purchaseOrder->update([
+            'escrow_status' => 'paid',
+            'escrow_paid_at' => now(),
+            'escrow_reference' => $request->escrow_reference,
+        ]);
+
+        return back()->with('success', 'Pembayaran escrow berhasil dicatat! Vendor dapat mulai mengirimkan barang.');
+    }
+
+    /**
+     * Manual escrow release (if auto-release didn't trigger)
+     */
+    public function escrowRelease(PurchaseOrder $purchaseOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+
+        // Only buyer can release escrow
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
+        if (!$isBuyer) {
+            abort(403, 'Only the buyer can release escrow.');
+        }
+
+        if ($purchaseOrder->escrow_status !== 'paid') {
+            return back()->with('error', 'Escrow must be in "paid" status to release.');
+        }
+
+        // Run 3-way matching first
+        $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
+        $result = $matchingService->matchEscrow($purchaseOrder);
+
+        if ($result['status'] === 'matched') {
+            return back()->with('success', 'Escrow berhasil dicairkan ke vendor! Transaksi selesai.');
+        }
+
+        return back()->with('error', '3-Way Matching gagal: ' . implode(', ', $result['variances'] ?? ['Unknown error']));
+    }
+
     public function exportTemplate()
     {
         return Excel::download(new PurchaseOrderTemplateExport, 'po_template.xlsx');

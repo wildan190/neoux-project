@@ -25,6 +25,10 @@ class PurchaseOrder extends Model
         'created_by_user_id',
         'total_amount',
         'status',
+        'escrow_status',
+        'escrow_paid_at',
+        'escrow_released_at',
+        'escrow_reference',
         'confirmed_at',
         'vendor_accepted_at',
         'vendor_rejected_at',
@@ -36,6 +40,8 @@ class PurchaseOrder extends Model
         'confirmed_at' => 'datetime',
         'vendor_accepted_at' => 'datetime',
         'vendor_rejected_at' => 'datetime',
+        'escrow_paid_at' => 'datetime',
+        'escrow_released_at' => 'datetime',
     ];
 
     public function purchaseRequisition(): BelongsTo
@@ -136,5 +142,36 @@ class PurchaseOrder extends Model
     public function getFormattedTotalDeductionAttribute(): string
     {
         return 'Rp '.number_format($this->total_deduction, 2, ',', '.');
+    }
+
+    /**
+     * Check if escrow has been paid by buyer
+     */
+    public function isEscrowPaid(): bool
+    {
+        return in_array($this->escrow_status, ['paid', 'released']);
+    }
+
+    /**
+     * Check if escrow has been released to vendor
+     */
+    public function isEscrowReleased(): bool
+    {
+        return $this->escrow_status === 'released';
+    }
+
+    /**
+     * Get formatted escrow status label
+     */
+    public function getEscrowStatusLabelAttribute(): string
+    {
+        return match($this->escrow_status) {
+            'pending' => 'Menunggu Pembayaran',
+            'paid' => 'Dana di Escrow',
+            'released' => 'Dana Dicairkan',
+            'refunded' => 'Dana Dikembalikan',
+            'disputed' => 'Dalam Sengketa',
+            default => ucfirst($this->escrow_status),
+        };
     }
 }

@@ -58,6 +58,8 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     Route::post('/po/{purchaseOrder}/confirm', [PurchaseOrderController::class, 'confirm'])->name('po.confirm');
     Route::post('/po/{purchaseOrder}/vendor-accept', [PurchaseOrderController::class, 'vendorAccept'])->name('po.vendor-accept');
     Route::post('/po/{purchaseOrder}/vendor-reject', [PurchaseOrderController::class, 'vendorReject'])->name('po.vendor-reject');
+    Route::post('/po/{purchaseOrder}/escrow-pay', [PurchaseOrderController::class, 'escrowPay'])->name('po.escrow-pay');
+    Route::post('/po/{purchaseOrder}/escrow-release', [PurchaseOrderController::class, 'escrowRelease'])->name('po.escrow-release');
     Route::post('/po/import-history', [PurchaseOrderController::class, 'importHistory'])->name('po.import-history');
     Route::post('/po/confirm-import', [PurchaseOrderController::class, 'confirmImport'])->name('po.confirm-import');
     Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
