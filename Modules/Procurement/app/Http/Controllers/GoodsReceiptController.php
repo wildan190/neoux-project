@@ -316,6 +316,12 @@ class GoodsReceiptController extends Controller
 
             if ($totalReceived >= $totalOrdered) {
                 $purchaseOrder->update(['status' => 'full_delivery']);
+
+                // Auto-trigger escrow 3-way matching if escrow is paid
+                if ($purchaseOrder->escrow_status === 'paid') {
+                    $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
+                    $matchingService->matchEscrow($purchaseOrder);
+                }
             } elseif ($totalReceived > 0) {
                 $purchaseOrder->update(['status' => 'partial_delivery']);
             }

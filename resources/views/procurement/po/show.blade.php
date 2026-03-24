@@ -28,6 +28,24 @@
                     Print PDF
                 </a>
 
+                @if($isBuyer && in_array($purchaseOrder->status, ['issued', 'confirmed']) && $purchaseOrder->escrow_status === 'pending')
+                    <button onclick="document.getElementById('escrowPayModal').classList.remove('hidden')" 
+                            class="px-6 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition text-sm font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                        <i data-feather="shield" class="w-4 h-4"></i>
+                        Bayar Escrow
+                    </button>
+                @endif
+
+                @if($isBuyer && $purchaseOrder->status === 'full_delivery' && $purchaseOrder->escrow_status === 'paid')
+                    <form action="{{ route('procurement.po.escrow-release', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
+                        @csrf
+                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition text-sm font-bold shadow-lg shadow-green-500/20 flex items-center gap-2">
+                            <i data-feather="unlock" class="w-4 h-4"></i>
+                            Release Escrow
+                        </button>
+                    </form>
+                @endif
+
                 @if($isVendor && $purchaseOrder->status === 'pending_vendor_acceptance')
                     <form action="{{ route('procurement.po.vendor-reject', $purchaseOrder) }}" method="POST" onsubmit="return confirm('Reject this PO?')">
                         @csrf
@@ -59,55 +77,51 @@
                 $status = $purchaseOrder->status;
                 $totalOrdered = $purchaseOrder->items->sum('quantity_ordered');
                 $totalReceived = $purchaseOrder->items->sum('quantity_received');
+                $escrow = $purchaseOrder->escrow_status;
                 
                 $steps = [
                     ['label' => 'Order Sent', 'status' => 'completed'],
                     ['label' => 'Accepted', 'status' => in_array($status, ['issued', 'partial_delivery', 'full_delivery', 'completed']) ? 'completed' : 'pending'],
+                    ['label' => 'Escrow Paid', 'status' => in_array($escrow, ['paid', 'released']) ? 'completed' : ($escrow === 'disputed' ? 'error' : 'pending')],
                     ['label' => 'Shipping', 'status' => $purchaseOrder->deliveryOrders->where('status', 'shipped')->count() > 0 ? 'completed' : 'pending'],
                     ['label' => 'Received', 'status' => in_array($status, ['partial_delivery', 'full_delivery', 'completed']) ? 'completed' : 'pending'],
-                    ['label' => 'Paid', 'status' => $status === 'completed' ? 'completed' : 'pending'],
+                    ['label' => 'Released', 'status' => $escrow === 'released' ? 'completed' : ($escrow === 'refunded' ? 'error' : 'pending')],
                 ];
 
                 if ($status === 'cancelled' || $status === 'rejected_by_vendor') {
                     $steps[1] = ['label' => 'Rejected', 'status' => 'error'];
                 }
 
-                // Identify Next Step
+                // Next Action
                 $nextAction = '';
                 $nextRole = '';
                 
                 if ($status === 'pending_vendor_acceptance') {
                     $nextAction = 'Waiting for Vendor to review and accept this order.';
                     $nextRole = $isVendor ? 'PLEASE ACCEPT' : 'WAITING FOR VENDOR';
-                } elseif ($status === 'issued') {
+                } elseif (in_array($status, ['issued', 'confirmed']) && $escrow === 'pending') {
+                    $nextAction = 'Order accepted by vendor. Buyer perlu melakukan pembayaran ke rekening Escrow.';
+                    $nextRole = $isBuyer ? 'BAYAR ESCROW' : 'WAITING FOR ESCROW';
+                } elseif (in_array($status, ['issued', 'confirmed']) && $escrow === 'paid') {
                     $hasShipped = $purchaseOrder->deliveryOrders->where('status', 'shipped')->count() > 0;
                     if ($hasShipped) {
-                        $nextAction = 'Goods have been shipped and are in transit. Buyer should log receipt.';
+                        $nextAction = 'Barang telah dikirim. Buyer bisa melakukan penerimaan barang.';
                         $nextRole = $isBuyer ? 'LOG RECEIPT' : 'SHIPPED';
                     } else {
-                        $nextAction = 'Order accepted. Vendor should now arrange delivery and ship items.';
+                        $nextAction = 'Dana escrow sudah aman. Vendor dapat mengirimkan barang.';
                         $nextRole = $isVendor ? 'PLEASE SHIP' : 'WAITING FOR SHIPMENT';
                     }
                 } elseif ($status === 'partial_delivery') {
-                    $nextAction = 'Partial shipment received. Waiting for remaining items or next receipt.';
+                    $nextAction = 'Sebagian barang sudah diterima. Menunggu sisa item atau penerimaan berikutnya.';
                     $nextRole = $isVendor ? 'SHIP REMAINING' : 'LOG NEXT RECEIPT';
-                } elseif ($status === 'full_delivery') {
-                    $hasInvoice = $purchaseOrder->invoices->isNotEmpty();
-                    $isPaid = $purchaseOrder->invoices->where('status', 'paid')->count() === $purchaseOrder->invoices->count() && $hasInvoice;
-
-                    if ($isPaid || $status === 'completed') {
-                        $nextAction = 'Order is fully received and paid. Transaction completed.';
-                        $nextRole = 'COMPLETED';
-                    } elseif ($hasInvoice) {
-                        $latestInvoice = $purchaseOrder->invoices->last();
-                        $nextAction = 'Invoice issued ('.ucfirst($latestInvoice->status).'). Waiting for approval/payment.';
-                        $nextRole = $isBuyer ? 'PROCESS PAYMENT' : 'WAITING FOR PAYMENT';
-                    } else {
-                        $nextAction = 'All items received. Vendor can now submit an invoice for payment.';
-                        $nextRole = $isVendor ? 'CREATE INVOICE' : 'WAITING FOR INVOICE';
-                    }
+                } elseif ($status === 'full_delivery' && $escrow === 'paid') {
+                    $nextAction = 'Semua barang diterima. 3-Way Matching berjalan — dana escrow siap dicairkan.';
+                    $nextRole = $isBuyer ? 'RELEASE ESCROW' : 'WAITING RELEASE';
+                } elseif ($status === 'full_delivery' && $escrow === 'released') {
+                    $nextAction = 'Semua barang diterima dan dana telah dicairkan ke vendor. Transaksi selesai.';
+                    $nextRole = 'COMPLETED';
                 } elseif ($status === 'completed') {
-                    $nextAction = 'Order is completed and paid.';
+                    $nextAction = 'Order selesai — barang diterima dan dana escrow telah dicairkan.';
                     $nextRole = 'COMPLETED';
                 }
             @endphp
@@ -393,6 +407,67 @@
                     </div>
                 </div>
 
+                {{-- Escrow Payment Card --}}
+                <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Escrow Payment</h3>
+                    
+                    @if($purchaseOrder->escrow_status === 'pending')
+                        <div class="text-center py-4">
+                            <div class="w-14 h-14 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="clock" class="w-6 h-6 text-amber-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white">Menunggu Pembayaran</p>
+                            <p class="text-xs text-gray-500 mt-1">Buyer perlu membayar ke rekening escrow.</p>
+                            <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <p class="text-[10px] font-black text-gray-400 uppercase">Amount</p>
+                                <p class="text-lg font-black text-primary-600 tabular-nums mt-1">
+                                    {{ $purchaseOrder->has_deductions ? $purchaseOrder->formatted_adjusted_total_amount : $purchaseOrder->formatted_total_amount }}
+                                </p>
+                            </div>
+                        </div>
+                    @elseif($purchaseOrder->escrow_status === 'paid')
+                        <div class="text-center py-4">
+                            <div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="shield" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-blue-700 dark:text-blue-400">Dana di Escrow</p>
+                            <p class="text-xs text-gray-500 mt-1">Dana aman. Menunggu barang diterima.</p>
+                            <div class="mt-4 space-y-2">
+                                <div class="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/50">
+                                    <p class="text-[10px] font-black text-blue-500 uppercase">Amount Secured</p>
+                                    <p class="text-lg font-black text-blue-700 dark:text-blue-400 tabular-nums mt-1">
+                                        {{ $purchaseOrder->has_deductions ? $purchaseOrder->formatted_adjusted_total_amount : $purchaseOrder->formatted_total_amount }}
+                                    </p>
+                                </div>
+                                @if($purchaseOrder->escrow_reference)
+                                    <div class="text-left p-3 bg-gray-50 dark:bg-gray-900/20 rounded-xl border border-gray-100 dark:border-gray-700">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase">Reference</p>
+                                        <p class="text-xs font-bold text-gray-700 dark:text-gray-300 mt-1">{{ $purchaseOrder->escrow_reference }}</p>
+                                        <p class="text-[10px] text-gray-400 mt-1">{{ $purchaseOrder->escrow_paid_at->format('d M Y, H:i') }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @elseif($purchaseOrder->escrow_status === 'released')
+                        <div class="text-center py-4">
+                            <div class="w-14 h-14 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="check-circle" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-green-700 dark:text-green-400">Dana Dicairkan</p>
+                            <p class="text-xs text-gray-500 mt-1">Dana telah berhasil ditransfer ke vendor.</p>
+                            <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-800/50">
+                                <p class="text-[10px] font-black text-green-500 uppercase">Released Amount</p>
+                                <p class="text-lg font-black text-green-700 dark:text-green-400 tabular-nums mt-1">
+                                    {{ $purchaseOrder->has_deductions ? $purchaseOrder->formatted_adjusted_total_amount : $purchaseOrder->formatted_total_amount }}
+                                </p>
+                                @if($purchaseOrder->escrow_released_at)
+                                    <p class="text-[10px] text-green-600 mt-1">{{ $purchaseOrder->escrow_released_at->format('d M Y, H:i') }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 {{-- Invoices --}}
                 <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                     <div class="flex justify-between items-center mb-6">
@@ -429,6 +504,64 @@
                         </div>
                     @endif
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Escrow Payment Modal --}}
+    <div id="escrowPayModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md relative overflow-hidden transform transition-all">
+            {{-- Header Decor --}}
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary-400 to-primary-600"></div>
+            
+            <button onclick="document.getElementById('escrowPayModal').classList.add('hidden')" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <i data-feather="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary-100 dark:border-primary-800/50">
+                        <i data-feather="shield" class="w-8 h-8 text-primary-600 dark:text-primary-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Pembayaran Escrow</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Amankan transaksi Anda dengan deposit dana ke sistem escrow kami.</p>
+                </div>
+
+                <div class="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
+                    <div class="flex justify-between items-center mb-1">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Tagihan</p>
+                        <span class="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-[10px] font-bold rounded-full">MUST PAY</span>
+                    </div>
+                    <p class="text-3xl font-black text-gray-900 dark:text-white tabular-nums">
+                        {{ $purchaseOrder->has_deductions ? $purchaseOrder->formatted_adjusted_total_amount : $purchaseOrder->formatted_total_amount }}
+                    </p>
+                </div>
+
+                <form action="{{ route('procurement.po.escrow-pay', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
+                    @csrf
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">No. Referensi / Bukti Transfer</label>
+                            <div class="relative">
+                                <i data-feather="hash" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" name="escrow_reference" required placeholder="Contoh: TRX-2026-XXXX" 
+                                       class="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-900 rounded-xl border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all font-bold tabular-nums">
+                            </div>
+                            <p class="text-[10px] text-gray-400 mt-2 italic">Pastikan nomor referensi sesuai dengan bukti transfer Anda.</p>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="document.getElementById('escrowPayModal').classList.add('hidden')" 
+                                    class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-bold transition-all">
+                                Batal
+                            </button>
+                            <button type="submit" class="flex-2 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                                <i data-feather="check-circle" class="w-5 h-5"></i>
+                                Konfirmasi Bayar
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
