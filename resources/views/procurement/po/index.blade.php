@@ -476,22 +476,22 @@
 
 @push('scripts')
     <script>
-        function openImportModal() {
+        window.openImportModal = function() {
             document.getElementById('importModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             feather.replace();
-        }
+        };
 
-        function closeImportModal() {
+        window.closeImportModal = function() {
             document.getElementById('importModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
-            backToUpload();
-        }
+            window.backToUpload();
+        };
 
-        function backToUpload() {
+        window.backToUpload = function() {
             document.getElementById('importStepUpload').classList.remove('hidden');
             document.getElementById('importStepPreview').classList.add('hidden');
-        }
+        };
 
         document.getElementById('file-upload')?.addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name;
