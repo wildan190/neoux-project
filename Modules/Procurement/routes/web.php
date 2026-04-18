@@ -65,6 +65,7 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
 
     // Goods Receipts
+    Route::get('/gr', [GoodsReceiptController::class, 'index'])->name('gr.index');
     Route::get('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'create'])->name('gr.create');
     Route::post('/po/{purchaseOrder}/receive', [GoodsReceiptController::class, 'store'])->name('gr.store');
 

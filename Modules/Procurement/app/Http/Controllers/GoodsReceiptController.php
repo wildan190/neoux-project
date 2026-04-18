@@ -16,6 +16,44 @@ use Modules\Procurement\Notifications\GoodsReceiptCreated;
 
 class GoodsReceiptController extends Controller
 {
+    public function index(Request $request)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        
+        if (!$selectedCompanyId) {
+            $firstCompany = Auth::user()->companies()->first();
+            if ($firstCompany) {
+                $selectedCompanyId = $firstCompany->id;
+                session(['selected_company_id' => $selectedCompanyId]);
+            }
+        }
+
+        $query = GoodsReceipt::with(['purchaseOrder.vendorCompany', 'warehouse', 'receivedBy'])
+            ->whereHas('purchaseOrder', function($q) use ($selectedCompanyId) {
+                $q->whereHas('purchaseRequisition', function($pq) use ($selectedCompanyId) {
+                    $pq->where('company_id', $selectedCompanyId);
+                });
+            });
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(gr_number) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(delivery_note_number) LIKE ?', ["%{$search}%"])
+                  ->orWhereHas('purchaseOrder', function($pq) use ($search) {
+                      $pq->whereRaw('LOWER(po_number) LIKE ?', ["%{$search}%"])
+                        ->orWhereHas('vendorCompany', function($vc) use ($search) {
+                            $vc->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+                        });
+                  });
+            });
+        }
+
+        $goodsReceipts = $query->latest()->paginate(10);
+
+        return view('procurement::buyer.gr.index', compact('goodsReceipts'));
+    }
+
     public function create(PurchaseOrder $purchaseOrder, Request $request)
     {
         $selectedCompanyId = session('selected_company_id');
@@ -97,7 +135,7 @@ class GoodsReceiptController extends Controller
             ->where('is_active', true)
             ->get();
 
-        return view('procurement.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems', 'deliveryOrder', 'warehouses'));
+        return view('procurement::buyer.gr.create', compact('purchaseOrder', 'isReplacement', 'replacementItems', 'deliveryOrder', 'warehouses'));
     }
 
     public function store(Request $request, PurchaseOrder $purchaseOrder)
@@ -378,7 +416,7 @@ class GoodsReceiptController extends Controller
             'receivedBy',
         ]);
 
-        return view('procurement.gr.print', compact('goodsReceipt'));
+        return view('procurement::gr.print', compact('goodsReceipt'));
     }
 
     public function downloadPdf($id)
@@ -411,7 +449,7 @@ class GoodsReceiptController extends Controller
             'receivedBy',
         ]);
 
-        $pdf = Pdf::loadView('procurement.gr.pdf', compact('goodsReceipt'));
+        $pdf = Pdf::loadView('procurement::gr.pdf', compact('goodsReceipt'));
 
         return $pdf->download('DO-' . $goodsReceipt->gr_number . '.pdf');
     }

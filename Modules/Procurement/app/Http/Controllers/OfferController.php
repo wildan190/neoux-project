@@ -45,7 +45,7 @@ class OfferController extends Controller
             ->ranked()
             ->get();
 
-        return view('procurement.offers.index', compact('purchaseRequisition', 'offers'));
+        return view('procurement::buyer.offers.index', compact('purchaseRequisition', 'offers'));
     }
 
     /**
@@ -219,7 +219,8 @@ class OfferController extends Controller
         // Determine if current user is the PR owner (for back button routing)
         $isOwner = $isPROwner;
 
-        return view('procurement.offers.show', compact('offer', 'purchaseRequisition', 'isOwner'));
+        $viewPath = $isPROwner ? 'procurement::buyer.offers.show' : 'procurement::vendor.offers.show';
+        return view($viewPath, compact('offer', 'purchaseRequisition', 'isOwner'));
     }
 
     /**
@@ -460,7 +461,7 @@ class OfferController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('procurement.offers.my-offers', compact('offers'));
+        return view('procurement::vendor.offers.index', compact('offers'));
     }
 
     /**

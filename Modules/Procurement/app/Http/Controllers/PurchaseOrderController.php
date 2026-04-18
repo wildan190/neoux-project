@@ -91,7 +91,8 @@ class PurchaseOrderController extends Controller
             $recentVendorPOs = collect();
         }
 
-        return view('procurement.po.index', compact('buyerPOs', 'vendorPOs', 'recentBuyerPOs', 'recentVendorPOs', 'selectedCompanyId', 'currentView'));
+        $viewPath = 'procurement::' . $currentView . '.po.index';
+        return view($viewPath, compact('buyerPOs', 'vendorPOs', 'recentBuyerPOs', 'recentVendorPOs', 'selectedCompanyId', 'currentView'));
     }
 
     public function show(PurchaseOrder $purchaseOrder)
@@ -119,7 +120,8 @@ class PurchaseOrderController extends Controller
             'invoices',
         ]);
 
-        return view('procurement.po.show', compact('purchaseOrder', 'isBuyer', 'isVendor'));
+        $viewPath = $isBuyer ? 'procurement::buyer.po.show' : 'procurement::vendor.po.show';
+        return view($viewPath, compact('purchaseOrder', 'isBuyer', 'isVendor'));
     }
 
     public function confirm(PurchaseOrder $purchaseOrder)
@@ -172,7 +174,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->load(['items.purchaseRequisitionItem.catalogueItem', 'vendorCompany', 'createdBy', 'purchaseRequisition.company']);
 
-        return view('procurement.po.print', compact('purchaseOrder'));
+        return view('procurement::po.print', compact('purchaseOrder'));
     }
 
     public function downloadPdf(PurchaseOrder $purchaseOrder)
@@ -189,7 +191,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->load(['items.purchaseRequisitionItem.catalogueItem', 'vendorCompany', 'createdBy', 'purchaseRequisition.company']);
 
-        $pdf = Pdf::loadView('procurement.po.pdf', compact('purchaseOrder'));
+        $pdf = Pdf::loadView('procurement::po.pdf', compact('purchaseOrder'));
 
         return $pdf->download('PO-' . $purchaseOrder->po_number . '.pdf');
     }

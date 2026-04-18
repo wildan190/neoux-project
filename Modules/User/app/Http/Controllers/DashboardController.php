@@ -23,7 +23,7 @@ class DashboardController extends Controller
         }
 
         // If no company selected, show the selection list
-        return view('dashboard', compact('companies'));
+        return view('user::dashboard', compact('companies'));
     }
 
     public function selectCompany($companyId)
@@ -36,7 +36,7 @@ class DashboardController extends Controller
 
         session(['selected_company_id' => $company->id]);
 
-        return redirect()->route('company.dashboard')
+        return redirect()->to('/')
             ->with('success', 'Switched to workspace: '.$company->name);
     }
 }

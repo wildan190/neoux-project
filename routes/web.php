@@ -39,7 +39,7 @@ Route::get('/', function (Request $request) {
 
     $featuredProducts = $query->latest()->paginate(16);
 
-    return view('welcome', compact('featuredProducts', 'categories', 'search', 'categoryFilter'));
+    return view('catalogue::welcome', compact('featuredProducts', 'categories', 'search', 'categoryFilter'));
 });
 
 Route::get('/market', [MarketController::class, 'index'])->name('market.index');

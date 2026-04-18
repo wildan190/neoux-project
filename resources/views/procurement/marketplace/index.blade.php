@@ -37,31 +37,7 @@
         </div>
     </div>
 
-    {{-- Category Navigation --}}
-    <div class="space-y-4">
-        <div class="flex items-center justify-between px-2">
-            <h2 class="text-xl font-black text-gray-900 dark:text-white tracking-tight">Explore Categories</h2>
-            <a href="{{ route('procurement.marketplace.index') }}" class="text-sm font-bold text-primary-600 hover:text-primary-700 transition">View All</a>
-        </div>
-        
-        {{-- Horizontal Scrollable Categories --}}
-        <div class="flex overflow-x-auto pb-4 gap-4 no-scrollbar -mx-4 px-4 scroll-smooth">
-            <a href="{{ route('procurement.marketplace.index') }}" 
-                class="flex-shrink-0 px-6 py-3 rounded-2xl border-2 transition-all font-bold text-sm flex items-center gap-2
-                {{ !request('category') ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/20' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-primary-200' }}">
-                <i data-feather="grid" class="w-4 h-4"></i>
-                All Products
-            </a>
-            @foreach($categories as $category)
-                <a href="{{ route('procurement.marketplace.index', ['category' => $category->id]) }}" 
-                    class="flex-shrink-0 px-6 py-3 rounded-2xl border-2 transition-all font-bold text-sm flex items-center gap-2
-                    {{ request('category') == $category->id ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-500/20' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-primary-200' }}">
-                    <i data-feather="tag" class="w-4 h-4"></i>
-                    {{ $category->name }}
-                </a>
-            @endforeach
-        </div>
-    </div>
+
 
     {{-- Product Listing Container --}}
     <div class="flex flex-col lg:flex-row gap-8">

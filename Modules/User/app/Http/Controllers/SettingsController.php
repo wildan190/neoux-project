@@ -27,7 +27,7 @@ class SettingsController extends Controller
         // Fetch current settings from DB
         $settings = $user->notificationSettings()->pluck('is_enabled', 'setting_key')->toArray();
 
-        return view('settings', compact('availableSettings', 'settings'));
+        return view('user::settings', compact('availableSettings', 'settings'));
     }
 
     public function updateNotifications(Request $request)
@@ -56,5 +56,20 @@ class SettingsController extends Controller
         }
 
         return redirect()->route('settings.index')->with('success', 'Notification settings updated successfully.');
+    }
+
+    public function updateSecurity(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
+
+        $user = Auth::user();
+        $user->update([
+            'password' => bcrypt($request->password),
+        ]);
+
+        return redirect()->route('settings.index')->with('success', 'Security passphrase updated successfully.');
     }
 }

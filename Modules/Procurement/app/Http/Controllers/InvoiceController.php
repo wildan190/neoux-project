@@ -64,7 +64,8 @@ class InvoiceController extends Controller
             ->take(4)
             ->get();
 
-        return view('procurement.invoices.index', compact('buyerInvoices', 'vendorInvoices', 'recentBuyerInvoices', 'recentVendorInvoices', 'currentView'));
+        $viewPath = 'procurement::' . $currentView . '.invoices.index';
+        return view($viewPath, compact('buyerInvoices', 'vendorInvoices', 'recentBuyerInvoices', 'recentVendorInvoices', 'currentView'));
     }
 
     public function create(PurchaseOrder $purchaseOrder)
@@ -94,7 +95,7 @@ class InvoiceController extends Controller
 
         $purchaseOrder->load('items.purchaseRequisitionItem.catalogueItem');
 
-        return view('procurement.invoices.create', compact('purchaseOrder'));
+        return view('procurement::vendor.invoices.create', compact('purchaseOrder'));
     }
 
     public function store(Request $request, PurchaseOrder $purchaseOrder)
@@ -302,7 +303,8 @@ class InvoiceController extends Controller
 
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder']);
 
-        return view('procurement.invoices.show', compact('invoice', 'isBuyer', 'isVendor'));
+        $viewPath = $isBuyer ? 'procurement::buyer.invoices.show' : 'procurement::vendor.invoices.show';
+        return view($viewPath, compact('invoice', 'isBuyer', 'isVendor'));
     }
 
     /**
@@ -312,7 +314,7 @@ class InvoiceController extends Controller
     {
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
 
-        return view('procurement.invoices.print', compact('invoice'));
+        return view('procurement::invoices.print', compact('invoice'));
     }
 
     /**
@@ -323,7 +325,7 @@ class InvoiceController extends Controller
         $invoice = \Modules\Procurement\Models\Invoice::findOrFail($id);
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
 
-        $pdf = Pdf::loadView('procurement.invoices.pdf', compact('invoice'))
+        $pdf = Pdf::loadView('procurement::invoices.pdf', compact('invoice'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('Invoice-' . $invoice->invoice_number . '.pdf');
@@ -367,7 +369,7 @@ class InvoiceController extends Controller
 
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
 
-        return view('procurement.invoices.tax-invoice-print', compact('invoice'));
+        return view('procurement::invoices.tax-invoice-print', compact('invoice'));
     }
 
     /**
@@ -381,7 +383,7 @@ class InvoiceController extends Controller
 
         $invoice->load(['items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem', 'purchaseOrder.vendorCompany', 'purchaseOrder.purchaseRequisition.company']);
 
-        $pdf = Pdf::loadView('procurement.invoices.tax-invoice-print', compact('invoice'))
+        $pdf = Pdf::loadView('procurement::invoices.tax-invoice-print', compact('invoice'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->download('Tax-Invoice-' . $invoice->tax_invoice_number . '.pdf');

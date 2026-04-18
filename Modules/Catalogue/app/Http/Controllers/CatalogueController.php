@@ -50,14 +50,14 @@ class CatalogueController extends Controller
         $products = $query->latest()->paginate(12);
         $categories = CatalogueCategory::all();
 
-        return view('catalogue.index', compact('products', 'categories'));
+        return view('catalogue::index', compact('products', 'categories'));
     }
 
     public function create()
     {
         $categories = CatalogueCategory::all();
 
-        return view('catalogue.create', compact('categories'));
+        return view('catalogue::create', compact('categories'));
     }
 
     public function store(StoreCatalogueProductRequest $request)
@@ -114,7 +114,7 @@ class CatalogueController extends Controller
 
         $product->load(['category', 'items.images', 'items.attributes']);
 
-        return view('catalogue.show', compact('product'));
+        return view('catalogue::show', compact('product'));
     }
 
     public function edit(CatalogueProduct $product)
@@ -124,7 +124,7 @@ class CatalogueController extends Controller
         }
         $categories = CatalogueCategory::all();
 
-        return view('catalogue.edit', compact('product', 'categories'));
+        return view('catalogue::edit', compact('product', 'categories'));
     }
 
     public function update(StoreCatalogueProductRequest $request, CatalogueProduct $product)

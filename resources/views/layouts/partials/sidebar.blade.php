@@ -1,61 +1,34 @@
 <aside id="sidebar"
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 shadow-2xl transform transition-transform duration-300 flex flex-col -translate-x-full md:translate-x-0">
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/20 transform transition-transform duration-300 flex flex-col -translate-x-full md:translate-x-0">
 
     {{-- Company Brand --}}
-    <div class="px-6 py-6 border-b border-gray-700/50">
-        @php
-            $selectedCompanyId = session('selected_company_id');
-            $userCompanies = auth()->user()->allCompanies();
-            $selectedCompany = $userCompanies->firstWhere('id', $selectedCompanyId);
-        @endphp
-
-        @if($selectedCompany)
-            <div class="flex items-center space-x-3">
-                <div
-                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg text-white font-bold text-lg">
-                    {{ substr($selectedCompany->name, 0, 1) }}
-                </div>
-                <div class="text-left overflow-hidden">
-                    <h2 class="text-sm font-bold text-white truncate w-32">{{ $selectedCompany->name }}</h2>
-                    <p class="text-xs text-gray-400 truncate w-32">{{ $selectedCompany->category }}</p>
-                </div>
+    {{-- Brand Section --}}
+    <div class="px-5 py-5 border-b border-gray-100 dark:border-gray-800/40">
+        <div class="flex items-center gap-3 group">
+            <div class="w-8 h-8 rounded-lg bg-gray-900 dark:bg-gray-800 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
+                <i data-feather="box" class="w-4 h-4 text-white"></i>
             </div>
-        @else
-            {{-- Default Brand if No Company Selected --}}
-            <div class="flex items-center space-x-3">
-                <div
-                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-6 h-6 text-white">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-white">Huntr.id</h2>
-                    <p class="text-xs text-gray-400">Platform by HUNTR</p>
-                </div>
+            <div class="flex-1 min-w-0">
+                <h2 class="text-sm font-bold text-gray-900 dark:text-white tracking-tighter uppercase tracking-[0.1em]">Huntr<span class="text-primary-600">.id</span></h2>
+                <p class="text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] truncate">Powered by HUNTR</p>
             </div>
-        @endif
+        </div>
     </div>
 
     {{-- Navigation --}}
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         @php
-            $dashboardRoute = session('selected_company_id') ? route('company.dashboard') : route('dashboard');
-            $isDashboardActive = request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
+            $isBuyer = ($procurementMode === 'buyer');
+            $dashboardRoute = session('selected_company_id') ? ($isBuyer ? url('/') : route('company.dashboard')) : route('dashboard');
+            $isDashboardActive = request()->is('/') || request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
         @endphp
 
+        @if($procurementMode !== 'buyer')
         <a href="{{ $dashboardRoute }}" data-no-pjax
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ $isDashboardActive ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+            class="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group {{ $isDashboardActive ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
             <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ $isDashboardActive ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="w-5 h-5">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
+                class="w-8 h-8 rounded-lg flex items-center justify-center {{ $isDashboardActive ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-800 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20' }} transition-colors">
+                <i data-feather="home" class="w-5 h-5"></i>
             </div>
             <span class="ml-3">Dashboard</span>
             @php
@@ -68,17 +41,13 @@
                 {{ $showNotifBadge ? $notifCount : '' }}
             </span>
         </a>
+        @endif
 
         <a href="{{ route('companies.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('companies.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+            class="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group {{ request()->routeIs('companies.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
             <div
                 class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('companies.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="w-5 h-5">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
+                <i data-feather="briefcase" class="w-5 h-5"></i>
             </div>
             <span class="ml-3">Companies</span>
         </a>
@@ -94,453 +63,120 @@
             }
         @endphp
 
-        {{-- Procurement Section (Buying) --}}
-        @php
-            $procurementMode = session('procurement_mode', 'buyer');
-        @endphp
 
-        @if($showCatalogue && $procurementMode === 'buyer')
-            <div class="px-4 pt-6 pb-2">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Procurement (Buying)</p>
+        {{-- Marketplace Filters (Visible to Everyone) --}}
+        <div class="px-4 pt-4 pb-2 space-y-2">
+            <p class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest px-2 mb-4">Marketplace Navigation</p>
+            
+            {{-- Quick Search --}}
+            <div class="px-2 mb-6">
+                <form action="{{ url('/') }}" method="GET" class="relative">
+                    <i data-feather="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Quick search..." 
+                        class="w-full pl-9 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-xs focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none text-gray-900 dark:text-white">
+                </form>
             </div>
 
-            <a href="{{ route('procurement.marketplace.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.marketplace.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.marketplace.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Marketplace</span>
-            </a>
-
-            <a href="{{ route('procurement.approvals.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.approvals.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M9 11l3 3L22 4"></path>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Quick Approvals</span>
-                @php
-                    $quickBuyerCount = $sidebarCounts['quick_approvals_buyer'] ?? 0;
-                    $showQuickBuyerBadge = $quickBuyerCount > 0 && !request()->routeIs('procurement.approvals.index');
-                @endphp
-                <span id="badge-quick_approvals_buyer"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full {{ $showQuickBuyerBadge ? '' : 'hidden' }}"
-                    {!! $showQuickBuyerBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showQuickBuyerBadge ? $quickBuyerCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.pr.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">My Requisitions</span>
-                @php
-                    $prCount = $sidebarCounts['my_requisitions'] ?? 0;
-                    $showPrBadge = $prCount > 0 && !request()->routeIs('procurement.pr.index');
-                @endphp
-                <span id="badge-my_requisitions"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPrBadge ? '' : 'hidden' }}"
-                    {!! $showPrBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showPrBadge ? $prCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.po.index', ['view' => 'buyer']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Purchase Orders</span>
-                @php
-                    $poBuyerCount = $sidebarCounts['purchase_orders_buyer'] ?? 0;
-                    $showPoBuyerBadge = $poBuyerCount > 0 && !request()->fullUrlIs(route('procurement.po.index', ['view' => 'buyer']) . '*');
-                @endphp
-                <span id="badge-purchase_orders_buyer"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPoBuyerBadge ? '' : 'hidden' }}"
-                    {!! $showPoBuyerBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showPoBuyerBadge ? $poBuyerCount : '' }}
-                </span>
-            </a>
-
-            @if(auth()->user()->hasCompanyPermission($selectedCompanyId, 'approve invoice'))
-                <a href="{{ route('procurement.invoices.index', ['view' => 'buyer']) }}"
-                    class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                    <div
-                        class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-5 h-5">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                            <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg>
-                    </div>
-                    <span class="ml-3">Invoices (Pay)</span>
-                    @php
-                        $invBuyerCount = $sidebarCounts['invoices_buyer'] ?? 0;
-                        $showInvBuyerBadge = $invBuyerCount > 0 && !request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'buyer']) . '*');
-                    @endphp
-                    <span id="badge-invoices_buyer"
-                        class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showInvBuyerBadge ? '' : 'hidden' }}"
-                        {!! $showInvBuyerBadge ? '' : 'style="display: none"' !!}>
-                        {{ $showInvBuyerBadge ? $invBuyerCount : '' }}
-                    </span>
+            {{-- Category Filter --}}
+            <div class="space-y-1">
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Categories</p>
+                <a href="{{ url('/') }}" 
+                    class="flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group {{ !request('category') ? 'bg-primary-50 dark:bg-primary-900/10 text-primary-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600' }}">
+                    <i data-feather="grid" class="w-4 h-4 mr-3"></i>
+                    <span>All Products</span>
                 </a>
-            @endif
-
-            <a href="{{ route('procurement.grr.index', ['view' => 'buyer']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.grr.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.grr.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Goods Returns</span>
-                @php
-                    $grrBuyerCount = $sidebarCounts['return_requests_buyer'] ?? 0;
-                    $showGrrBuyerBadge = $grrBuyerCount > 0 && !request()->fullUrlIs(route('procurement.grr.index', ['view' => 'buyer']) . '*');
-                @endphp
-                <span id="badge-return_requests_buyer"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showGrrBuyerBadge ? '' : 'hidden' }}"
-                    {!! $showGrrBuyerBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showGrrBuyerBadge ? $grrBuyerCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.debit-notes.index', ['view' => 'buyer']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'buyer']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'buyer']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                </div>
-                <span class="ml-3">Debit Notes</span>
-                @php
-                    $dnBuyerCount = $sidebarCounts['debit_notes_buyer'] ?? 0;
-                    $showDnBuyerBadge = $dnBuyerCount > 0 && !request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'buyer']) . '*');
-                @endphp
-                <span id="badge-debit_notes_buyer"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showDnBuyerBadge ? '' : 'hidden' }}"
-                    {!! $showDnBuyerBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showDnBuyerBadge ? $dnBuyerCount : '' }}
-                </span>
-            </a>
-        @endif
+                @foreach($sidebarCategories ?? [] as $cat)
+                    <a href="{{ url('/?category=' . $cat->slug) }}" 
+                        class="flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group {{ request('category') == $cat->slug ? 'bg-primary-50 dark:bg-primary-900/10 text-primary-600' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600' }}">
+                        <i data-feather="chevron-right" class="w-3.5 h-3.5 mr-3 opacity-30 group-hover:opacity-100 transition-opacity"></i>
+                        <span class="truncate">{{ $cat->name }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
 
         {{-- Sales Section (Selling) --}}
         @if($showCatalogue && $procurementMode === 'vendor')
-            <div class="px-4 pt-6 pb-2">
-                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sales (Selling)</p>
+            <div class="px-6 pt-6 pb-2">
+                <p class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Operations</p>
             </div>
 
-            <a href="{{ route('catalogue.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('catalogue.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('catalogue.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
-                        <path
-                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                        </path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg>
-                </div>
-                <span class="ml-3">Catalogue</span>
-            </a>
-
-            <a href="{{ route('warehouse.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('warehouse.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('warehouse.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M3 3v18h18"></path>
-                        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Warehouse</span>
-            </a>
-
-            <a href="{{ route('procurement.approvals.index') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.approvals.index') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M9 11l3 3L22 4"></path>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Quick Approvals</span>
-                @php
-                    $quickVendorCount = $sidebarCounts['quick_approvals_vendor'] ?? 0;
-                    $showQuickVendorBadge = $quickVendorCount > 0 && !request()->routeIs('procurement.approvals.index');
-                @endphp
-                <span id="badge-quick_approvals_vendor"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full {{ $showQuickVendorBadge ? '' : 'hidden' }}"
-                    {!! $showQuickVendorBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showQuickVendorBadge ? $quickVendorCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.pr.public-feed') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path
-                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                        </path>
-                    </svg>
-                </div>
-                <span class="ml-3">Opportunity Feed</span>
-                @php
-                    $allReqCount = $sidebarCounts['all_requests'] ?? 0;
-                    $showAllReqBadge = $allReqCount > 0 && !request()->routeIs('procurement.pr.public-feed');
-                @endphp
-                <span id="badge-all_requests"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showAllReqBadge ? '' : 'hidden' }}"
-                    {!! $showAllReqBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showAllReqBadge ? $allReqCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.offers.my') }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('procurement.offers.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('procurement.offers.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">My Offers</span>
-                @php
-                    $myOfferCount = $sidebarCounts['my_offers'] ?? 0;
-                    $showMyOfferBadge = $myOfferCount > 0 && !request()->routeIs('procurement.offers.*');
-                @endphp
-                <span id="badge-my_offers"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showMyOfferBadge ? '' : 'hidden' }}"
-                    {!! $showMyOfferBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showMyOfferBadge ? $myOfferCount : '' }}
-                </span>
-            </a>
-
-            <a href="{{ route('procurement.po.index', ['view' => 'vendor']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                </div>
-                <span class="ml-3">Incoming Orders</span>
-                @php
-                    $poVendorCount = $sidebarCounts['purchase_orders_vendor'] ?? 0;
-                    $showPoVendorBadge = $poVendorCount > 0 && !request()->fullUrlIs(route('procurement.po.index', ['view' => 'vendor']) . '*');
-                @endphp
-                <span id="badge-purchase_orders_vendor"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showPoVendorBadge ? '' : 'hidden' }}"
-                    {!! $showPoVendorBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showPoVendorBadge ? $poVendorCount : '' }}
-                </span>
-            </a>
-
-            @if(auth()->user()->hasCompanyPermission($selectedCompanyId, 'approve invoice'))
-                <a href="{{ route('procurement.invoices.index', ['view' => 'vendor']) }}"
-                    class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                    <div
-                        class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-5 h-5">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </div>
-                    <span class="ml-3">Sent Invoices</span>
-                    @php
-                        $invVendorCount = $sidebarCounts['invoices_vendor'] ?? 0;
-                        $showInvVendorBadge = $invVendorCount > 0 && !request()->fullUrlIs(route('procurement.invoices.index', ['view' => 'vendor']) . '*');
-                    @endphp
-                    <span id="badge-invoices_vendor"
-                        class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showInvVendorBadge ? '' : 'hidden' }}"
-                        {!! $showInvVendorBadge ? '' : 'style="display: none"' !!}>
-                        {{ $showInvVendorBadge ? $invVendorCount : '' }}
-                    </span>
+            <div class="px-3 space-y-1">
+                <a href="{{ route('catalogue.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('catalogue.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="package" class="w-4 h-4 mr-3"></i>
+                    <span>Catalogue</span>
                 </a>
-            @endif
 
-            <a href="{{ route('procurement.grr.index', ['view' => 'vendor']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.grr.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.grr.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                    </svg>
-                </div>
-                <span class="ml-3">Sales Returns</span>
-                @php
-                    $grrVendorCount = $sidebarCounts['return_requests_vendor'] ?? 0;
-                    $showGrrVendorBadge = $grrVendorCount > 0 && !request()->fullUrlIs(route('procurement.grr.index', ['view' => 'vendor']) . '*');
-                @endphp
-                <span id="badge-return_requests_vendor"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showGrrVendorBadge ? '' : 'hidden' }}"
-                    {!! $showGrrVendorBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showGrrVendorBadge ? $grrVendorCount : '' }}
-                </span>
-            </a>
+                <a href="{{ route('warehouse.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('warehouse.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="database" class="w-4 h-4 mr-3"></i>
+                    <span>Warehouse</span>
+                </a>
 
-            <a href="{{ route('procurement.debit-notes.index', ['view' => 'vendor']) }}"
-                class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'vendor']) . '*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-                <div
-                    class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'vendor']) . '*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                </div>
-                <span class="ml-3">Credit Notes</span>
-                @php
-                    $dnVendorCount = $sidebarCounts['debit_notes_vendor'] ?? 0;
-                    $showDnVendorBadge = $dnVendorCount > 0 && !request()->fullUrlIs(route('procurement.debit-notes.index', ['view' => 'vendor']) . '*');
-                @endphp
-                <span id="badge-debit_notes_vendor"
-                    class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full {{ $showDnVendorBadge ? '' : 'hidden' }}"
-                    {!! $showDnVendorBadge ? '' : 'style="display: none"' !!}>
-                    {{ $showDnVendorBadge ? $dnVendorCount : '' }}
-                </span>
-            </a>
+                <a href="{{ route('procurement.approvals.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
+                    <span>Approvals</span>
+                </a>
+            </div>
         @endif
 
-        <a href="{{ route('team.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('team.*') ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('team.*') ? 'bg-white/20' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="w-5 h-5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-            </div>
-            <span class="ml-3">Team</span>
-        </a>
+        <div class="px-6 pt-6 pb-2">
+            <p class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Account Management</p>
+        </div>
 
-        <a href="{{ route('settings.index') }}"
-            class="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group {{ request()->routeIs('settings.*') ? 'bg-primary-600/10 text-primary-500' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
-            <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center {{ request()->routeIs('settings.*') ? 'bg-primary-600/20 text-primary-500' : 'bg-gray-700/50 group-hover:bg-gray-600/50' }} transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="w-5 h-5">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
-                </svg>
-            </div>
-            <span class="ml-3">Settings</span>
-        </a>
+        <div class="px-3 space-y-1">
+            <a href="{{ route('team.index') }}"
+                class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('team.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                <i data-feather="users" class="w-4 h-4 mr-3"></i>
+                <span>Team Members</span>
+            </a>
+
+            <a href="{{ route('settings.index') }}"
+                class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('settings.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                <i data-feather="settings" class="w-4 h-4 mr-3"></i>
+                <span>Settings</span>
+            </a>
+        </div>
     </nav>
 
     {{-- User Profile --}}
-    <div class="p-4 border-t border-gray-700/50">
-        <div class="bg-gray-700/30 rounded-xl p-3 backdrop-blur-sm">
-            <a href="{{ route('profile.show') }}" class="flex items-center space-x-3 hover:opacity-80 transition">
-                @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
-                    <img src="{{ Auth::user()->userDetail->profile_photo_url }}" alt="{{ Auth::user()->name }}"
-                        class="w-10 h-10 rounded-lg object-cover shadow-lg">
+    @if(auth()->check())
+    <div class="p-4 border-t border-gray-100 dark:border-gray-800/50">
+        <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl p-3 border border-gray-100 dark:border-gray-800">
+            <a href="{{ route('profile.show') }}" class="flex items-center space-x-3 hover:opacity-80 transition group">
+                @if(auth()->user()->userDetail && auth()->user()->userDetail->profile_photo_url)
+                    <img src="{{ auth()->user()->userDetail->profile_photo_url }}" alt="{{ auth()->user()->name }}"
+                        class="w-8 h-8 rounded-lg object-cover shadow-sm">
                 @else
                     <div
-                        class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-[10px] shadow-lg shadow-primary-600/20">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                 @endif
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                    <p class="text-[10px] font-bold text-gray-900 dark:text-white truncate tracking-tight">{{ auth()->user()->name }}</p>
+                    <p class="text-[8px] font-medium text-gray-400 truncate">{{ auth()->user()->email }}</p>
                 </div>
+                <i data-feather="chevron-right" class="w-3 h-3 text-gray-300 group-hover:text-primary-500 transition-colors"></i>
             </a>
-            <form method="POST" action="{{ route('logout') }}" class="mt-3">
-                @csrf
-                <button type="submit"
-                    class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-gray-600/50 hover:bg-gray-600 rounded-lg text-xs font-medium text-gray-200 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-4 h-4">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Logout</span>
-                </button>
-            </form>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <a href="{{ route('settings.index') }}"
+                    class="flex items-center justify-center space-x-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl text-[9px] font-bold text-gray-500 hover:text-primary-600 transition-all duration-200">
+                    <i data-feather="settings" class="w-3 h-3"></i>
+                    <span>SETTINGS</span>
+                </a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                        class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl text-[9px] font-bold text-gray-500 hover:text-red-600 transition-all duration-200">
+                        <i data-feather="log-out" class="w-3 h-3"></i>
+                        <span>SIGN OUT</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-
+    @endif
 </aside>

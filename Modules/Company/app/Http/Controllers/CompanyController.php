@@ -14,7 +14,7 @@ class CompanyController extends Controller
     {
         $companies = Company::where('user_id', Auth::id())->get();
 
-        return view('company.index', compact('companies'));
+        return view('company::company.index', compact('companies'));
     }
 
     public function create()
@@ -27,7 +27,7 @@ class CompanyController extends Controller
             return redirect()->route('companies.index')->with('error', 'Only owners can create additional companies while tied to an existing company.');
         }
 
-        return view('company.create');
+        return view('company::company.create');
     }
 
     public function store(StoreCompanyRequest $request)
@@ -89,7 +89,7 @@ class CompanyController extends Controller
             'active_requests' => $company->purchaseRequisitions()->whereIn('status', ['pending', 'open'])->count(),
         ];
 
-        return view('company.show', compact('company', 'stats'));
+        return view('company::company.show', compact('company', 'stats'));
     }
 
     public function edit(Company $company)
@@ -105,7 +105,7 @@ class CompanyController extends Controller
                 ->with('error', 'Cannot edit company while status is pending. Please wait for admin review.');
         }
 
-        return view('company.edit', compact('company'));
+        return view('company::company.edit', compact('company'));
     }
 
     public function update(StoreCompanyRequest $request, Company $company)

@@ -37,7 +37,7 @@ class CompanyDashboardController extends Controller
         // Fetch Tasks
         $tasks = $this->getTasks($company, $isBuyer, $isVendor);
 
-        return view('company-dashboard', compact('company', 'stats', 'chartData', 'isBuyer', 'isVendor', 'tasks'));
+        return view('company::dashboard', compact('company', 'stats', 'chartData', 'isBuyer', 'isVendor', 'tasks'));
     }
 
     private function getTasks(Company $company, bool $isBuyer, bool $isVendor): array

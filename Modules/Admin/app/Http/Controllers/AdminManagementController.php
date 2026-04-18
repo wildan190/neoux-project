@@ -13,12 +13,12 @@ class AdminManagementController extends Controller
     {
         $admins = Admin::latest()->paginate(20);
 
-        return view('admin.admins.index', compact('admins'));
+        return view('admin::admins.index', compact('admins'));
     }
 
     public function create()
     {
-        return view('admin.admins.create');
+        return view('admin::admins.create');
     }
 
     public function store(Request $request)

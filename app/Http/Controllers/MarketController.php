@@ -35,7 +35,7 @@ class MarketController extends Controller
 
         $products = $query->latest()->paginate(16);
 
-        return view('market.index', compact('products', 'search'));
+        return view('catalogue::market.index', compact('products', 'search'));
     }
 
     /**
@@ -62,6 +62,6 @@ class MarketController extends Controller
             ->take(4)
             ->get();
 
-        return view('market.show', compact('product', 'relatedProducts'));
+        return view('catalogue::market.show', compact('product', 'relatedProducts'));
     }
 }

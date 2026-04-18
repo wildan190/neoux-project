@@ -10,7 +10,7 @@ class AdminLoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('admin.auth.login');
+        return view('admin::auth.login');
     }
 
     public function login(Request $request)
@@ -22,6 +22,11 @@ class AdminLoginController extends Controller
 
         if (Auth::guard('admin')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
+
+            $intended = session()->get('url.intended');
+            if ($intended && (str_contains($intended, '/unread-count') || str_contains($intended, '/latest'))) {
+                session()->forget('url.intended');
+            }
 
             return redirect()->intended(route('admin.dashboard'));
         }

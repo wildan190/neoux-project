@@ -15,6 +15,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications.update');
+    Route::post('/settings/security', [SettingsController::class, 'updateSecurity'])->name('settings.security.update');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile/details', [ProfileController::class, 'updateDetails'])->name('profile.details.update');
     Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');

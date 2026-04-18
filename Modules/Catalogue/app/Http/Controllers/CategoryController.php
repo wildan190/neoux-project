@@ -12,7 +12,7 @@ class CategoryController extends Controller
     {
         $categories = CatalogueCategory::withCount('items')->get();
 
-        return view('admin.categories.index', compact('categories'));
+        return view('catalogue::categories.index', compact('categories'));
     }
 
     public function store(Request $request)

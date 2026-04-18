@@ -37,7 +37,7 @@ class MarketplaceController extends Controller
         $products = $query->paginate(12);
         $categories = CatalogueCategory::all();
 
-        return view('procurement.marketplace.index', compact('products', 'categories'));
+        return view('catalogue::marketplace.index', compact('products', 'categories'));
     }
 
     public function show(CatalogueProduct $product)
@@ -48,7 +48,7 @@ class MarketplaceController extends Controller
 
         $product->load(['category', 'items.images', 'items.attributes']);
 
-        return view('procurement.marketplace.show', compact('product'));
+        return view('catalogue::marketplace.show', compact('product'));
     }
 
     public function addToCart(Request $request)
@@ -93,7 +93,7 @@ class MarketplaceController extends Controller
     {
         $cart = session()->get('marketplace_cart', []);
 
-        return view('procurement.marketplace.cart', compact('cart'));
+        return view('catalogue::marketplace.cart', compact('cart'));
     }
 
     public function removeFromCart(Request $request)

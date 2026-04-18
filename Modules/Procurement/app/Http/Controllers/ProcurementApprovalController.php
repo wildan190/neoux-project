@@ -106,7 +106,7 @@ class ProcurementApprovalController extends Controller
                 ->get();
         }
 
-        return view('procurement.approvals.index', compact(
+        return view('procurement::buyer.approvals.index', compact(
             'pendingPRs',
             'pendingInvoices',
             'pendingDebitNotes',

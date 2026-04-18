@@ -15,6 +15,9 @@ class SidebarComposer
 {
     public function compose(View $view)
     {
+        $view->with('procurementMode', session('procurement_mode', 'buyer'));
+        $view->with('sidebarCategories', \Modules\Catalogue\Models\CatalogueCategory::all());
+
         $user = Auth::user();
         if (!$user) {
             return;

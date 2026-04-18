@@ -42,7 +42,7 @@ class PurchaseRequisitionController extends Controller
         $closedCount = PurchaseRequisition::where('company_id', $selectedCompanyId)
             ->whereIn('status', ['awarded', 'ordered'])->count();
 
-        return view('procurement.pr.index', compact('requisitions', 'filter', 'openCount', 'closedCount'));
+        return view('procurement::buyer.pr.index', compact('requisitions', 'filter', 'openCount', 'closedCount'));
     }
 
     public function myRequests()
@@ -52,7 +52,7 @@ class PurchaseRequisitionController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('procurement.pr.my-requests', compact('requisitions'));
+        return view('procurement::buyer.pr.my-requests', compact('requisitions'));
     }
 
     public function create()
@@ -72,7 +72,7 @@ class PurchaseRequisitionController extends Controller
             ->with(['product', 'company'])
             ->get();
 
-        return view('procurement.pr.create', compact('myItems', 'marketplaceItems'));
+        return view('procurement::buyer.pr.create', compact('myItems', 'marketplaceItems'));
     }
 
     public function store(Request $request)
@@ -178,7 +178,7 @@ class PurchaseRequisitionController extends Controller
 
         $purchaseRequisition->load(['company.members', 'user.userDetail', 'items.catalogueItem', 'documents.uploader', 'comments.user.userDetail', 'offers.company']);
 
-        return view('procurement.pr.show', compact('purchaseRequisition'));
+        return view('procurement::buyer.pr.show', compact('purchaseRequisition'));
     }
 
     public function showPublic(PurchaseRequisition $purchaseRequisition)
@@ -195,7 +195,7 @@ class PurchaseRequisitionController extends Controller
                 ->first();
         }
 
-        return view('procurement.pr.show-public', compact('purchaseRequisition', 'myOffer'));
+        return view('procurement::buyer.pr.show-public', compact('purchaseRequisition', 'myOffer'));
     }
 
     public function publicFeed(Request $request)
@@ -250,7 +250,7 @@ class PurchaseRequisitionController extends Controller
         $openCount = PurchaseRequisition::where('status', 'open')->count();
         $closedCount = PurchaseRequisition::whereIn('status', ['awarded', 'ordered'])->count();
 
-        return view('procurement.pr.public-feed', compact('requisitions', 'filter', 'openCount', 'closedCount', 'search'));
+        return view('procurement::buyer.pr.public-feed', compact('requisitions', 'filter', 'openCount', 'closedCount', 'search'));
     }
 
     public function downloadDocument(PurchaseRequisitionDocument $document)
