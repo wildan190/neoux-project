@@ -44,7 +44,7 @@ class DeliveryOrderController extends Controller
                 ->with('error', 'All items for this Purchase Order have already been arranged for delivery.');
         }
 
-        return view('procurement.do.create', compact('purchaseOrder'));
+        return view('procurement::vendor.do.create', compact('purchaseOrder'));
     }
 
     /**

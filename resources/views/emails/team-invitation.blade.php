@@ -80,12 +80,12 @@
         </div>
         <div class="content">
             <p><strong>{{ $invitation->company->name }}</strong> has invited you to join their team as a
-                <strong>{{ ucfirst($invitation->role) }}</strong> on NeoUX Platform.</p>
+                <strong>{{ ucfirst($invitation->role) }}</strong> on Huntr.id Platform.</p>
             <p>Click the button below to accept the invitation and get started.</p>
             <a href="{{ route('team.accept-invitation', $invitation->token) }}" class="button">Accept Invitation</a>
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} NeoUX. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Huntr.id. All rights reserved.</p>
         </div>
     </div>
 </body>

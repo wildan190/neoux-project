@@ -12,6 +12,14 @@ class CompanyReviewController extends Controller
     {
         $status = $request->get('status', 'pending');
 
+        // Global Counts (regardless of current filter)
+        $counts = [
+            'all' => Company::count(),
+            'pending' => Company::where('status', 'pending')->count(),
+            'active' => Company::where('status', 'active')->count(),
+            'declined' => Company::where('status', 'declined')->count(),
+        ];
+
         $companies = Company::with(['user', 'locations'])
             ->when($status !== 'all', function ($query) use ($status) {
                 return $query->where('status', $status);
@@ -19,7 +27,7 @@ class CompanyReviewController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('admin.companies.index', compact('companies', 'status'));
+        return view('admin::companies.index', compact('companies', 'status', 'counts'));
     }
 
     public function show(Company $company)
@@ -34,7 +42,7 @@ class CompanyReviewController extends Controller
             'active_requests' => $company->purchaseRequisitions()->whereIn('status', ['pending', 'open'])->count(),
         ];
 
-        return view('admin.companies.show', compact('company', 'stats'));
+        return view('admin::companies.show', compact('company', 'stats'));
     }
 
     public function approve(Company $company)

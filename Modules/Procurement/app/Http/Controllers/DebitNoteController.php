@@ -47,7 +47,7 @@ class DebitNoteController extends Controller
             ->paginate(10)
             ->appends(['view' => $view]);
 
-        return view('procurement.debit-notes.index', compact('debitNotes', 'view'));
+        return view("procurement::{$view}.debit-notes.index", compact('debitNotes', 'view'));
     }
 
     /**
@@ -81,7 +81,7 @@ class DebitNoteController extends Controller
         $poItem = $goodsReturnRequest->goodsReceiptItem->purchaseOrderItem;
         $originalAmount = $poItem->unit_price * $goodsReturnRequest->quantity_affected;
 
-        return view('procurement.debit-notes.create', compact('goodsReturnRequest', 'originalAmount'));
+        return view('procurement::vendor.debit-notes.create', compact('goodsReturnRequest', 'originalAmount'));
     }
 
     /**
@@ -167,7 +167,8 @@ class DebitNoteController extends Controller
             abort(403, 'Unauthorized to view this Debit Note.');
         }
 
-        return view('procurement.debit-notes.show', compact('debitNote', 'isBuyer', 'isVendor'));
+        $viewPath = $isBuyer ? 'procurement::buyer.debit-notes.show' : 'procurement::vendor.debit-notes.show';
+        return view($viewPath, compact('debitNote', 'isBuyer', 'isVendor'));
     }
 
     /**
@@ -194,7 +195,7 @@ class DebitNoteController extends Controller
             abort(403, 'Unauthorized to print this Debit Note.');
         }
 
-        return view('procurement.debit-notes.print', compact('debitNote'));
+        return view('procurement::debit-notes.print', compact('debitNote'));
     }
 
     /**

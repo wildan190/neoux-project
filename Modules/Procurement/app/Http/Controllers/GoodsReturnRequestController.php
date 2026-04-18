@@ -82,7 +82,7 @@ class GoodsReturnRequestController extends Controller
         $pendingCount = $pendingQuery->count();
         $resolvedCount = $resolvedQuery->count();
 
-        return view('procurement.grr.index', compact('grrList', 'filter', 'pendingCount', 'resolvedCount', 'view'));
+        return view("procurement::{$view}.grr.index", compact('grrList', 'filter', 'pendingCount', 'resolvedCount', 'view'));
     }
 
     /**
@@ -111,7 +111,8 @@ class GoodsReturnRequestController extends Controller
             abort(403, 'Unauthorized to view this GRR.');
         }
 
-        return view('procurement.grr.show', compact('goodsReturnRequest', 'isBuyer', 'isVendor'));
+        $viewPath = $isBuyer ? 'procurement::buyer.grr.show' : 'procurement::vendor.grr.show';
+        return view($viewPath, compact('goodsReturnRequest', 'isBuyer', 'isVendor'));
     }
 
     /**

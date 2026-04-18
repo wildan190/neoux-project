@@ -58,7 +58,7 @@ class ProcurementController extends Controller
      */
     public function guide()
     {
-        return view('procurement.guide');
+        return view('procurement::guide');
     }
 
     /**

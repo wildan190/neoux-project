@@ -19,8 +19,8 @@
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 
-<body class="font-sans text-gray-900 antialiased">
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<body class="font-sans text-gray-900 antialiased" data-layout="guest">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900" id="main-content-area">
         @yield('content')
     </div>
 

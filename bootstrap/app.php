@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \Modules\Admin\Http\Middleware\AdminMiddleware::class,
+            'guest.admin' => \Modules\Admin\Http\Middleware\RedirectIfAdminAuthenticated::class,
             'company.selected' => \Modules\Company\Http\Middleware\EnsureCompanySelected::class,
             'company.active' => \Modules\Company\Http\Middleware\EnsureCompanyIsActive::class,
         ]);

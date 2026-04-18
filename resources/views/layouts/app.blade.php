@@ -13,6 +13,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
         rel="stylesheet">
 
+    @php
+        $procurementMode = session('procurement_mode', 'buyer');
+    @endphp
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     <style>
@@ -32,135 +36,126 @@
     </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300" 
+    data-layout="app"
+    data-hide-sidebar="{{ empty($hide_sidebar) ? 'false' : 'true' }}" 
+    data-hide-header="{{ empty($hide_header) ? 'false' : 'true' }}">
+    @php
+        $isAdminContext = request()->is('admin') || request()->is('admin/*');
+        $isAdminView = auth('admin')->check() && $isAdminContext;
+        $isPlatformAuth = auth()->check();
+        $isAuth = $isPlatformAuth || $isAdminView;
+    @endphp
+
     <div class="flex min-h-screen">
 
         {{-- Sidebar --}}
-        @include('layouts.partials.sidebar')
+        @if(empty($hide_sidebar))
+            @if($isAdminView)
+                @include('admin::layouts.partials.sidebar')
+            @else
+                @include('layouts.partials.sidebar')
+            @endif
+        @endif
 
         {{-- Mobile Overlay --}}
         <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
 
         {{-- Main Content --}}
-        <div class="flex-1 flex flex-col overflow-hidden min-w-0 md:pl-64">
+        <div class="flex-1 flex flex-col min-w-0 {{ empty($hide_sidebar) && $isAuth ? 'md:pl-64' : '' }}">
 
+            @if(empty($hide_header))
             {{-- Header --}}
-            <header
-                class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-                <div class="px-4 md:px-6 py-4">
-                    <div class="flex items-center justify-between gap-3">
+            <header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-40">
+                <div class="px-4 md:px-8 py-3.5">
+                    <div class="flex items-center justify-between gap-4">
 
-                        {{-- Left --}}
-                        <div class="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
+                        {{-- Left: Page Info --}}
+                        <div class="flex items-center space-x-4 min-w-0 flex-1">
                             {{-- Mobile Menu Button --}}
                             <button id="toggleSidebar"
-                                class="md:hidden flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i data-feather="menu" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                                class="md:hidden flex-shrink-0 p-2 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-500 hover:text-primary-600 transition-all">
+                                <i data-feather="menu" class="w-5 h-5"></i>
                             </button>
                             
                             <div id="header-content-area" class="min-w-0 flex-1">
                                 @if(isset($title))
-                                    <h1 class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white truncate" id="page-title">{{ $title }}</h1>
-                                    <div id="breadcrumb-area" class="hidden sm:block">
-                                        @include('layouts.partials.breadcrumbs')
+                                    <div class="flex flex-col">
+                                        <h1 class="text-lg font-black text-gray-900 dark:text-white truncate tracking-tight uppercase" id="page-title">{{ $title }}</h1>
+                                        <div id="breadcrumb-area" class="hidden sm:block">
+                                            @include('layouts.partials.breadcrumbs')
+                                        </div>
                                     </div>
                                 @endif
                             </div>
                         </div>
 
-                        {{-- Right --}}
-                        <div class="flex items-center gap-4">
+                        {{-- Right: Actions --}}
+                        <div class="flex items-center gap-3 md:gap-6">
 
                             {{-- Company Switcher --}}
                             @php
                                 $selectedCompanyId = session('selected_company_id');
-                                $userCompanies = auth()->user()->allCompanies();
-                                $selectedCompany = $userCompanies->firstWhere('id', $selectedCompanyId)
-                                    ?? $userCompanies->first();
+                                $userCompanies = $isPlatformAuth ? auth()->user()->allCompanies() : collect();
+                                $selectedCompany = ($userCompanies->firstWhere('id', $selectedCompanyId) ?? $userCompanies->first());
                             @endphp
 
-                            @if($selectedCompany)
+                            @if(!$isAdminView && $selectedCompany)
                                 <div class="relative group" id="companySwitcher">
                                     <button
-                                        class="hidden md:flex items-center gap-2 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700 rounded-lg transition-all border border-gray-200 dark:border-gray-600">
+                                        class="hidden md:flex items-center gap-3 px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
                                         <div
-                                            class="w-7 h-7 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
-                                            <i data-feather="briefcase" class="w-3.5 h-3.5"></i>
+                                            class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-xs shadow-md">
+                                            {{ substr($selectedCompany->name, 0, 1) }}
                                         </div>
-                                        <div class="text-left mr-1">
-                                            <p class="text-xs font-bold text-gray-900 dark:text-white leading-none">
-                                                {{ $selectedCompany->name }}
-                                            </p>
-                                            <p class="text-[9px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                {{ $selectedCompany->category }}
-                                            </p>
-                                        </div>
+                                        <div class="text-left">
                                         <i data-feather="chevron-down"
-                                            class="w-3.5 h-3.5 text-gray-400 transition group-hover:rotate-180"></i>
+                                            class="w-3.5 h-3.5 text-gray-400 transition-transform group-hover:rotate-180"></i>
                                     </button>
 
-                                    {{-- Dropdown --}}
-                                    <div
-                                        class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
-                                        <div
-                                            class="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
-                                            <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                                                Switch Workspace
-                                            </p>
+                                    {{-- Improved Dropdown --}}
+                                    <div class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-50 py-2 scale-95 group-hover:scale-100">
+                                        <div class="px-4 py-2 border-b border-gray-50 dark:border-gray-700/50 mb-2">
+                                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Select Workspace</p>
                                         </div>
 
-                                        <div class="max-h-[300px] overflow-y-auto p-2 space-y-1">
+                                        <div class="max-h-[300px] overflow-y-auto px-2 space-y-1">
                                             @foreach($userCompanies as $company)
-                                                <form action="{{ route('dashboard.select-company', $company->id) }}"
-                                                    method="POST">
+                                                <form action="{{ route('dashboard.select-company', $company->id) }}" method="POST">
                                                     @csrf
                                                     <button type="submit"
-                                                        class="w-full flex items-center gap-3 p-2 rounded-xl transition
+                                                        class="w-full flex items-center gap-3 p-2.5 rounded-xl transition-all
                                                         {{ $company->id == $selectedCompany->id
-                                                            ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30'
-                                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
+                                                            ? 'bg-primary-50 dark:bg-primary-900/20'
+                                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                                                         }}">
-                                                        <div
-                                                            class="w-8 h-8 rounded-lg flex items-center justify-center
+                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black
                                                             {{ $company->id == $selectedCompany->id
-                                                                ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
-                                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                                                                ? 'bg-primary-600 text-white'
+                                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
                                                             }}">
-                                                            @if($company->id == $selectedCompany->id)
-                                                                <i data-feather="check" class="w-4 h-4"></i>
-                                                            @else
-                                                                <span class="text-xs font-bold">{{ substr($company->name, 0, 1) }}</span>
-                                                            @endif
+                                                            {{ strtoupper(substr($company->name, 0, 1)) }}
                                                         </div>
 
                                                         <div class="text-left flex-1 min-w-0">
-                                                            <p
-                                                                class="text-sm font-semibold truncate
-                                                                {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
+                                                            <p class="text-[12px] font-black truncate {{ $company->id == $selectedCompany->id ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white' }}">
                                                                 {{ $company->name }}
                                                             </p>
-                                                            <div class="flex items-center gap-2">
-                                                                <span class="w-1.5 h-1.5 rounded-full
-                                                                    {{ in_array($company->status, ['approved', 'active'])
-                                                                        ? 'bg-green-500'
-                                                                        : ($company->status == 'pending' ? 'bg-yellow-500' : 'bg-red-500') }}">
-                                                                </span>
-                                                                <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                                    {{ $company->status }}
-                                                                </span>
-                                                            </div>
+                                                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{{ $company->status }}</span>
                                                         </div>
+                                                        @if($company->id == $selectedCompany->id)
+                                                            <i data-feather="check" class="w-3.5 h-3.5 text-primary-600"></i>
+                                                        @endif
                                                     </button>
                                                 </form>
                                             @endforeach
                                         </div>
 
-                                        <div
-                                            class="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
+                                        <div class="px-2 pt-2 mt-2 border-t border-gray-50 dark:border-gray-700/50">
                                             <a href="{{ route('companies.create') }}"
-                                                class="flex items-center justify-center gap-2 p-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl">
-                                                <i data-feather="plus-circle" class="w-4 h-4"></i>
-                                                Register New Company
+                                                class="flex items-center justify-center gap-2 p-2.5 text-[11px] font-black text-primary-600 uppercase tracking-widest hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-all">
+                                                <i data-feather="plus" class="w-3.5 h-3.5"></i>
+                                                Register Company
                                             </a>
                                         </div>
                                     </div>
@@ -168,68 +163,85 @@
                             @endif
 
 
+                            {{-- Cart --}}
+                            @if(!$isAdminView)
+                            <a href="{{ route('procurement.marketplace.cart') }}" class="relative p-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all text-gray-400 hover:text-primary-600">
+                                <i data-feather="shopping-cart" class="w-5 h-5"></i>
+                                @php
+                                    $cartCount = count(session()->get('marketplace_cart', []));
+                                @endphp
+                                @if($cartCount > 0)
+                                    <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900 flex items-center justify-center"></span>
+                                @endif
+                            </a>
+                            @endif
+
                             {{-- Notifications --}}
                             <div class="relative" id="notificationDropdown">
                                 <button id="notificationButton"
-                                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition relative">
-                                    <i data-feather="bell" class="w-5 h-5 text-gray-600 dark:text-gray-300"></i>
+                                    class="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all relative text-gray-400 hover:text-primary-600">
+                                    <i data-feather="bell" class="w-5 h-5"></i>
                                     <span id="notificationBadge"
-                                        class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full hidden border-2 border-white dark:border-gray-800 flex items-center justify-center"></span>
+                                        class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden border-2 border-white dark:border-gray-900 flex items-center justify-center"></span>
                                 </button>
 
                                 <div id="notificationMenu"
                                     class="absolute right-0 mt-3 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 hidden overflow-hidden z-50">
                                     <div
                                         class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                                        <h3 class="font-bold text-gray-900 dark:text-white">Notifications</h3>
+                                        <h3 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-widest">Notifications</h3>
                                         <button onclick="markAllNotificationsRead()"
-                                            class="text-xs text-primary-600 hover:text-primary-700 font-bold">Mark all
-                                            read</button>
-                                        <button onclick="if(window.testNotificationSound) window.testNotificationSound()"
-                                            class="ml-2 text-xs text-gray-400 hover:text-gray-600" title="Test Sound">
-                                            <i data-feather="volume-2" class="w-3 h-3"></i>
-                                        </button>
+                                            class="text-[10px] text-primary-600 hover:underline font-black uppercase tracking-widest">Mark All Read</button>
                                     </div>
                                     <div id="notificationList" class="max-h-80 overflow-y-auto">
-                                        <div class="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">Loading...
-                                        </div>
+                                        <div class="p-4 text-center text-gray-400 text-xs">Loading...</div>
                                     </div>
                                     <div class="p-3 border-t border-gray-100 dark:border-gray-700 text-center">
                                         <a href="{{ route('notifications.index') }}"
-                                            class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">View
-                                            All</a>
+                                            class="text-[10px] font-black text-gray-500 dark:text-gray-400 hover:text-primary-600 uppercase tracking-widest">View All</a>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Switch Buyer/Vendor mode --}}
-                            @php
-                                $procurementMode = session('procurement_mode', 'buyer');
-                            @endphp
+                            @if(auth()->check() && !$isAdminView)
                             <form action="{{ route('procurement.mode.switch') }}" method="POST" class="flex items-center">
                                 @csrf
                                 <input type="hidden" name="mode" value="{{ $procurementMode === 'buyer' ? 'vendor' : 'buyer' }}">
                                 <button type="submit" 
-                                    class="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg border-2 font-bold text-[10px] sm:text-xs transition-all
+                                    class="px-3 md:px-5 py-2 rounded-xl border font-bold text-[10px] transition-all uppercase tracking-widest
                                     {{ $procurementMode === 'buyer' 
-                                        ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white dark:border-primary-400 dark:text-primary-400' 
-                                        : 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white dark:border-green-400 dark:text-green-400' }}">
-                                    <span class="hidden sm:inline">Switch to {{ $procurementMode === 'buyer' ? 'Selling' : 'Buying' }}</span>
-                                    <span class="sm:hidden">{{ $procurementMode === 'buyer' ? 'Sell' : 'Buy' }}</span>
+                                        ? 'border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white' 
+                                        : 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white' }}">
+                                    <span class="hidden md:inline">GO TO {{ $procurementMode === 'buyer' ? 'SELLING' : 'BUYING' }}</span>
+                                    <span class="md:hidden">{{ $procurementMode === 'buyer' ? 'SELL' : 'BUY' }}</span>
                                 </button>
                             </form>
+                            @endif
+
+                            {{-- Admin Logout --}}
+                            @if($isAdminView)
+                            <form action="{{ route('admin.logout') }}" method="POST" class="flex items-center">
+                                @csrf
+                                <button type="submit" 
+                                    class="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all border border-red-100 dark:border-red-900/20">
+                                    <i data-feather="log-out" class="w-3.5 h-3.5"></i>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                            @endif
 
                             {{-- Dark Mode --}}
                             <button id="darkModeToggle"
-                                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition flex-shrink-0">
-                                <i id="darkIcon" data-feather="moon"
-                                    class="w-5 h-5 text-gray-600 dark:text-gray-300"></i>
+                                class="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all text-gray-400 hover:text-primary-600 flex-shrink-0">
+                                <i id="darkIcon" data-feather="moon" class="w-5 h-5"></i>
                             </button>
 
                         </div>
                     </div>
                 </div>
             </header>
+            @endif
 
             {{-- Skeleton Template (Hidden) --}}
             <template id="skeleton-template">
@@ -266,11 +278,13 @@
                 </div>
             </template>
 
+            @include('layouts.partials.bottom-nav')
+
             {{-- Progress Bar (at top of main) --}}
             <div id="global-progress" class="fixed top-0 left-0 md:left-64 right-0 h-1 bg-primary-600 z-[60] transition-all duration-300 opacity-0" style="width: 0%"></div>
 
             {{-- Content --}}
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 {{ auth()->check() && $procurementMode === 'buyer' ? 'pb-32' : '' }}" data-layout="app">
                 <div class="w-full px-6 py-8" id="main-content-area">
                     @yield('content')
                 </div>
@@ -278,614 +292,8 @@
         </div>
     </div>
 
-    {{-- ===================================================== --}}
-    {{-- CLEAN FIXED JAVASCRIPT --}}
-    {{-- ===================================================== --}}
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-
-            /* ---------------------------
-             * FEATHER ICONS
-             * --------------------------- */
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-
-            /* ---------------------------
-             * DARK MODE SYSTEM
-             * --------------------------- */
-            var htmlEl = document.documentElement;
-            var darkIcon = document.getElementById('darkIcon');
-            var darkToggle = document.getElementById('darkModeToggle');
-
-            var savedTheme = localStorage.getItem('theme');
-
-            if (savedTheme === 'dark') {
-                htmlEl.classList.add('dark');
-                if (darkIcon) darkIcon.dataset.feather = 'sun';
-            }
-
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-
-            if (darkToggle) {
-                darkToggle.addEventListener('click', function() {
-                    htmlEl.classList.toggle('dark');
-                    var isDark = htmlEl.classList.contains('dark');
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                    if (darkIcon) {
-                        darkIcon.dataset.feather = isDark ? 'sun' : 'moon';
-                    }
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
-                });
-            }
-
-            /* ---------------------------
-             * NOTIFICATION SYSTEM
-             * --------------------------- */
-            var notifButton = document.getElementById('notificationButton');
-            var notifMenu = document.getElementById('notificationMenu');
-            var notifBadge = document.getElementById('notificationBadge');
-            var notifList = document.getElementById('notificationList');
-
-            if (notifButton) {
-                notifButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifMenu.classList.toggle('hidden');
-                    if (!notifMenu.classList.contains('hidden')) {
-                        fetchLatestNotifications();
-                    }
-                });
-            }
-
-            document.addEventListener('click', function(e) {
-                if (notifMenu && !notifMenu.contains(e.target) && !notifButton.contains(e.target)) {
-                    notifMenu.classList.add('hidden');
-                }
-            });
-
-            window.fetchLatestNotifications = function() {
-                fetch('{{ route('notifications.latest') }}')
-                    .then(function(res) { return res.json(); })
-                    .then(function(data) {
-                        renderNotifications(data.notifications);
-                    })
-                    .catch(function(err) {
-                        console.error('Failed to fetch notifications', err);
-                    });
-            };
-
-            function renderNotifications(notifications) {
-                if (!notifList) return;
-
-                if (notifications.length === 0) {
-                    notifList.innerHTML = '<div class="p-8 text-center">' +
-                        '<div class="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3">' +
-                        '<i data-feather="bell-off" class="w-6 h-6 text-gray-400"></i>' +
-                        '</div>' +
-                        '<p class="text-xs text-gray-500 dark:text-gray-400">No notifications yet</p>' +
-                        '</div>';
-                    if (typeof feather !== 'undefined') feather.replace();
-                    return;
-                }
-
-                notifList.innerHTML = notifications.map(function(n) {
-                    var title = n.data.title || '';
-                    var message = n.data.message || '';
-                    var url = n.data.url || '';
-                    var readClass = n.read_at ? 'opacity-60' : '';
-                    var dotClass = n.read_at ? 'bg-transparent' : 'bg-primary-600';
-                    var timeStr = new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    return '<a href="#" class="block p-5 border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ' + readClass + '" ' +
-                        'onclick="event.preventDefault(); markAsReadLocal(\'' + n.id + '\', \'' + url + '\')">' +
-                        '<div class="flex gap-4">' +
-                        '<div class="w-2.5 h-2.5 ' + dotClass + ' rounded-full mt-1.5 flex-shrink-0"></div>' +
-                        '<div class="min-w-0 flex-1">' +
-                        '<div class="flex justify-between items-start gap-2">' +
-                        '<p class="text-[12px] font-bold text-gray-900 dark:text-white uppercase tracking-wider truncate">' + title + '</p>' +
-                        '<p class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">' + timeStr + '</p>' +
-                        '</div>' +
-                        '<p class="text-[13px] text-gray-600 dark:text-gray-400 line-clamp-2 mt-1 leading-relaxed">' + message + '</p>' +
-                        '</div>' +
-                        '</div>' +
-                        '</a>';
-                }).join('');
-            }
-
-            window.markAsReadLocal = function(id, url) {
-                // 1. Immediate Visual Feedback
-                // Update dropdown if it exists
-                const dropdownItems = document.querySelectorAll('#notificationList a');
-                dropdownItems.forEach(item => {
-                    if (item.onclick && item.onclick.toString().includes(id)) {
-                        item.classList.add('opacity-60');
-                        const dot = item.querySelector('.bg-primary-600');
-                        if (dot) dot.classList.replace('bg-primary-600', 'bg-transparent');
-                    }
-                });
-
-                // Update main list if it exists (on notifications.index)
-                const mainItems = document.querySelectorAll('[onclick*="markAsReadLocal(\'' + id + '\'"]');
-                mainItems.forEach(item => {
-                    item.classList.add('opacity-75');
-                    item.classList.remove('bg-primary-50/10', 'dark:bg-primary-900/5');
-                    const dot = item.querySelector('.bg-primary-600');
-                    if (dot) dot.remove();
-                });
-
-                // 2. Sanitize URL
-                let targetUrl = url;
-                if (targetUrl && (targetUrl !== 'null' && targetUrl !== 'undefined')) {
-                    // Replace any host (including localhost:8000) with current origin for internal links
-                    if (targetUrl.includes('://')) {
-                        try {
-                            const urlObj = new URL(targetUrl);
-                            // If it matches a likely internal pattern or common local development pattern
-                            if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
-                                targetUrl = urlObj.pathname + urlObj.search + urlObj.hash;
-                            }
-                        } catch (e) {
-                            console.error('URL parsing failed', e);
-                        }
-                    }
-                } else {
-                    targetUrl = null;
-                }
-
-                // 3. Backend Request
-                fetch('/notifications/mark-as-read/' + id, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                }).finally(function() {
-                    if (targetUrl) {
-                        // Use the SPA loader if available, otherwise standard redirect
-                        if (typeof loadPage === 'function' && (targetUrl.startsWith('/') || targetUrl.startsWith(window.location.origin))) {
-                            loadPage(targetUrl);
-                        } else {
-                            window.location.href = targetUrl;
-                        }
-                    } else {
-                        // If no URL (rare), just refresh to update counts
-                        window.location.reload();
-                    }
-                });
-            };
-
-            window.markAllNotificationsRead = function() {
-                fetch('{{ route('notifications.mark-all-as-read') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                }).then(function() {
-                    window.fetchLatestNotifications();
-                    window.updateUnreadCount(false);
-                }).catch(function(err) {
-                    console.error('Failed to mark all as read', err);
-                });
-            };
-
-            var lastUnreadCount = -1;
-
-            window.updateUnreadCount = function(triggerToast) {
-                if (typeof triggerToast === 'undefined') triggerToast = true;
-
-                fetch('{{ route('notifications.unread-count') }}')
-                    .then(function(res) { return res.json(); })
-                    .then(function(data) {
-                        // Update all potential badges
-                        Object.keys(data).forEach(function(key) {
-                            var badge = document.getElementById('badge-' + key);
-                            if (badge) {
-                                var count = data[key];
-                                // Don't show badge if it's the active page
-                                var link = badge.closest('a');
-                                var isActive = link && (link.classList.contains('bg-primary-500') || link.getAttribute('href') === window.location.pathname);
-                                
-                                if (count > 0 && !isActive) {
-                                    badge.innerText = count;
-                                    badge.classList.remove('hidden');
-                                    badge.style.display = '';
-                                } else {
-                                    badge.classList.add('hidden');
-                                    badge.innerText = '';
-                                    badge.style.display = 'none';
-                                }
-                            }
-                        });
-
-                        // Special handling for notification badge in header
-                        if (notifBadge) {
-                            if (data.notifications > 0) {
-                                notifBadge.innerText = data.notifications;
-                                notifBadge.classList.remove('hidden');
-                                notifBadge.style.display = '';
-                            } else {
-                                notifBadge.classList.add('hidden');
-                                notifBadge.innerText = '';
-                                notifBadge.style.display = 'none';
-                            }
-                        }
-
-                        if (lastUnreadCount !== -1 && data.notifications > lastUnreadCount && triggerToast) {
-                            window.showToast('You have a new notification', 'success');
-                            if (notifMenu && !notifMenu.classList.contains('hidden')) {
-                                window.fetchLatestNotifications();
-                            }
-                        }
-                        lastUnreadCount = data.notifications;
-                    })
-                    .catch(function(err) {
-                        console.error('Failed to fetch unread count', err);
-                    });
-            };
-
-            window.updateUnreadCount(false);
-
-            /* ---------------------------
-             * TOAST SYSTEM
-             * --------------------------- */
-            var toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'toastContainer';
-                toastContainer.className = 'fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none';
-                document.body.appendChild(toastContainer);
-            }
-
-            window.showToast = function(message, type) {
-                if (!type) type = 'success';
-                var toast = document.createElement('div');
-                var bgColorClass = type === 'success' ? 'border-green-100 dark:border-green-900/30' : 'border-red-100 dark:border-red-900/30';
-                var colorClass = type === 'success' ? 'text-green-500' : 'text-red-500';
-                var iconName = type === 'success' ? 'check-circle' : 'alert-circle';
-
-                toast.className = 'p-4 px-6 rounded-2xl shadow-2xl transform transition-all duration-300 translate-y-12 opacity-0 flex items-center gap-4 bg-white dark:bg-gray-800 border ' + bgColorClass + ' pointer-events-auto';
-                
-                toast.innerHTML = '<div class="' + colorClass + '">' +
-                    '<i data-feather="' + iconName + '" class="w-6 h-6"></i>' +
-                    '</div>' +
-                    '<div>' +
-                    '<p class="text-sm font-bold text-gray-900 dark:text-white">' + message + '</p>' +
-                    '</div>';
-
-                toastContainer.appendChild(toast);
-                if (typeof feather !== 'undefined') feather.replace();
-
-                requestAnimationFrame(function() {
-                    toast.classList.remove('translate-y-12', 'opacity-0');
-                    toast.classList.add('translate-y-0', 'opacity-100');
-                });
-
-                setTimeout(function() {
-                    toast.classList.remove('translate-y-0', 'opacity-100');
-                    toast.classList.add('translate-x-12', 'opacity-0');
-                    setTimeout(function() { toast.remove(); }, 300);
-                }, 4000);
-            };
-
-            // Session messages
-            @if(session('success'))
-                window.showToast({{ Js::from(session('success')) }}, 'success');
-            @endif
-            @if(session('error'))
-                window.showToast({{ Js::from(session('error')) }}, 'error');
-            @endif
-
-            /* ---------------------------
-             * MOBILE SIDEBAR
-             * --------------------------- */
-            var sidebar = document.getElementById('sidebar');
-            var overlay = document.getElementById('overlay');
-            var toggleBtn = document.getElementById('toggleSidebar');
-
-            if (sidebar && window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-            }
-
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    if (sidebar) sidebar.classList.remove('-translate-x-full');
-                    if (overlay) overlay.classList.remove('hidden');
-                });
-            }
-
-            if (overlay) {
-                overlay.addEventListener('click', function() {
-                    if (sidebar) sidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                });
-            }
-
-            window.addEventListener('resize', function() {
-                if (sidebar) {
-                    if (window.innerWidth >= 768) {
-                        sidebar.classList.remove('-translate-x-full');
-                        if (overlay) overlay.classList.add('hidden');
-                    } else {
-                        sidebar.classList.add('-translate-x-full');
-                    }
-                }
-            });
-
-            /* ---------------------------
-             * SWEETALERT2
-             * --------------------------- */
-            // Success Message
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: {{ Js::from(session('success')) }},
-                    confirmButtonColor: '#4f46e5',
-                    timer: 3000
-                });
-            @endif
-
-            // Error Message
-            @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: {{ Js::from(session('error')) }},
-                    confirmButtonColor: '#ef4444'
-                });
-            @endif
-
-            // Validation Errors
-            @if($errors->any())
-                var errorHtml = '<ul class="text-left text-sm">';
-                @foreach($errors->all() as $error)
-                    errorHtml += '<li>• ' + {{ Js::from($error) }} + '</li>';
-                @endforeach
-                errorHtml += '</ul>';
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    html: errorHtml,
-                    confirmButtonColor: '#ef4444'
-                });
-            @endif
-
-            /* ---------------------------
-             * PARTIAL PAGE RELOAD SYSTEM (SPA-ish)
-             * --------------------------- */
-            const mainContent = document.getElementById('main-content-area');
-            const headerContent = document.getElementById('header-content-area');
-            const skeletonTemplate = document.getElementById('skeleton-template');
-            const globalProgress = document.getElementById('global-progress');
-
-            function showLoader() {
-                // 1. Show Progress Bar
-                globalProgress.style.opacity = '1';
-                globalProgress.style.width = '30%';
-                
-                // 2. Clear title/breadcrumbs to prevent "old" data showing
-                headerContent.style.opacity = '0.3';
-                
-                // 3. Inject Skeleton into main content
-                if (skeletonTemplate && mainContent) {
-                    mainContent.style.opacity = '0.5';
-                    mainContent.innerHTML = skeletonTemplate.innerHTML;
-                    // Trigger a tiny fade in for the skeleton
-                    setTimeout(() => {
-                        mainContent.style.opacity = '1';
-                    }, 50);
-                }
-            }
-
-            function hideLoader() {
-                globalProgress.style.width = '100%';
-                headerContent.style.opacity = '1';
-                setTimeout(() => {
-                    globalProgress.style.opacity = '0';
-                    setTimeout(() => {
-                        globalProgress.style.width = '0%';
-                    }, 300);
-                }, 200);
-            }
-
-            async function loadPage(url, pushState = true) {
-                showLoader();
-                
-                try {
-                    const response = await fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // 1. Update Document Title
-                    const newTitle = doc.querySelector('title');
-                    if (newTitle) {
-                        document.title = newTitle.innerText;
-                    }
-
-                    // 2. Update Header/Breadcrumbs
-                    const newHeader = doc.getElementById('header-content-area');
-                    if (newHeader) {
-                        headerContent.innerHTML = newHeader.innerHTML;
-                    }
-
-                    // 3. Update Main Content
-                    const newMain = doc.getElementById('main-content-area');
-                    if (newMain) {
-                        // Small fade out of skeleton
-                        mainContent.style.opacity = '0.7';
-                        
-                        setTimeout(() => {
-                            mainContent.innerHTML = newMain.innerHTML;
-                            mainContent.style.opacity = '1';
-                            
-                            // Execute scripts in the new main content
-                            const scripts = mainContent.querySelectorAll('script');
-                            scripts.forEach(oldScript => {
-                                const newScript = document.createElement('script');
-                                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                                oldScript.parentNode.replaceChild(newScript, oldScript);
-                            });
-
-                            // Re-initialize Global UI Components
-                            reinitializeUI();
-                        }, 50);
-                    }
-
-                    // 4. Update Sidebar Active State
-                    updateSidebarActive(url);
-
-                    // 5. Update History
-                    if (pushState) {
-                        window.history.pushState({ url }, '', url);
-                    }
-
-                    // 6. Re-initialize Global UI Components
-                    reinitializeUI();
-
-                    // 7. Scroll to top
-                    window.scrollTo({ top: 0, behavior: 'instant' });
-
-                } catch (error) {
-                    console.error('Partial load failed:', error);
-                    window.location.href = url;
-                } finally {
-                    hideLoader();
-                }
-            }
-
-            function updateSidebarActive(currentUrl) {
-                const sidebarLinks = document.querySelectorAll('#sidebar a');
-                const urlObj = new URL(currentUrl, window.location.origin);
-                const currentPath = urlObj.pathname;
-                const currentSearch = urlObj.search;
-
-                let bestMatch = null;
-                let maxPathLength = -1;
-
-                sidebarLinks.forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (!href) return;
-                    
-                    const linkUrl = new URL(href, window.location.origin);
-                    const linkPath = linkUrl.pathname;
-                    const linkSearch = linkUrl.search;
-
-                    let isActive = false;
-                    if (linkSearch) {
-                        isActive = (currentPath === linkPath && currentSearch === linkSearch);
-                    } else if (linkPath !== '/') {
-                        isActive = currentPath === linkPath || currentPath.startsWith(linkPath + '/');
-                    } else {
-                        isActive = currentPath === '/';
-                    }
-
-                    if (isActive) {
-                        // Most specific match wins (the one with the longest path)
-                        if (linkPath.length > maxPathLength) {
-                            maxPathLength = linkPath.length;
-                            bestMatch = link;
-                        }
-                    }
-                });
-
-                sidebarLinks.forEach(link => {
-                    const isActive = (link === bestMatch);
-                    const badge = link.querySelector('span[id^="badge-"]');
-
-                    if (isActive) {
-                        link.classList.add('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
-                        link.classList.remove('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
-                        
-                        const iconBox = link.querySelector('div');
-                        if (iconBox) {
-                            iconBox.classList.add('bg-white/20');
-                            iconBox.classList.remove('bg-gray-700/50', 'group-hover:bg-gray-600/50');
-                        }
-                        
-                        // Hide badge when active
-                        if (badge) {
-                            badge.classList.add('hidden');
-                            badge.style.display = 'none';
-                            badge.innerText = '';
-                        }
-                    } else {
-                        link.classList.remove('bg-primary-500', 'text-white', 'shadow-lg', 'shadow-primary-500/30');
-                        link.classList.add('text-gray-300', 'hover:bg-gray-700/50', 'hover:text-white');
-                        
-                        const iconBox = link.querySelector('div');
-                        if (iconBox) {
-                            iconBox.classList.remove('bg-white/20');
-                            iconBox.classList.add('bg-gray-700/50', 'group-hover:bg-gray-600/50');
-                        }
-                        
-                        // Badge will be shown/hidden by updateUnreadCount based on actual unread data
-                    }
-                });
-            }
-
-            function reinitializeUI() {
-                if (typeof feather !== 'undefined') {
-                    feather.replace();
-                }
-                bindPartialLinks();
-            }
-
-            function bindPartialLinks() {
-                const links = document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([data-no-pjax])');
-                links.forEach(link => {
-                    if (link.dataset.partialBound) return;
-                    
-                    link.addEventListener('click', function(e) {
-                        const href = this.getAttribute('href');
-                        if (href && (href.startsWith('/') || href.startsWith(window.location.origin))) {
-                            // Enforce Hard Reload for Dashboard
-                            if (href.includes('/dashboard') || href.includes('/company-dashboard')) {
-                                return; // Let default browser navigation handle it
-                            }
-
-                            // Don't intercept if it's the same URL
-                            if (href === window.location.href || href === window.location.pathname + window.location.search) {
-                                e.preventDefault();
-                                return;
-                            }
-                            e.preventDefault();
-                            loadPage(href);
-                        }
-                    });
-                    
-                    link.dataset.partialBound = "true";
-                });
-            }
-
-            // Handle browser back/forward
-            window.addEventListener('popstate', function(e) {
-                if (e.state && e.state.url) {
-                    loadPage(e.state.url, false);
-                } else {
-                    window.location.reload();
-                }
-            });
-
-            // Initial bind
-            bindPartialLinks();
-
-        });
-    </script>
+    {{-- Modular Scripts --}}
+    @include('layouts.partials.scripts')
 
     @stack('scripts')
 

@@ -29,7 +29,7 @@ class TeamController extends Controller
         $members = $company->members()->paginate(10);
         $invitations = $company->invitations()->where('status', 'pending')->get();
 
-        return view('company.team.index', compact('company', 'members', 'invitations'));
+        return view('company::team.index', compact('company', 'members', 'invitations'));
     }
 
     /**
@@ -102,7 +102,7 @@ class TeamController extends Controller
         }
 
         // 3. User does not exist -> Show Register/Accept View
-        return view('company.invitation.accept', compact('invitation'));
+        return view('company::invitation.accept', compact('invitation'));
     }
 
     /**

@@ -39,6 +39,6 @@ class WarehouseReportController extends Controller
             ->with('item.product')
             ->get();
 
-        return view('warehouse.report.index', compact('movements', 'todayIn', 'todayOut', 'topItems'));
+        return view('catalogue::warehouse.report.index', compact('movements', 'todayIn', 'todayOut', 'topItems'));
     }
 }

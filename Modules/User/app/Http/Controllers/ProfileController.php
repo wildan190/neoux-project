@@ -10,7 +10,7 @@ class ProfileController extends Controller
     {
         $user = auth()->user()->load('userDetail');
 
-        return view('profile.show', compact('user'));
+        return view('user::profile.show', compact('user'));
     }
 
     public function updateDetails()

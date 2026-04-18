@@ -30,7 +30,7 @@ class WarehouseController extends Controller
             ->limit(5)
             ->get();
 
-        return view('warehouse.index', compact('totalItems', 'totalStock', 'lowStockItems', 'recentItems'));
+        return view('catalogue::warehouse.index', compact('totalItems', 'totalStock', 'lowStockItems', 'recentItems'));
     }
 
     public function scan()
@@ -38,7 +38,7 @@ class WarehouseController extends Controller
         $companyId = session('selected_company_id');
         $warehouses = \Modules\Company\Models\Warehouse::where('company_id', $companyId)->where('is_active', true)->get();
 
-        return view('warehouse.scan', compact('warehouses'));
+        return view('catalogue::warehouse.scan', compact('warehouses'));
     }
 
     public function processScan(Request $request)
@@ -106,7 +106,7 @@ class WarehouseController extends Controller
 
         $qrCode = $writer->writeString($qrData);
 
-        return view('warehouse.qr', compact('item', 'qrCode'));
+        return view('catalogue::warehouse.qr', compact('item', 'qrCode'));
     }
 
     public function adjustStock(Request $request)
