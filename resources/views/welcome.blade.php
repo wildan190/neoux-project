@@ -148,17 +148,12 @@
                     </div>
                     <!-- Content -->
                     <div class="p-5 flex-1 flex flex-col">
-                        <div class="text-xs text-primary-600 dark:text-primary-400 font-semibold mb-2 uppercase tracking-wider flex items-center gap-1">
-                            <i data-feather="briefcase" class="w-3 h-3"></i>
-                            <span class="truncate">{{ $item->company?->name ?? 'Vendor' }}</span>
-                        </div>
+
                         <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2 line-clamp-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                             {{ $item->product?->name ?? $item->name ?? 'Untitled Product' }}
                         </h3>
                         <div class="mt-auto pt-4 flex items-center justify-between border-t border-gray-50 dark:border-gray-700/50">
-                            <div class="font-extrabold text-xl text-gray-900 dark:text-white">
-                                Rp {{ number_format($item->price, 0, ',', '.') }}
-                            </div>
+                            <div></div>
                             <div class="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center group-hover:bg-primary-600 group-hover:text-white dark:group-hover:bg-primary-600 dark:group-hover:text-white transition-colors">
                                 <i data-feather="arrow-right" class="w-5 h-5"></i>
                             </div>

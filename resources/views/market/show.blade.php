@@ -62,10 +62,7 @@
 
                 {{-- PRODUCT DETAILS --}}
                 <div class="p-8 md:p-12 flex flex-col">
-                    <div class="inline-flex max-w-max items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs font-bold uppercase tracking-wider mb-4 border border-primary-100 dark:border-primary-800/50">
-                        <i data-feather="briefcase" class="w-3.5 h-3.5"></i>
-                        {{ $product->company?->name ?? 'Vendor Internal' }}
-                    </div>
+
 
                     <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 leading-tight">
                         {{ $product->product?->name ?? $product->name }}
@@ -78,10 +75,7 @@
                         SKU: <span class="font-medium px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">{{ $product->sku }}</span>
                     </div>
 
-                    <div class="text-4xl font-black text-gray-900 dark:text-white mb-8 py-6 border-y border-gray-100 dark:border-gray-700/50">
-                        Rp {{ number_format($product->price, 0, ',', '.') }}
-                        <span class="text-lg font-medium text-gray-500 font-normal">/ {{ $product->unit }}</span>
-                    </div>
+
 
                     <div class="mb-8">
                         <h3 class="font-bold text-gray-900 dark:text-white mb-3 text-lg">Deskripsi Produk</h3>
@@ -118,8 +112,7 @@
         @if($relatedProducts && $relatedProducts->count() > 0)
             <div class="mb-16">
                 <div class="flex justify-between items-end mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Produk Lainnya dari <span class="text-primary-600">{{ $product->company?->name }}</span></h2>
-                    <a href="{{ route('market.index', ['search' => $product->company?->name]) }}" class="text-primary-600 hover:underline font-medium text-sm">Lihat Semua Vendor</a>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Produk Lainnya</h2>
                 </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -136,9 +129,7 @@
                                 <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1 line-clamp-2 leading-tight group-hover:text-primary-600 transition-colors">
                                     {{ $related->product?->name ?? $related->name ?? 'Untitled' }}
                                 </h3>
-                                <div class="mt-auto pt-2 font-bold text-gray-900 dark:text-white">
-                                    Rp {{ number_format($related->price, 0, ',', '.') }}
-                                </div>
+
                             </div>
                         </a>
                     @endforeach
