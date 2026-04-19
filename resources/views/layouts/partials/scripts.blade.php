@@ -434,6 +434,7 @@
                 }
 
                 updateSidebarActive(url);
+                updateBottomNavActive(url);
                 if (pushState) window.history.pushState({ url }, '', url);
                 reinitializeUI();
                 window.scrollTo({ top: 0, behavior: 'instant' });
@@ -500,6 +501,47 @@
                         iconBox.classList.remove('bg-white/20');
                         iconBox.classList.add('bg-gray-100', 'dark:bg-gray-800', 'group-hover:bg-primary-50', 'dark:group-hover:bg-primary-900/20');
                     }
+                }
+            });
+        }
+
+        function updateBottomNavActive(currentUrl) {
+            const navLinks = document.querySelectorAll('#bottomNav a');
+            if (navLinks.length === 0) return;
+            
+            const urlObj = new URL(currentUrl, window.location.origin);
+            const path = urlObj.pathname;
+
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href) return;
+                
+                let isActive = false;
+                if (href === '/') {
+                    if (path === '/' || path.startsWith('/market')) isActive = true;
+                } else if (href.includes('/procurement/pr')) {
+                    if (path.startsWith('/procurement/pr')) isActive = true;
+                } else if (href.includes('/procurement/po')) {
+                    if (path.startsWith('/procurement/po')) isActive = true;
+                } else if (href.includes('/procurement/invoices')) {
+                    if (path.startsWith('/procurement/invoices')) isActive = true;
+                } else if (href.includes('/procurement/gr')) {
+                    if (path.startsWith('/procurement/gr') || path.startsWith('/procurement/do')) isActive = true;
+                }
+
+                const icon = link.querySelector('i');
+                const dot = link.querySelector('.nav-dot');
+
+                if (isActive) {
+                    link.classList.add('text-primary-600');
+                    link.classList.remove('text-gray-400', 'hover:text-gray-600', 'dark:hover:text-gray-200');
+                    if (icon) icon.classList.add('fill-primary-600/10');
+                    if (dot) dot.classList.remove('hidden');
+                } else {
+                    link.classList.remove('text-primary-600');
+                    link.classList.add('text-gray-400', 'hover:text-gray-600', 'dark:hover:text-gray-200');
+                    if (icon) icon.classList.remove('fill-primary-600/10');
+                    if (dot) dot.classList.add('hidden');
                 }
             });
         }
