@@ -214,8 +214,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach($availableSettings as $key => $description)
                             <label class="flex items-center justify-between p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-transparent hover:border-primary-200 dark:hover:border-primary-900 transition-all group cursor-pointer shadow-sm active:scale-[0.99]">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-600 group-hover:text-primary-600 dark:group-hover:text-primary-500 shadow-inner transition-all">
+                                <div class="flex items-center gap-4 flex-1 min-w-0 pr-4">
+                                    <div class="w-10 h-10 shrink-0 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-600 group-hover:text-primary-600 dark:group-hover:text-primary-500 shadow-inner transition-all">
                                         <i data-feather="bell" class="w-4 h-4"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
