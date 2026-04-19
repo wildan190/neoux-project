@@ -98,6 +98,7 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     // Offers
     Route::prefix('offers')->name('offers.')->group(function () {
         Route::get('/my-offers', [OfferController::class, 'myOffers'])->name('my');
+        Route::get('/negotiations', [OfferController::class, 'negotiations'])->name('negotiations');
         Route::get('/pr/{purchaseRequisition}', [OfferController::class, 'index'])->name('index');
         Route::post('/pr/{purchaseRequisition}', [OfferController::class, 'store'])->name('store');
         Route::get('/{offer}', [OfferController::class, 'show'])->name('show');

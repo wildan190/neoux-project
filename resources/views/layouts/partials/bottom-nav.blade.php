@@ -35,6 +35,15 @@
                 <div class="nav-dot absolute -bottom-1 w-1 h-1 bg-primary-600 rounded-full {{ strpos($currentRoute, 'procurement.po') !== false ? '' : 'hidden' }}"></div>
             </a>
 
+            {{-- Negotiations --}}
+            <a href="{{ route('procurement.offers.negotiations') }}" 
+                class="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all relative group
+                {{ strpos($currentRoute, 'procurement.offers.negotiations') !== false ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200' }}">
+                <i data-feather="message-circle" class="w-5 h-5 {{ strpos($currentRoute, 'procurement.offers.negotiations') !== false ? 'fill-primary-600/10' : '' }}"></i>
+                <span class="text-[9px] font-black uppercase tracking-widest">Nego</span>
+                <div class="nav-dot absolute -bottom-1 w-1 h-1 bg-primary-600 rounded-full {{ strpos($currentRoute, 'procurement.offers.negotiations') !== false ? '' : 'hidden' }}"></div>
+            </a>
+
             {{-- Invoices --}}
             <a href="{{ route('procurement.invoices.index') }}" 
                 class="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all relative group
