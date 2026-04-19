@@ -24,16 +24,19 @@ class ProcurementApprovalController extends Controller
 
         // --- BUYER SIDE APPROVALS ---
 
-        // 1. Purchase Requisitions (Pending Approval)
-        $pendingPRs = collect();
+        // 1. Purchase Requisitions (Pending Initial Approval)
+        $prApprovals = collect();
+        $winnerApprovals = collect();
         if ($user->hasCompanyPermission($selectedCompanyId, 'approve pr')) {
-            $pendingPRs = PurchaseRequisition::with(['user', 'items'])
+            $baseQuery = PurchaseRequisition::with(['user', 'items'])
                 ->where('company_id', $selectedCompanyId)
-                ->where(function ($q) {
-                    $q->where('approval_status', 'like', 'pending%')
-                        ->orWhere('tender_status', 'pending_winner_approval');
-                })
-                ->latest()
+                ->latest();
+
+            $prApprovals = (clone $baseQuery)->where('approval_status', 'like', 'pending%')->get();
+            
+            // 1b. Winner Selection Approvals
+            $winnerApprovals = (clone $baseQuery)->where('tender_status', 'pending_winner_approval')
+                ->with(['winningOffer.company', 'winningOffer.user'])
                 ->get();
         }
 
@@ -107,7 +110,8 @@ class ProcurementApprovalController extends Controller
         }
 
         return view('procurement::buyer.approvals.index', compact(
-            'pendingPRs',
+            'prApprovals',
+            'winnerApprovals',
             'pendingInvoices',
             'pendingDebitNotes',
             'pendingGRRs',
