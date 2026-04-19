@@ -523,6 +523,8 @@
                     if (path.startsWith('/procurement/pr')) isActive = true;
                 } else if (href.includes('/procurement/po')) {
                     if (path.startsWith('/procurement/po')) isActive = true;
+                } else if (href.includes('/procurement/offers/negotiations')) {
+                    if (path.startsWith('/procurement/offers/negotiations')) isActive = true;
                 } else if (href.includes('/procurement/invoices')) {
                     if (path.startsWith('/procurement/invoices')) isActive = true;
                 } else if (href.includes('/procurement/gr')) {

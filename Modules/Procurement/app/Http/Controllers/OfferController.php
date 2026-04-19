@@ -465,6 +465,37 @@ class OfferController extends Controller
     }
 
     /**
+     * Show negotiations lists
+     */
+    public function negotiations()
+    {
+        $selectedCompanyId = session('selected_company_id');
+        $procurementMode = session('procurement_mode', 'buyer');
+
+        if ($procurementMode === 'buyer') {
+            // Buyer View: See offers being negotiated on their own PRs
+            $offers = PurchaseRequisitionOffer::whereHas('purchaseRequisition', function($query) use ($selectedCompanyId) {
+                    $query->where('company_id', $selectedCompanyId);
+                })
+                ->where('status', 'negotiating')
+                ->with(['purchaseRequisition', 'company', 'user'])
+                ->latest()
+                ->paginate(10);
+
+            return view('procurement::buyer.negotiations.index', compact('offers'));
+        } else {
+            // Vendor View: See their own offers being negotiated
+            $offers = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
+                ->where('status', 'negotiating')
+                ->with(['purchaseRequisition.company', 'purchaseRequisition.user'])
+                ->latest()
+                ->paginate(10);
+
+            return view('procurement::vendor.negotiations.index', compact('offers'));
+        }
+    }
+
+    /**
      * Calculate and update ranking scores for all offers of a PR
      */
     private function calculateRankings(PurchaseRequisition $purchaseRequisition)
