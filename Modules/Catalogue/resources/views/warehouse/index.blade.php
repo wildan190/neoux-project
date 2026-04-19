@@ -127,7 +127,7 @@
                                         </div>
                                     </td>
                                     <td class="px-8 py-6 text-right">
-                                        <a href="{{ route('warehouse.qr', $item->id) }}" class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-400 hover:bg-primary-600 hover:text-white transition-all shadow-sm">
+                                        <a href="{{ route('warehouse.generate-qr', $item->id) }}" class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-400 hover:bg-primary-600 hover:text-white transition-all shadow-sm">
                                             <i data-feather="printer" class="w-4 h-4"></i>
                                         </a>
                                     </td>
