@@ -480,7 +480,7 @@
         
         {{-- Comment Form --}}
         <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
-            <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST">
+            <form id="main-comment-form" action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST">
                 @csrf
                 <div class="flex gap-3">
                     @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
@@ -504,7 +504,7 @@
         </div>
 
         {{-- Comments List --}}
-        <div class="px-6 py-4 space-y-6">
+        <div id="comments-list" class="px-6 py-4 space-y-6">
             @forelse($purchaseRequisition->comments as $comment)
                 <div class="comment-item">
                     {{-- Main Comment --}}
@@ -532,7 +532,7 @@
 
                             {{-- Reply Form (Hidden by default) --}}
                             <div id="reply-form-{{ $comment->id }}" class="hidden mt-3">
-                                <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST" class="flex gap-2">
+                                <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST" class="flex gap-2 reply-form" data-parent-id="{{ $comment->id }}">
                                     @csrf
                                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
                                     @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
@@ -559,8 +559,8 @@
                     </div>
 
                     {{-- Nested Replies --}}
-                    @if($comment->replies->count() > 0)
-                        <div class="ml-12 mt-4 space-y-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                    <div id="replies-container-{{ $comment->id }}" class="ml-12 mt-4 space-y-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4 {{ $comment->replies->count() > 0 ? '' : 'hidden' }}">
+                         @if($comment->replies->count() > 0)
                             @foreach($comment->replies as $reply)
                                 <div>
                                     <div class="flex gap-3">
@@ -587,7 +587,7 @@
 
                                             {{-- Individual Reply Form for this nested reply --}}
                                             <div id="reply-form-reply-{{ $reply->id }}" class="hidden mt-3">
-                                                <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST" class="flex gap-2">
+                                                <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST" class="flex gap-2 reply-form" data-parent-id="{{ $comment->id }}">
                                                     @csrf
                                                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
                                                     @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
@@ -624,9 +624,7 @@
                 </div>
             @endforelse
         </div>
-    </div>
-
-    @push('scripts')
+       @push('scripts')
         <script>
             function toggleReplyForm(formId) {
                 const form = document.getElementById('reply-form-' + formId);
@@ -665,7 +663,121 @@
                 feather.replace();
             }
 
-            // Offer Form Auto-calculation
+            // AJAX Comment Submission
+            function setupAjaxComments() {
+                const mainForm = document.getElementById('main-comment-form');
+                if (mainForm) {
+                    mainForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        submitComment(this);
+                    });
+                }
+
+                document.querySelectorAll('.reply-form').forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        submitComment(this);
+                    });
+                });
+            }
+
+            async function submitComment(form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnHtml = submitBtn.innerHTML;
+                const textarea = form.querySelector('textarea');
+                const formData = new FormData(form);
+
+                // Validation
+                if (!textarea.value.trim()) return;
+
+                // Loading State
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Posting...</span>`;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        appendComment(data.comment);
+                        textarea.value = '';
+                        // If it's a reply form, hide it
+                        if (form.classList.contains('reply-form')) {
+                            form.closest('.hidden').classList.add('hidden');
+                        }
+                    } else {
+                        alert(data.message || 'Failed to post comment.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+            }
+
+            function appendComment(comment) {
+                // Remove empty state if exists
+                const emptyState = document.querySelector('#comments-list .text-center');
+                if (emptyState) emptyState.remove();
+
+                const avatarHtml = comment.user_avatar 
+                    ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">`
+                    : `<div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+                const nestedAvatarHtml = comment.user_avatar 
+                    ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0">`
+                    : `<div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+                const commentHtml = `
+                    <div class="flex gap-3">
+                        ${comment.parent_id ? nestedAvatarHtml : avatarHtml}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">${comment.user_name}</p>
+                                <span class="text-xs text-gray-500">•</span>
+                                <p class="text-xs text-gray-500">${comment.created_at}</p>
+                            </div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">${comment.content}</p>
+                            ${!comment.parent_id ? `
+                                <a href="javascript:void(0)" onclick="toggleReplyForm('${comment.id}')" class="text-xs font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-all inline-flex items-center gap-1 cursor-pointer">
+                                    <i data-feather="corner-down-right" class="w-3.5 h-3.5"></i>
+                                    Reply
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                if (comment.parent_id) {
+                    const container = document.getElementById(`replies-container-${comment.parent_id}`);
+                    if (container) {
+                        container.classList.remove('hidden');
+                        const wrapper = document.createElement('div');
+                        wrapper.innerHTML = commentHtml;
+                        container.appendChild(wrapper);
+                    }
+                } else {
+                    const list = document.getElementById('comments-list');
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'comment-item bg-white dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg hover:shadow-primary-600/5';
+                    wrapper.innerHTML = commentHtml;
+                    list.insertBefore(wrapper, list.firstChild);
+                }
+
+                feather.replace();
+            }
+
+            // Offer Form Auto-calculation (Refactored)
             function calculateOfferSubtotal(row) {
                 const quantityInput = document.querySelector(`.offer-quantity[data-row="${row}"]`);
                 const priceInput = document.querySelector(`.offer-price[data-row="${row}"]`);
@@ -687,9 +799,10 @@
 
             function calculateOfferTotal() {
                 let total = 0;
-                document.querySelectorAll('.offer-item-row').forEach((row, index) => {
-                    const quantityInput = document.querySelector(`.offer-quantity[data-row="${index}"]`);
-                    const priceInput = document.querySelector(`.offer-price[data-row="${index}"]`);
+                document.querySelectorAll('.offer-item-row').forEach((row) => {
+                    const rowIdx = row.querySelector('.offer-quantity').getAttribute('data-row');
+                    const quantityInput = row.querySelector('.offer-quantity');
+                    const priceInput = row.querySelector('.offer-price');
 
                     if (quantityInput && priceInput) {
                         const quantity = parseFloat(quantityInput.value) || 0;
@@ -715,6 +828,12 @@
                         const row = this.getAttribute('data-row');
                         calculateOfferSubtotal(row);
                     });
+                    
+                    // Also listen for change to catch auto-fills
+                    input.addEventListener('change', function() {
+                        const row = this.getAttribute('data-row');
+                        calculateOfferSubtotal(row);
+                    });
                 });
 
                 // Calculate initial values on page load
@@ -722,6 +841,7 @@
                     calculateOfferSubtotal(index);
                 });
 
+                setupAjaxComments();
                 feather.replace();
             });
         </script>
