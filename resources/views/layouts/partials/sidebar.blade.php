@@ -64,7 +64,8 @@
         @endphp
 
 
-        {{-- Marketplace Filters (Visible to Everyone) --}}
+        {{-- Marketplace Filters (Visible to Buyers) --}}
+        @if($isBuyer)
         <div class="px-4 pt-4 pb-2 space-y-2">
             <p class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest px-2 mb-4">Marketplace Navigation</p>
             
@@ -94,6 +95,58 @@
                 @endforeach
             </div>
         </div>
+        @endif
+
+        {{-- Procurement Section (Buying) --}}
+        @if($isBuyer)
+            <div class="px-6 pt-6 pb-2">
+                <p class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Procurement</p>
+            </div>
+
+            <div class="px-3 space-y-1">
+                <a href="{{ route('procurement.pr.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.pr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="file-text" class="w-4 h-4 mr-3"></i>
+                    <span>Requisitions</span>
+                </a>
+
+                <a href="{{ route('procurement.po.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.po.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="shopping-cart" class="w-4 h-4 mr-3"></i>
+                    <span>Purchase Orders</span>
+                </a>
+
+                <a href="{{ route('procurement.gr.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.gr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="truck" class="w-4 h-4 mr-3"></i>
+                    <span>Goods Receipts</span>
+                </a>
+
+                <a href="{{ route('procurement.invoices.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.invoices.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="dollar-sign" class="w-4 h-4 mr-3"></i>
+                    <span>Invoices</span>
+                </a>
+
+                <a href="{{ route('procurement.grr.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.grr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="refresh-cw" class="w-4 h-4 mr-3"></i>
+                    <span>Return Requests</span>
+                </a>
+
+                <a href="{{ route('procurement.debit-notes.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="file-minus" class="w-4 h-4 mr-3"></i>
+                    <span>Debit Notes</span>
+                </a>
+
+                <a href="{{ route('procurement.approvals.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
+                    <span>Approvals</span>
+                </a>
+            </div>
+        @endif
 
         {{-- Sales Section (Selling) --}}
         @if($showCatalogue && $procurementMode === 'vendor')
@@ -118,6 +171,48 @@
                     class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
                     <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
                     <span>Approvals</span>
+                </a>
+            </div>
+
+            <div class="px-6 pt-6 pb-2">
+                <p class="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Transactions</p>
+            </div>
+
+            <div class="px-3 space-y-1">
+                <a href="{{ route('procurement.pr.public-feed') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.pr.public-feed') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="globe" class="w-4 h-4 mr-3"></i>
+                    <span>Public RFQs</span>
+                </a>
+
+                <a href="{{ route('procurement.offers.my') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.offers.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="tag" class="w-4 h-4 mr-3"></i>
+                    <span>My Offers</span>
+                </a>
+
+                <a href="{{ route('procurement.po.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.po.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="shopping-cart" class="w-4 h-4 mr-3"></i>
+                    <span>Purchase Orders</span>
+                </a>
+
+                <a href="{{ route('procurement.invoices.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.invoices.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="dollar-sign" class="w-4 h-4 mr-3"></i>
+                    <span>Invoices</span>
+                </a>
+
+                <a href="{{ route('procurement.grr.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.grr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="refresh-cw" class="w-4 h-4 mr-3"></i>
+                    <span>Return Requests</span>
+                </a>
+
+                <a href="{{ route('procurement.debit-notes.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="file-minus" class="w-4 h-4 mr-3"></i>
+                    <span>Debit Notes</span>
                 </a>
             </div>
         @endif
