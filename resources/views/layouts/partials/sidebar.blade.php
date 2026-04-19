@@ -23,7 +23,6 @@
             $isDashboardActive = request()->is('/') || request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
         @endphp
 
-        @if($procurementMode !== 'buyer')
         <a href="{{ $dashboardRoute }}" data-no-pjax
             class="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group {{ $isDashboardActive ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
             <div
@@ -41,7 +40,6 @@
                 {{ $showNotifBadge ? $notifCount : '' }}
             </span>
         </a>
-        @endif
 
         <a href="{{ route('companies.index') }}"
             class="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group {{ request()->routeIs('companies.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
