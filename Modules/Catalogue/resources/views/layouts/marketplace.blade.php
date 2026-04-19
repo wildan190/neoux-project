@@ -23,7 +23,7 @@
         <div class="flex flex-col">
             @include('layouts.partials.guest-navbar', ['showBackButton' => $showBackButton ?? false])
 
-            <div class="flex-1 pb-12">
+            <div class="flex-1 pt-8 md:pt-12 pb-12">
                 <div class="max-w-7xl w-full mx-auto px-4 md:px-6">
                     @yield('market-content')
                 </div>

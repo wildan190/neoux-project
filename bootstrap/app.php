@@ -13,7 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
-            // Add any routes that should be exempt from CSRF verification
+            '/dashboard/select/*',
+            '/logout'
         ]);
 
         $middleware->alias([
@@ -24,5 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            return redirect()
+                ->back()
+                ->withInput($request->except('password', '_token'))
+                ->withErrors(['email' => 'Sesi login telah kadaluarsa karena terlalu lama tidak ada aktivitas. Silakan coba lagi.']);
+        });
     })->create();
