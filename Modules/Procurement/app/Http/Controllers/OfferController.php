@@ -467,32 +467,45 @@ class OfferController extends Controller
     /**
      * Show negotiations lists
      */
-    public function negotiations()
+    public function negotiations(Request $request)
     {
         $selectedCompanyId = session('selected_company_id');
         $procurementMode = session('procurement_mode', 'buyer');
+        $tab = $request->get('tab', 'active');
+
+        $query = PurchaseRequisitionOffer::query();
 
         if ($procurementMode === 'buyer') {
             // Buyer View: See offers being negotiated on their own PRs
-            $offers = PurchaseRequisitionOffer::whereHas('purchaseRequisition', function($query) use ($selectedCompanyId) {
-                    $query->where('company_id', $selectedCompanyId);
-                })
-                ->where('status', 'negotiating')
-                ->with(['purchaseRequisition', 'company', 'user'])
-                ->latest()
-                ->paginate(10);
-
-            return view('procurement::buyer.negotiations.index', compact('offers'));
+            $query->whereHas('purchaseRequisition', function($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            });
         } else {
             // Vendor View: See their own offers being negotiated
-            $offers = PurchaseRequisitionOffer::where('company_id', $selectedCompanyId)
-                ->where('status', 'negotiating')
-                ->with(['purchaseRequisition.company', 'purchaseRequisition.user'])
-                ->latest()
-                ->paginate(10);
-
-            return view('procurement::vendor.negotiations.index', compact('offers'));
+            $query->where('company_id', $selectedCompanyId);
         }
+
+        // Get counts for tabs
+        $active_count = (clone $query)->where('status', 'negotiating')->count();
+        $history_count = (clone $query)->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded'])
+            ->whereNotNull('negotiation_message')
+            ->count();
+
+        // Apply tab filter
+        if ($tab === 'history') {
+            $query->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded'])
+                ->whereNotNull('negotiation_message');
+        } else {
+            $query->where('status', 'negotiating');
+        }
+
+        $offers = $query->with(['purchaseRequisition.company', 'company', 'user'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $viewPath = $procurementMode === 'buyer' ? 'procurement::buyer.negotiations.index' : 'procurement::vendor.negotiations.index';
+        return view($viewPath, compact('offers', 'tab', 'active_count', 'history_count'));
     }
 
     /**

@@ -29,14 +29,14 @@
                     <div class="pr-4">
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Queue</p>
                         <p class="text-xl font-black text-gray-900 dark:text-white leading-none">
-                            {{ $pendingPRs->count() + $pendingPOs->count() + $pendingInvoices->count() + $vendorHeadInvoices->count() + $pendingDebitNotes->count() + $pendingGRRs->count() }}
+                            {{ $prApprovals->count() + $winnerApprovals->count() + $pendingPOs->count() + $pendingInvoices->count() + $vendorHeadInvoices->count() + $pendingDebitNotes->count() + $pendingGRRs->count() }}
                         </p>
                     </div>
                 </div>
             </div>
 
             {{-- Summary Cards --}}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-6">
                 {{-- PRs --}}
                 <button @click="activeTab = 'prs'" 
                     class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border transition-all duration-300 text-left hover:shadow-2xl hover:-translate-y-1"
@@ -45,9 +45,23 @@
                         <i data-feather="file-text" class="w-6 h-6"></i>
                     </div>
                     <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Requisitions</p>
-                    <p class="text-3xl font-black text-gray-900 dark:text-white tabular-nums leading-none">{{ $pendingPRs->count() }}</p>
-                    @if($pendingPRs->count() > 0)
+                    <p class="text-3xl font-black text-gray-900 dark:text-white tabular-nums leading-none">{{ $prApprovals->count() }}</p>
+                    @if($prApprovals->count() > 0)
                         <div class="absolute top-8 right-8 w-2.5 h-2.5 rounded-full bg-primary-500 animate-pulse"></div>
+                    @endif
+                </button>
+
+                {{-- Winner Approvals --}}
+                <button @click="activeTab = 'winners'" 
+                    class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border transition-all duration-300 text-left hover:shadow-2xl hover:-translate-y-1"
+                    :class="activeTab === 'winners' ? 'border-indigo-500 ring-4 ring-indigo-500/10 shadow-xl shadow-indigo-500/10' : 'border-transparent hover:border-indigo-200 dark:hover:border-indigo-800 shadow-sm'">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6 group-hover:scale-110 transition-transform">
+                        <i data-feather="award" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Winners</p>
+                    <p class="text-3xl font-black text-gray-900 dark:text-white tabular-nums leading-none">{{ $winnerApprovals->count() }}</p>
+                    @if($winnerApprovals->count() > 0)
+                        <div class="absolute top-8 right-8 w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
                     @endif
                 </button>
 
@@ -98,7 +112,7 @@
         {{-- Main Task Board --}}
         <div>
             @php
-                $allItemsEmpty = $pendingPRs->isEmpty() && $pendingPOs->isEmpty() && $pendingInvoices->isEmpty() && $vendorHeadInvoices->isEmpty() && $pendingDebitNotes->isEmpty() && $pendingGRRs->isEmpty();
+                $allItemsEmpty = $prApprovals->isEmpty() && $winnerApprovals->isEmpty() && $pendingPOs->isEmpty() && $pendingInvoices->isEmpty() && $vendorHeadInvoices->isEmpty() && $pendingDebitNotes->isEmpty() && $pendingGRRs->isEmpty();
             @endphp
             
             @if($allItemsEmpty)
@@ -110,19 +124,65 @@
                     <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto leading-relaxed">All procurement queues are currently clear from pending approvals.</p>
                 </div>
             @else
+                {{-- Winner Approvals --}}
+                <div x-show="activeTab === 'all' || activeTab === 'winners'" class="mb-12" x-transition:enter="transition ease-out duration-300">
+                    @if($winnerApprovals->isNotEmpty())
+                        <div class="mb-6 flex items-center gap-4">
+                            <h3 class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.3em] whitespace-nowrap">Winner Selection Approvals</h3>
+                            <div class="h-px bg-indigo-100 dark:bg-indigo-900/30 w-full"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach($winnerApprovals as $pr)
+                                <a href="{{ route('procurement.pr.show', $pr) }}" class="group bg-white dark:bg-gray-800 rounded-[2rem] p-8 border-2 border-indigo-100 dark:border-indigo-900/30 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-500 relative">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="px-3 py-1 bg-indigo-600 text-white text-[9px] font-black rounded-lg uppercase tracking-wider w-fit">WINNER APPROVAL</span>
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase">{{ $pr->pr_number }}</span>
+                                        </div>
+                                        <span class="text-[9px] font-black text-gray-400 uppercase">{{ $pr->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <h4 class="text-xl font-black text-gray-900 dark:text-white mb-6 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{{ $pr->title }}</h4>
+                                    
+                                    <div class="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 mb-0">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div>
+                                                <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Selected Vendor</p>
+                                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase truncate">{{ $pr->winningOffer->company->name }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Bid Amount</p>
+                                                <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">{{ $pr->winningOffer->formatted_total_price }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-[9px] font-bold text-indigo-400 uppercase tracking-[0.1em]">
+                                            <i data-feather="user" class="w-3 h-3"></i>
+                                            Proposed by {{ $pr->user->name }}
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                        <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Verify & Confirm Winner</span>
+                                        <i data-feather="arrow-right" class="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
                 {{-- Requisitions --}}
                 <div x-show="activeTab === 'all' || activeTab === 'prs'" class="mb-12" x-transition:enter="transition ease-out duration-300">
-                    @if($pendingPRs->isNotEmpty())
+                    @if($prApprovals->isNotEmpty())
                         <div class="mb-6 flex items-center gap-4">
-                            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] whitespace-nowrap">Open Requisitions</h3>
+                            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] whitespace-nowrap">Initial PR Approvals</h3>
                             <div class="h-px bg-gray-50 dark:bg-gray-800 w-full"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            @foreach($pendingPRs as $pr)
+                            @foreach($prApprovals as $pr)
                                 <a href="{{ route('procurement.pr.show', $pr) }}" class="group bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
                                     <div class="flex justify-between items-start mb-6">
                                         <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[9px] font-black rounded-lg uppercase tracking-wider">
-                                            {{ $pr->tender_status === 'pending_winner_approval' ? 'Winner Selection' : 'Review' }}
+                                            Needs Review
                                         </span>
                                         <span class="text-[9px] font-black text-gray-400 uppercase">{{ $pr->created_at->diffForHumans() }}</span>
                                     </div>
