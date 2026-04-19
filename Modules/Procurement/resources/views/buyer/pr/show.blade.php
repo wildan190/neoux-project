@@ -581,22 +581,27 @@
     }
 
     // AJAX Comment Logic
-    function toggleReplyForm(formId) {
+    window.toggleReplyForm = function(formId) {
         const form = document.getElementById('reply-form-' + formId);
         
         if (form.classList.contains('hidden')) {
             document.querySelectorAll('[id^="reply-form-"]').forEach(f => {
                 f.classList.add('hidden');
+                const textarea = f.querySelector('textarea');
+                if (textarea) textarea.value = '';
             });
             form.classList.remove('hidden');
-            form.querySelector('textarea').focus();
+            const textarea = form.querySelector('textarea');
+            if (textarea) textarea.focus();
         } else {
             form.classList.add('hidden');
+            const textarea = form.querySelector('textarea');
+            if (textarea) textarea.value = '';
         }
         feather.replace();
     }
 
-    function setupAjaxComments() {
+    window.setupAjaxComments = function() {
         const mainForm = document.getElementById('main-comment-form');
         if (mainForm) {
             mainForm.addEventListener('submit', function(e) {
@@ -606,14 +611,17 @@
         }
 
         document.querySelectorAll('.reply-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitComment(this);
-            });
+            form.removeEventListener('submit', handleReplySubmit);
+            form.addEventListener('submit', handleReplySubmit);
         });
     }
 
-    async function submitComment(form) {
+    function handleReplySubmit(e) {
+        e.preventDefault();
+        submitComment(this);
+    }
+
+    window.submitComment = async function(form) {
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnHtml = submitBtn.innerHTML;
         const textarea = form.querySelector('textarea');
@@ -622,7 +630,7 @@
         if (!textarea.value.trim()) return;
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SENDING...</span>`;
+        submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SENDING...</span>`;
 
         try {
             const response = await fetch(form.action, {
@@ -646,7 +654,9 @@
                 appendComment(data.comment);
                 textarea.value = '';
                 if (form.classList.contains('reply-form')) {
-                    form.closest('.hidden').classList.add('hidden');
+                    const parentId = formData.get('parent_id');
+                    const container = document.getElementById('reply-form-' + parentId);
+                    if (container) container.classList.add('hidden');
                 }
             } else {
                 alert(data.message || 'Failed to post comment.');
@@ -660,16 +670,16 @@
         }
     }
 
-    function appendComment(comment) {
+    window.appendComment = function(comment) {
         const emptyState = document.querySelector('#comments-list .text-center');
         if (emptyState) emptyState.remove();
 
         const avatarHtml = comment.user_avatar 
-            ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0">`
+            ? `<img src="${comment.user_avatar}" ...`
             : `<div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
 
         const nestedAvatarHtml = comment.user_avatar 
-            ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">`
+            ? `<img src="${comment.user_avatar}" ...`
             : `<div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center text-gray-500 font-bold text-[10px] flex-shrink-0 uppercase">${comment.user_initials}</div>`;
 
         const commentHtml = `
@@ -715,10 +725,14 @@
         feather.replace();
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    window.initCommentSystem = function() {
         setupAjaxComments();
         feather.replace();
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initCommentSystem);
+    document.addEventListener('livewire:navigated', initCommentSystem);
+    document.addEventListener('turbo:load', initCommentSystem);
 </script>
 @endpush
 @endsection
