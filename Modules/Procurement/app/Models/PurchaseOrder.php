@@ -97,6 +97,11 @@ class PurchaseOrder extends Model
         return $this->hasMany(DebitNote::class);
     }
 
+    public function relatedRequisitions(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisition::class, 'source_po_id');
+    }
+
     /**
      * Get total deduction amount from approved debit notes
      */

@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Modules\Procurement\Models\Contract;
 use Modules\Procurement\Models\ContractItem;
 use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseOrderItem;
 use Modules\Procurement\Models\PurchaseRequisition;
 use Modules\Procurement\Models\PurchaseRequisitionItem;
 
@@ -117,25 +118,54 @@ class ContractController extends Controller
                 'user_id' => Auth::id(),
                 'title' => 'Repeat Order: ' . $contract->title,
                 'description' => 'Automated repeat order from Contract ' . $contract->contract_number,
-                'status' => 'pending', // Goes to approval
-                'approval_status' => 'pending',
+                'status' => 'ordered', // Mark as ordered immediately
+                'approval_status' => 'approved', // Auto-approve for direct contract orders
                 'tender_status' => 'draft',
-                'type' => 'direct', // Direct type skip bidding
+                'type' => 'direct',
+                'contract_id' => $contract->id, // Tracking
             ]);
 
             foreach ($contract->items as $item) {
                 PurchaseRequisitionItem::create([
                     'purchase_requisition_id' => $requisition->id,
                     'catalogue_item_id' => $item->catalogue_item_id,
-                    'quantity' => 1, // Default quantity 1 for adjustment
+                    'quantity' => 1,
                     'price' => $item->fixed_price,
+                ]);
+            }
+
+            // IMMEDIATELY GENERATE PO
+            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
+            $totalAmount = $contract->items->sum(function($item) {
+                return 1 * $item->fixed_price;
+            });
+
+            $purchaseOrder = PurchaseOrder::create([
+                'po_number' => $poNumber,
+                'company_id' => $selectedCompanyId,
+                'purchase_requisition_id' => $requisition->id,
+                'vendor_company_id' => $contract->vendor_company_id,
+                'created_by_user_id' => Auth::id(),
+                'total_amount' => $totalAmount,
+                'status' => 'issued', // Immediately issued for repeat orders
+                'vendor_accepted_at' => now(), // Auto-accept since its part of a master agreement
+            ]);
+
+            foreach ($requisition->items as $prItem) {
+                PurchaseOrderItem::create([
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'purchase_requisition_item_id' => $prItem->id,
+                    'quantity_ordered' => $prItem->quantity,
+                    'quantity_received' => 0,
+                    'unit_price' => $prItem->price,
+                    'subtotal' => $prItem->quantity * $prItem->price,
                 ]);
             }
 
             DB::commit();
 
-            return redirect()->route('procurement.pr.show', $requisition)
-                ->with('success', 'Repeat Order PR has been initialized. Please adjust quantities and submit for approval.');
+            return redirect()->route('procurement.po.show', $purchaseOrder)
+                ->with('success', 'Repeat Order PO has been generated and issued based on the master contract.');
 
         } catch (\Exception $e) {
             DB::rollBack();

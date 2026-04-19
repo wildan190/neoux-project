@@ -22,7 +22,7 @@
                 class="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all relative group
                 {{ strpos($currentRoute, 'procurement.pr') !== false ? 'text-primary-600' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200' }}">
                 <i data-feather="file-text" class="w-5 h-5 {{ strpos($currentRoute, 'procurement.pr') !== false ? 'fill-primary-600/10' : '' }}"></i>
-                <span class="text-[9px] font-black uppercase tracking-widest">Requests</span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-center">Company PR</span>
                 <div class="nav-dot absolute -bottom-1 w-1 h-1 bg-primary-600 rounded-full {{ strpos($currentRoute, 'procurement.pr') !== false ? '' : 'hidden' }}"></div>
             </a>
 

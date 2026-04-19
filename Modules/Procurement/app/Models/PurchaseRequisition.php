@@ -110,4 +110,14 @@ class PurchaseRequisition extends Model
     {
         return $this->hasOne(\Modules\Procurement\Models\PurchaseOrder::class);
     }
+
+    public function sourceContract(): BelongsTo
+    {
+        return $this->belongsTo(Contract::class, 'contract_id');
+    }
+
+    public function sourcePo(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'source_po_id');
+    }
 }

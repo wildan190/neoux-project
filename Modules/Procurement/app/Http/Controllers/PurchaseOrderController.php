@@ -494,10 +494,11 @@ class PurchaseOrderController extends Controller
                 'user_id' => Auth::id(),
                 'title' => 'Repeat Order: ' . $purchaseOrder->po_number,
                 'description' => 'Manual repeat order based on previous transaction ' . $purchaseOrder->po_number,
-                'status' => 'pending',
-                'approval_status' => 'pending',
+                'status' => 'ordered',
+                'approval_status' => 'approved',
                 'tender_status' => 'draft',
                 'type' => 'direct',
+                'source_po_id' => $purchaseOrder->id, // Tracking
             ]);
 
             foreach ($purchaseOrder->items as $item) {
@@ -509,10 +510,35 @@ class PurchaseOrderController extends Controller
                 ]);
             }
 
+            // IMMEDIATELY GENERATE PO
+            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
+            
+            $newPo = PurchaseOrder::create([
+                'po_number' => $poNumber,
+                'company_id' => $selectedCompanyId,
+                'purchase_requisition_id' => $requisition->id,
+                'vendor_company_id' => $purchaseOrder->vendor_company_id,
+                'created_by_user_id' => Auth::id(),
+                'total_amount' => $purchaseOrder->total_amount,
+                'status' => 'issued',
+                'vendor_accepted_at' => now(), // Manual repeat usually means pre-agreed
+            ]);
+
+            foreach ($requisition->items as $prItem) {
+                PurchaseOrderItem::create([
+                    'purchase_order_id' => $newPo->id,
+                    'purchase_requisition_item_id' => $prItem->id,
+                    'quantity_ordered' => $prItem->quantity,
+                    'quantity_received' => 0,
+                    'unit_price' => $prItem->price,
+                    'subtotal' => $prItem->quantity * $prItem->price,
+                ]);
+            }
+
             DB::commit();
 
-            return redirect()->route('procurement.pr.show', $requisition)
-                ->with('success', 'Repeat Order PR has been initialized with same items and negotiated prices.');
+            return redirect()->route('procurement.po.show', $newPo)
+                ->with('success', 'Repeat Order PO has been generated and issued based on the previous transaction.');
 
         } catch (\Exception $e) {
             DB::rollBack();

@@ -83,6 +83,32 @@
         {{-- Sidebar Insights --}}
         <div class="space-y-8">
             @include('procurement::partials.po_sidebar_logistics', ['isBuyer' => true])
+
+            {{-- New Subsequent Orders Card --}}
+            <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div class="px-8 py-5 border-b border-gray-50 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/10 flex items-center justify-between">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Linked Repeat Orders</h3>
+                    <i data-feather="refresh-cw" class="w-3.5 h-3.5 text-primary-600"></i>
+                </div>
+                <div class="divide-y divide-gray-50 dark:divide-gray-700">
+                    @forelse($purchaseOrder->relatedRequisitions()->whereHas('purchaseOrder')->with('purchaseOrder')->latest()->get() as $req)
+                        <a href="{{ route('procurement.po.show', $req->purchaseOrder) }}" class="flex items-center justify-between px-8 py-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group">
+                            <div>
+                                <p class="text-xs font-black text-gray-900 dark:text-white group-hover:text-primary-600 uppercase">{{ $req->purchaseOrder->po_number }}</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{{ $req->created_at->format('d M Y') }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-gray-900 dark:text-white">{{ $req->purchaseOrder->formatted_total_amount }}</p>
+                            </div>
+                        </a>
+                    @empty
+                        <div class="px-8 py-10 text-center">
+                            <p class="text-[10px] font-bold text-gray-300 uppercase italic">No linked orders yet</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
             @include('procurement::partials.po_sidebar_status_history')
             @include('procurement::partials.po_sidebar_escrow')
             @include('procurement::partials.po_sidebar_invoices', ['isVendor' => false])
