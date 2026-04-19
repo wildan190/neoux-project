@@ -469,4 +469,54 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Failed to start import: ' . $e->getMessage());
         }
     }
+    /**
+     * Repeat Order without specific contract (Direct PO duplication)
+     */
+    public function repeatOrder(PurchaseOrder $purchaseOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        
+        // Authorization: Only Buyer can repeat
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
+        if (!$isBuyer) {
+            abort(403, 'Only the buyer can initiate a repeat order.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Generate PR Number
+            $prNumber = 'PR-RO-' . date('Y') . '-' . strtoupper(Str::random(6));
+
+            // Create a DIRECT Purchase Requisition
+            $requisition = PurchaseRequisition::create([
+                'pr_number' => $prNumber,
+                'company_id' => $selectedCompanyId,
+                'user_id' => Auth::id(),
+                'title' => 'Repeat Order: ' . $purchaseOrder->po_number,
+                'description' => 'Manual repeat order based on previous transaction ' . $purchaseOrder->po_number,
+                'status' => 'pending',
+                'approval_status' => 'pending',
+                'tender_status' => 'draft',
+                'type' => 'direct',
+            ]);
+
+            foreach ($purchaseOrder->items as $item) {
+                PurchaseRequisitionItem::create([
+                    'purchase_requisition_id' => $requisition->id,
+                    'catalogue_item_id' => $item->purchaseRequisitionItem->catalogue_item_id,
+                    'quantity' => $item->quantity_ordered,
+                    'price' => $item->unit_price, // Use negotiated price from previous PO
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('procurement.pr.show', $requisition)
+                ->with('success', 'Repeat Order PR has been initialized with same items and negotiated prices.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to initialize repeat order: ' . $e->getMessage());
+        }
+    }
 }

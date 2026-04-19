@@ -31,6 +31,26 @@
             Print PDF
         </a>
 
+        @if($purchaseOrder->status !== 'pending_vendor_acceptance' && $purchaseOrder->status !== 'rejected_by_vendor')
+            <form action="{{ route('procurement.po.repeat-order', $purchaseOrder) }}" method="POST" onsubmit="return confirm('Initiate a repeat order based on this PO?')">
+                @csrf
+                <button type="submit" 
+                        class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition shadow-sm">
+                    <i data-feather="refresh-cw" class="w-3.5 h-3.5 inline mr-2 text-primary-600"></i>
+                    Repeat Order
+                </button>
+            </form>
+
+            <form action="{{ route('procurement.contracts.create-from-order', $purchaseOrder) }}" method="POST" onsubmit="return confirm('Promote this negotiated transaction into an ANNUAL CONTRACT?')">
+                @csrf
+                <button type="submit" 
+                        class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest hover:bg-black hover:text-white transition shadow-sm">
+                    <i data-feather="file-plus" class="w-3.5 h-3.5 inline mr-2 text-indigo-500"></i>
+                    Create Annual Contract
+                </button>
+            </form>
+        @endif
+
         @if(in_array($purchaseOrder->status, ['issued', 'confirmed']) && $purchaseOrder->escrow_status === 'pending')
             <button onclick="document.getElementById('escrowPayModal').classList.remove('hidden')" 
                     class="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition">

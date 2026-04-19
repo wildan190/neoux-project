@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Catalogue\Http\Controllers\MarketplaceController;
+use Modules\Procurement\Http\Controllers\ContractController;
 use Modules\Procurement\Http\Controllers\DebitNoteController;
 use Modules\Procurement\Http\Controllers\DeliveryOrderController;
 use Modules\Procurement\Http\Controllers\GoodsReceiptController;
@@ -60,8 +61,9 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     Route::post('/po/{purchaseOrder}/vendor-reject', [PurchaseOrderController::class, 'vendorReject'])->name('po.vendor-reject');
     Route::post('/po/{purchaseOrder}/escrow-pay', [PurchaseOrderController::class, 'escrowPay'])->name('po.escrow-pay');
     Route::post('/po/{purchaseOrder}/escrow-release', [PurchaseOrderController::class, 'escrowRelease'])->name('po.escrow-release');
-    Route::post('/po/import-history', [PurchaseOrderController::class, 'importHistory'])->name('po.import-history');
+    Route::get('/po/import-history', [PurchaseOrderController::class, 'importHistory'])->name('po.import-history');
     Route::post('/po/confirm-import', [PurchaseOrderController::class, 'confirmImport'])->name('po.confirm-import');
+    Route::post('/po/{purchaseOrder}/repeat-order', [PurchaseOrderController::class, 'repeatOrder'])->name('po.repeat-order');
     Route::post('/pr/{purchaseRequisition}/generate-po', [PurchaseOrderController::class, 'generate'])->name('po.generate');
 
     // Goods Receipts
@@ -138,5 +140,14 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::get('/{debitNote}/print', [DebitNoteController::class, 'print'])->name('print');
         Route::post('/{debitNote}/approve', [DebitNoteController::class, 'approve'])->name('approve');
         Route::post('/{debitNote}/reject', [DebitNoteController::class, 'reject'])->name('reject');
+    });
+
+    // Contracts
+    Route::prefix('contracts')->name('contracts.')->group(function () {
+        Route::get('/', [ContractController::class, 'index'])->name('index');
+        Route::get('/{contract}', [ContractController::class, 'show'])->name('show');
+        Route::post('/from-order/{purchaseOrder}', [ContractController::class, 'createFromOrder'])->name('create-from-order');
+        Route::post('/{contract}/repeat-order', [ContractController::class, 'repeatOrder'])->name('repeat-order');
+        Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy');
     });
 });
