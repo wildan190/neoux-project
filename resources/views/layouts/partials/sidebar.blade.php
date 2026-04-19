@@ -102,6 +102,29 @@
             </div>
 
             <div class="px-3 space-y-1">
+                <a href="{{ route('procurement.pr.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.pr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="file-text" class="w-4 h-4 mr-3"></i>
+                    <span>All Requests (RFQs)</span>
+                </a>
+
+                <a href="{{ route('procurement.offers.negotiations') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.offers.negotiations') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="message-circle" class="w-4 h-4 mr-3"></i>
+                    <span>Negotiations</span>
+                </a>
+
+                <a href="{{ route('procurement.po.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.po.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="shopping-cart" class="w-4 h-4 mr-3"></i>
+                    <span>Purchase Orders</span>
+                </a>
+
+                <a href="{{ route('procurement.invoices.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.invoices.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="dollar-sign" class="w-4 h-4 mr-3"></i>
+                    <span>Invoices</span>
+                </a>
 
                 <a href="{{ route('procurement.grr.index') }}"
                     class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.grr.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
