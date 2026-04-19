@@ -22,12 +22,12 @@ class WarehouseController extends Controller
 
         $warehouses = Warehouse::where('company_id', $selectedCompanyId)->get();
 
-        return view('procurement.warehouse.index', compact('warehouses'));
+        return view('procurement::warehouse.index', compact('warehouses'));
     }
 
     public function create()
     {
-        return view('procurement.warehouse.create');
+        return view('procurement::warehouse.create');
     }
 
     public function store(Request $request)
@@ -61,7 +61,7 @@ class WarehouseController extends Controller
             abort(403);
         }
 
-        return view('procurement.warehouse.edit', compact('warehouse'));
+        return view('procurement::warehouse.edit', compact('warehouse'));
     }
 
     public function show(Warehouse $warehouse)
@@ -73,7 +73,7 @@ class WarehouseController extends Controller
 
         $warehouse->load(['stocks.catalogueItem']);
 
-        return view('procurement.warehouse.show', compact('warehouse'));
+        return view('procurement::warehouse.show', compact('warehouse'));
     }
 
     public function update(Request $request, Warehouse $warehouse)

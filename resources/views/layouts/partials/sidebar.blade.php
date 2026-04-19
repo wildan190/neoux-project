@@ -138,6 +138,18 @@
                     <span>Debit Notes</span>
                 </a>
 
+                <a href="{{ route('procurement.warehouse.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.warehouse.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="map-pin" class="w-4 h-4 mr-3 text-emerald-500"></i>
+                    <span>Storage Points</span>
+                </a>
+
+                <a href="{{ route('warehouse.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('warehouse.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="database" class="w-4 h-4 mr-3"></i>
+                    <span>Warehouse (WMS)</span>
+                </a>
+
                 <a href="{{ route('procurement.approvals.index') }}"
                     class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
                     <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
