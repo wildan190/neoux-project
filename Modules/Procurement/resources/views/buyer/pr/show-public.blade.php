@@ -704,6 +704,12 @@
                         }
                     });
 
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Server returned error:', response.status, errorText);
+                        throw new Error(`Server Error (${response.status})`);
+                    }
+
                     const data = await response.json();
 
                     if (data.status === 'success') {
@@ -717,8 +723,8 @@
                         alert(data.message || 'Failed to post comment.');
                     }
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    console.error('AJAX Error:', error);
+                    alert('An error occurred. Please check your connection and try again.');
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
@@ -777,7 +783,7 @@
                 feather.replace();
             }
 
-            // Offer Form Auto-calculation (Refactored)
+            // Offer Form Auto-calculation (Robust Version)
             function calculateOfferSubtotal(row) {
                 const quantityInput = document.querySelector(`.offer-quantity[data-row="${row}"]`);
                 const priceInput = document.querySelector(`.offer-price[data-row="${row}"]`);
@@ -800,7 +806,6 @@
             function calculateOfferTotal() {
                 let total = 0;
                 document.querySelectorAll('.offer-item-row').forEach((row) => {
-                    const rowIdx = row.querySelector('.offer-quantity').getAttribute('data-row');
                     const quantityInput = row.querySelector('.offer-quantity');
                     const priceInput = row.querySelector('.offer-price');
 
@@ -820,30 +825,35 @@
                 }
             }
 
-            // Attach event listeners to offer inputs
-            document.addEventListener('DOMContentLoaded', function() {
-                // Attach event listeners for real-time calculation
-                document.querySelectorAll('.offer-quantity, .offer-price').forEach(input => {
-                    input.addEventListener('input', function() {
-                        const row = this.getAttribute('data-row');
-                        calculateOfferSubtotal(row);
-                    });
-                    
-                    // Also listen for change to catch auto-fills
-                    input.addEventListener('change', function() {
-                        const row = this.getAttribute('data-row');
-                        calculateOfferSubtotal(row);
-                    });
-                });
-
-                // Calculate initial values on page load
+            function initOfferCalculations() {
+                // Calculation on load
                 document.querySelectorAll('.offer-item-row').forEach((row, index) => {
                     calculateOfferSubtotal(index);
                 });
 
                 setupAjaxComments();
                 feather.replace();
+            }
+
+            // Global Event Delegation for Calculations
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price')) {
+                    const row = e.target.getAttribute('data-row');
+                    calculateOfferSubtotal(row);
+                }
             });
+
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price')) {
+                    const row = e.target.getAttribute('data-row');
+                    calculateOfferSubtotal(row);
+                }
+            });
+
+            // Listen for multiple load events (Standard + SPA)
+            document.addEventListener('DOMContentLoaded', initOfferCalculations);
+            document.addEventListener('livewire:navigated', initOfferCalculations);
+            document.addEventListener('turbo:load', initOfferCalculations);
         </script>
     @endpush
 @endsection

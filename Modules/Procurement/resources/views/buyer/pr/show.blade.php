@@ -634,6 +634,12 @@
                 }
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server returned error:', response.status, errorText);
+                throw new Error(`Server Error (${response.status})`);
+            }
+
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -646,8 +652,8 @@
                 alert(data.message || 'Failed to post comment.');
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            console.error('AJAX Error:', error);
+            alert('An error occurred. Please check your connection and try again.');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnHtml;
