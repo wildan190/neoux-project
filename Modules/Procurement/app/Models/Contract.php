@@ -59,6 +59,11 @@ class Contract extends Model
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    public function relatedRequisitions(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisition::class, 'contract_id');
+    }
+
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {

@@ -113,6 +113,45 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- New Ordered History Section --}}
+            <div class="pt-12">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4">Utilization History</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-[3rem] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50/50 dark:bg-gray-900/50">
+                                <th class="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Order Number</th>
+                                <th class="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Date</th>
+                                <th class="px-10 py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                            @forelse($contract->relatedRequisitions()->whereHas('purchaseOrder')->with('purchaseOrder')->latest()->get() as $req)
+                                <tr class="group hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                                    <td class="px-10 py-6">
+                                        <a href="{{ route('procurement.po.show', $req->purchaseOrder) }}" class="text-sm font-black text-gray-900 dark:text-white uppercase group-hover:text-indigo-600 transition-colors">
+                                            {{ $req->purchaseOrder->po_number }}
+                                        </a>
+                                    </td>
+                                    <td class="px-10 py-6 text-center">
+                                        <span class="text-xs font-bold text-gray-500 uppercase tracking-tighter">{{ $req->created_at->format('d M Y') }}</span>
+                                    </td>
+                                    <td class="px-10 py-6 text-right">
+                                        <span class="text-sm font-black text-gray-900 dark:text-white">{{ $req->purchaseOrder->formatted_total_amount }}</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-10 py-12 text-center text-gray-300 italic text-xs font-bold uppercase tracking-widest">
+                                        No subsequent orders detected yet
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 

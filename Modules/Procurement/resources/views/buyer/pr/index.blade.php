@@ -2,7 +2,7 @@
     'title' => 'Purchase Requisitions',
     'breadcrumbs' => [
         ['name' => 'Shopping', 'url' => route('procurement.marketplace.index')],
-        ['name' => 'All Requests', 'url' => '#']
+        ['name' => 'Company PR', 'url' => '#']
     ]
 ])
 
