@@ -172,7 +172,7 @@
                             </div>
                         </div>
 
-                        <div x-show="expanded" x-collapse x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
+                        <div x-show="expanded" x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
                             <div class="grid grid-cols-2 gap-y-3">
                                 <div>
                                     <p class="text-[10px] text-gray-400 uppercase font-black mb-0.5">Reference PR</p>

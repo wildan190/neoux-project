@@ -173,7 +173,7 @@
                     </div>
 
                     <!-- Expandable Context -->
-                    <div x-show="expanded" x-collapse x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
+                    <div x-show="expanded" x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
                         <p class="text-xs text-gray-500 dark:text-gray-400 italic">
                             {{ $pr->description ?: 'No description provided.' }}
                         </p>
