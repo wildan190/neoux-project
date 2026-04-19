@@ -216,11 +216,22 @@ class OfferController extends Controller
 
         $purchaseRequisition->load(['items', 'company']);
 
+        // Fetch top 3 competitors for buyer comparison view
+        $competitors = collect();
+        if ($isPROwner) {
+            $competitors = $purchaseRequisition->offers()
+                ->where('id', '!=', $offer->id)
+                ->with(['items', 'company'])
+                ->ranked()
+                ->take(3)
+                ->get();
+        }
+
         // Determine if current user is the PR owner (for back button routing)
         $isOwner = $isPROwner;
 
         $viewPath = $isPROwner ? 'procurement::buyer.offers.show' : 'procurement::vendor.offers.show';
-        return view($viewPath, compact('offer', 'purchaseRequisition', 'isOwner'));
+        return view($viewPath, compact('offer', 'purchaseRequisition', 'isOwner', 'competitors'));
     }
 
     /**
@@ -311,6 +322,66 @@ class OfferController extends Controller
 
             return back()->withErrors(['error' => 'Failed to approve winner.']);
         }
+    }
+
+    /**
+     * Reject the current winner selection (revert back to selection stage)
+     */
+    public function rejectWinner(Request $request, PurchaseRequisitionOffer $offer)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000'
+        ]);
+
+        $purchaseRequisition = $offer->purchaseRequisition;
+        $companyId = $purchaseRequisition->company_id;
+
+        if (!Auth::user()->hasCompanyPermission($companyId, 'approve pr')) {
+            abort(403, 'Only owners or purchasing managers can reject the winner choice.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $offer->update([
+                'status' => 'rejected',
+                'rejection_reason' => $request->rejection_reason
+            ]);
+
+            $purchaseRequisition->update([
+                'winning_offer_id' => null,
+                'tender_status' => 'open' // PR goes back to selection stage
+            ]);
+
+            DB::commit();
+            return redirect()->route('procurement.pr.show', $purchaseRequisition)
+                ->with('warning', 'Winner selection rejected. The tender has been reopened for candidate selection.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to reject winner nomination.']);
+        }
+    }
+
+    /**
+     * Generate PDF Analysis report for an offer
+     */
+    public function printPdf(PurchaseRequisitionOffer $offer)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        $purchaseRequisition = $offer->purchaseRequisition;
+
+        if ($purchaseRequisition->company_id !== $selectedCompanyId) {
+            abort(403, 'Unauthorized to view analysis reports for this company.');
+        }
+
+        $offer->load([
+            'items.purchaseRequisitionItem.catalogueItem',
+            'company',
+            'user.userDetail',
+        ]);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('procurement::buyer.offers.print', compact('offer', 'purchaseRequisition'));
+
+        return $pdf->stream('Offer_Analysis_' . $offer->id . '.pdf');
     }
 
     /**
