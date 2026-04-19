@@ -4,5 +4,6 @@
     "Catalogue": true,
     "Company": true,
     "Procurement": true,
+    "Support": true,
     "User": true
 }
