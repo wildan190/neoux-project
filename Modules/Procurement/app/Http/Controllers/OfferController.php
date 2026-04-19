@@ -480,7 +480,7 @@ class OfferController extends Controller
 
         $offer->update([
             'status' => 'pending', // Reset to pending (ready for award)
-            'negotiation_message' => null, // Clear negotiation status/message
+            // Preserve negotiation_message for historical tracking
         ]);
 
         // Notify Buyer (PR Creator)
@@ -543,6 +543,10 @@ class OfferController extends Controller
         $selectedCompanyId = session('selected_company_id');
         $procurementMode = session('procurement_mode', 'buyer');
         $tab = $request->get('tab', 'active');
+        $search = $request->get('search');
+        $fromDate = $request->get('from_date');
+        $toDate = $request->get('to_date');
+        $categoryId = $request->get('category_id');
 
         $query = PurchaseRequisitionOffer::query();
 
@@ -556,15 +560,41 @@ class OfferController extends Controller
             $query->where('company_id', $selectedCompanyId);
         }
 
-        // Get counts for tabs
+        // Apply Search Filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('purchaseRequisition', function($sq) use ($search) {
+                    $sq->where('title', 'like', '%' . $search . '%');
+                })->orWhereHas('company', function($sq) use ($search) {
+                    $sq->where('name', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        // Apply Date Range Filter
+        if ($fromDate) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        // Apply Category Filter
+        if ($categoryId) {
+            $query->whereHas('purchaseRequisition.items.catalogueItem', function($q) use ($categoryId) {
+                $q->where('category_id', $categoryId);
+            });
+        }
+
+        // Get counts for tabs (filtered by date/category/search too)
         $active_count = (clone $query)->where('status', 'negotiating')->count();
-        $history_count = (clone $query)->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded'])
+        $history_count = (clone $query)->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded', 'pending'])
             ->whereNotNull('negotiation_message')
             ->count();
 
         // Apply tab filter
         if ($tab === 'history') {
-            $query->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded'])
+            $query->whereIn('status', ['accepted', 'rejected', 'winning', 'awarded', 'pending'])
                 ->whereNotNull('negotiation_message');
         } else {
             $query->where('status', 'negotiating');
@@ -575,8 +605,11 @@ class OfferController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        // Fetch categories for filter dropdown
+        $categories = \Modules\Catalogue\Models\CatalogueCategory::all();
+
         $viewPath = $procurementMode === 'buyer' ? 'procurement::buyer.negotiations.index' : 'procurement::vendor.negotiations.index';
-        return view($viewPath, compact('offers', 'tab', 'active_count', 'history_count'));
+        return view($viewPath, compact('offers', 'tab', 'active_count', 'history_count', 'search', 'fromDate', 'toDate', 'categoryId', 'categories'));
     }
 
     /**
