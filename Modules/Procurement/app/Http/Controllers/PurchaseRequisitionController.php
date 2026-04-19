@@ -282,14 +282,19 @@ class PurchaseRequisitionController extends Controller
         ]);
 
         if ($comment && $purchaseRequisition->user_id !== Auth::id()) {
-            /** @var \Modules\User\Models\User $user */
-            $user = $purchaseRequisition->user;
-            if ($user) {
-                $user->notify(new \Modules\User\Notifications\NewCommentAdded($comment));
+            try {
+                /** @var \Modules\User\Models\User $user */
+                $user = $purchaseRequisition->user;
+                if ($user) {
+                    $user->notify(new NewCommentAdded($comment));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Comment notification failed: ' . $e->getMessage());
             }
         }
 
-        if ($request->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
+            $comment->load('user.userDetail');
             return response()->json([
                 'status' => 'success',
                 'message' => 'Comment posted successfully.',
