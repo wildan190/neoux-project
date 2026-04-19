@@ -19,16 +19,70 @@
         </div>
     </div>
 
-    {{-- Tabs --}}
-    <div class="flex items-center gap-2 mb-8 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-[1.5rem] w-fit border border-gray-100 dark:border-gray-800">
-        <a href="{{ route('procurement.offers.negotiations', ['tab' => 'active']) }}" 
-            class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab === 'active' ? 'bg-white dark:bg-gray-800 text-primary-600 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300' }}">
-            Active ({{ $active_count }})
-        </a>
-        <a href="{{ route('procurement.offers.negotiations', ['tab' => 'history']) }}" 
-            class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab === 'history' ? 'bg-white dark:bg-gray-800 text-primary-600 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300' }}">
-            History ({{ $history_count }})
-        </a>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        {{-- Tabs --}}
+        <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-[1.5rem] w-fit border border-gray-100 dark:border-gray-800">
+            <a href="{{ route('procurement.offers.negotiations', ['tab' => 'active', 'search' => $search]) }}" 
+                class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab === 'active' ? 'bg-white dark:bg-gray-800 text-primary-600 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300' }}">
+                Active ({{ $active_count }})
+            </a>
+            <a href="{{ route('procurement.offers.negotiations', ['tab' => 'history', 'search' => $search]) }}" 
+                class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab === 'history' ? 'bg-white dark:bg-gray-800 text-primary-600 shadow-sm border border-gray-100 dark:border-gray-700' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300' }}">
+                History ({{ $history_count }})
+            </a>
+        </div>
+
+        {{-- Advanced Search & Filter --}}
+        <form action="{{ route('procurement.offers.negotiations') }}" method="GET" class="flex-1 max-w-4xl">
+            <input type="hidden" name="tab" value="{{ $tab }}">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {{-- Text Search --}}
+                <div class="relative group md:col-span-1">
+                    <i data-feather="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary-600 transition-colors"></i>
+                    <input type="text" name="search" value="{{ $search }}" placeholder="Search Title/Vendor..."
+                        class="pl-11 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all w-full">
+                </div>
+
+                {{-- Category Filter --}}
+                <div class="relative group md:col-span-1">
+                    <select name="category_id" 
+                        class="pl-6 pr-6 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all w-full appearance-none">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                    <i data-feather="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"></i>
+                </div>
+
+                {{-- Date From --}}
+                <div class="relative group md:col-span-1">
+                    <input type="date" name="from_date" value="{{ $fromDate }}" 
+                        class="pl-6 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all w-full">
+                    <span class="absolute -top-2 left-4 px-1 bg-white dark:bg-gray-800 text-[8px] font-black text-gray-400 uppercase tracking-widest">DRM: From</span>
+                </div>
+
+                {{-- Date To --}}
+                <div class="relative group md:col-span-1 flex gap-2">
+                    <input type="date" name="to_date" value="{{ $toDate }}" 
+                        class="pl-6 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all w-full">
+                    <span class="absolute -top-2 left-4 px-1 bg-white dark:bg-gray-800 text-[8px] font-black text-gray-400 uppercase tracking-widest">DRM: To</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 mt-3">
+                @if($search || $fromDate || $toDate || $categoryId)
+                    <a href="{{ route('procurement.offers.negotiations', ['tab' => $tab]) }}" 
+                        class="px-5 py-2.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-red-500 transition-all">
+                        Clear Filters
+                    </a>
+                @endif
+                
+                <button type="submit" class="px-8 py-2.5 bg-primary-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-600/20 hover:scale-105 transition-all">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
     </div>
 
     @if($offers->isEmpty())
