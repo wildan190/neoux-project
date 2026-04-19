@@ -335,8 +335,12 @@
     <div class="signatures">
         <div class="signature-box">
             <div style="margin-bottom: 5px;">
-                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|BUYER|' . $purchaseOrder->created_at, 60) }}"
-                    style="width: 60px;">
+                @if(!in_array($purchaseOrder->status, ['pending_vendor_acceptance', 'rejected_by_vendor']))
+                    <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|BUYER|' . $purchaseOrder->created_at, 60) }}"
+                        style="width: 60px;">
+                @else
+                    <div style="width: 60px; height: 60px; border: 1px dashed #ddd; margin: 0 auto; line-height: 60px; color: #ccc; font-size: 8px;">PENDING</div>
+                @endif
             </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Authorized Buyer</div>
@@ -345,8 +349,12 @@
         </div>
         <div class="signature-box">
             <div style="margin-bottom: 5px;">
-                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|VENDOR|' . $purchaseOrder->created_at, 60) }}"
-                    style="width: 60px;">
+                @if(in_array($purchaseOrder->status, ['issued', 'confirmed', 'partial_delivery', 'full_delivery', 'completed']))
+                    <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|VENDOR|' . $purchaseOrder->created_at, 60) }}"
+                        style="width: 60px;">
+                @else
+                    <div style="width: 60px; height: 60px; border: 1px dashed #ddd; margin: 0 auto; line-height: 60px; color: #ccc; font-size: 8px;">PENDING</div>
+                @endif
             </div>
             <div class="signature-line">
                 <div style="font-weight: bold;">Vendor Acknowledgment</div>

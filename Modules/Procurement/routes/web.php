@@ -110,6 +110,8 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::post('/{offer}/vendor-reject-negotiation', [OfferController::class, 'vendorRejectNegotiation'])->name('vendor-reject-negotiation');
 
         Route::post('/{offer}/approve-winner', [OfferController::class, 'approveWinner'])->name('approve-winner');
+        Route::get('/{offer}/print', [OfferController::class, 'printPdf'])->name('print');
+        Route::post('/{offer}/reject-winner', [OfferController::class, 'rejectWinner'])->name('reject-winner');
     });
 
     // Global Mode Switch

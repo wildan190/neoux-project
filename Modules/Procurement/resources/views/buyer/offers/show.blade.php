@@ -16,13 +16,7 @@
             </div>
             <h1 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Technical & Financial Analysis</h1>
         </div>
-        <div class="flex items-center gap-2">
-            @if($purchaseRequisition->po_generated_at)
-                <a href="{{ route('procurement.po.show', $purchaseRequisition->purchaseOrder) }}" 
-                    class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
-                    View Purchase Order
-                </a>
-            @elseif($offer->status === 'accepted')
+            @if($offer->status === 'accepted')
                 <form action="{{ route('procurement.po.generate', $purchaseRequisition) }}" method="POST">
                     @csrf
                     <button type="submit" onclick="return confirm('Generate Purchase Order?')"
@@ -30,6 +24,14 @@
                         Generate PO
                     </button>
                 </form>
+            @endif
+
+            @if($isOwner)
+                <a href="{{ route('procurement.offers.print', $offer) }}" target="_blank"
+                    class="px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2">
+                    <i data-feather="printer" class="w-3.5 h-3.5"></i>
+                    Analysis Report (PDF)
+                </a>
             @endif
         </div>
     </div>
@@ -159,13 +161,20 @@
                     @endif
 
                     @if($canApprove && $offer->status === 'winning')
-                        <form action="{{ route('procurement.offers.approve-winner', $offer) }}" method="POST">
-                            @csrf
-                            <button type="submit" onclick="return confirm('Final approval for {{ $offer->company->name }}?')"
-                                class="w-full py-4 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
-                                Approve Winner
+                        <div class="space-y-3">
+                            <form action="{{ route('procurement.offers.approve-winner', $offer) }}" method="POST">
+                                @csrf
+                                <button type="submit" onclick="return confirm('Final approval for {{ $offer->company->name }}?')"
+                                    class="w-full py-4 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
+                                    Approve Winner
+                                </button>
+                            </form>
+                            
+                            <button type="button" onclick="document.getElementById('rejectWinnerModal').classList.remove('hidden')"
+                                class="w-full py-3 bg-red-50 dark:bg-red-900/10 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-100 transition-all">
+                                Reject Nomination
                             </button>
-                        </form>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -269,6 +278,91 @@
             </form>
         </div>
     </div>
+
+    {{-- Rejection Modal --}}
+    <div id="rejectWinnerModal" class="hidden fixed inset-0 z-[100] overflow-auto backdrop-blur-md bg-gray-900/30 flex items-center justify-center p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] shadow-2xl w-full max-w-lg relative border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="p-8 border-b border-gray-50 dark:border-gray-700/50 bg-red-50/50 dark:bg-red-900/10 flex justify-between items-center">
+                <h3 class="text-[11px] font-black text-red-600 uppercase tracking-widest">Reject Winner Nomination</h3>
+                <button type="button" onclick="document.getElementById('rejectWinnerModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form action="{{ route('procurement.offers.reject-winner', $offer) }}" method="POST" class="p-8 space-y-6">
+                @csrf
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Reason for Rejection</label>
+                    <textarea name="rejection_reason" rows="4" required
+                        class="w-full p-5 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-bold uppercase tracking-tight text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all placeholder-gray-400" 
+                        placeholder="Explain why this vendor selection is being rejected by management..."></textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" onclick="document.getElementById('rejectWinnerModal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:bg-red-700 transition-all">Confirm Rejection</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Comparison Matrix --}}
+    @if($competitors->count() > 0)
+        <div class="mt-12 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col">
+            <div class="p-8 border-b border-gray-50 dark:border-gray-700/50 flex justify-between items-center">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    COMPETITIVE ANALYSIS (TOP ALTERNATIVES)
+                </h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead>
+                        <tr class="border-b border-gray-50 dark:border-gray-700">
+                            <th class="px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Criteria</th>
+                            <th class="px-8 py-6 bg-gray-50/30 dark:bg-gray-700/20">
+                                <div class="font-black text-primary-600 text-[11px] uppercase tracking-tight">{{ $offer->company->name }}</div>
+                                <div class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">CURRENT SELECTION</div>
+                            </th>
+                            @foreach($competitors as $comp)
+                                <th class="px-8 py-6">
+                                    <div class="font-black text-gray-900 dark:text-white text-[11px] uppercase tracking-tight">{{ $comp->company->name }}</div>
+                                    <div class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">RANK #{{ $comp->rank_position }}</div>
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
+                        <tr>
+                            <td class="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Price</td>
+                            <td class="px-8 py-4 bg-gray-50/30 dark:bg-gray-700/20 font-black text-[11px]">{{ $offer->formatted_total_price }}</td>
+                            @foreach($competitors as $comp)
+                                <td class="px-8 py-4 text-[11px] font-bold text-gray-700 dark:text-gray-300">{{ $comp->formatted_total_price }}</td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Match Score</td>
+                            <td class="px-8 py-4 bg-gray-50/30 dark:bg-gray-700/20">
+                                <span class="font-black text-[11px] text-primary-600">{{ $offer->rank_score }}%</span>
+                            </td>
+                            @foreach($competitors as $comp)
+                                <td class="px-8 py-4">
+                                    <span class="font-black text-[11px] text-gray-900 dark:text-white">{{ $comp->rank_score }}%</span>
+                                </td>
+                            @endforeach
+                        </tr>
+                        <tr>
+                            <td class="px-8 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Delivery</td>
+                            <td class="px-8 py-4 bg-gray-50/30 dark:bg-gray-700/20 text-[11px] font-bold uppercase tracking-tight">{{ $offer->delivery_time ?? 'N/A' }}</td>
+                            @foreach($competitors as $comp)
+                                <td class="px-8 py-4 text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight">{{ $comp->delivery_time ?? 'N/A' }}</td>
+                            @endforeach
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

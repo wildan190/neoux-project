@@ -155,7 +155,13 @@
                     {{-- Buyer Company Representative --}}
                     <div class="text-center">
                         <div class="h-24 flex items-center justify-center mb-2">
-                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|BUYER|' . $purchaseOrder->created_at, 80) }}" class="w-20 h-20">
+                            @if(!in_array($purchaseOrder->status, ['pending_vendor_acceptance', 'rejected_by_vendor']))
+                                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|BUYER|' . $purchaseOrder->created_at, 80) }}" class="w-20 h-20">
+                            @else
+                                <div class="w-20 h-20 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center">
+                                    <span class="text-[8px] font-black text-gray-300 uppercase leading-tight px-2 text-center">Pending Approval</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Buyer Representative</p>
@@ -168,7 +174,13 @@
                     {{-- Vendor Company Representative --}}
                     <div class="text-center">
                         <div class="h-24 flex items-center justify-center mb-2">
-                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|VENDOR|' . $purchaseOrder->created_at, 80) }}" class="w-20 h-20">
+                            @if(in_array($purchaseOrder->status, ['issued', 'confirmed', 'partial_delivery', 'full_delivery', 'completed']))
+                                <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($purchaseOrder->po_number . '|VENDOR|' . $purchaseOrder->created_at, 80) }}" class="w-20 h-20">
+                            @else
+                                <div class="w-20 h-20 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center">
+                                    <span class="text-[8px] font-black text-gray-300 uppercase leading-tight px-2 text-center">Unconfirmed</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Vendor Representative</p>
