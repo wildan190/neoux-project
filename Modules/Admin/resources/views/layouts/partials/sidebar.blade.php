@@ -58,6 +58,20 @@
             <i data-feather="list" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.categories.*') ? 'text-white' : 'text-gray-500 group-hover:text-primary-400' }}"></i>
             <span>Module Categories</span>
         </a>
+
+        <div class="px-4 pt-8 pb-4">
+            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Support</p>
+        </div>
+
+        <a href="{{ route('admin.support.index') }}"
+            class="flex items-center px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('admin.support.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+            <i data-feather="life-buoy" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.support.*') ? 'text-white' : 'text-gray-500 group-hover:text-primary-400' }}"></i>
+            <span>Support Tickets</span>
+            @php $openCount = \Modules\Support\Models\SupportTicket::where('status', 'open')->count(); @endphp
+            @if($openCount > 0)
+                <span class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-amber-500 rounded-full">{{ $openCount }}</span>
+            @endif
+        </a>
     </nav>
 
     {{-- Admin Profile / Session --}}

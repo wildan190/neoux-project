@@ -41,6 +41,7 @@
             "Modules\\Catalogue\\": "Modules/Catalogue/app/",
             "Modules\\Company\\": "Modules/Company/app/",
             "Modules\\Procurement\\": "Modules/Procurement/app/",
+            "Modules\\Support\\": "Modules/Support/app/",
             "Modules\\User\\": "Modules/User/app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"

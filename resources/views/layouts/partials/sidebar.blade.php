@@ -214,6 +214,12 @@
                 <i data-feather="settings" class="w-4 h-4 mr-3"></i>
                 <span>Settings</span>
             </a>
+
+            <a href="{{ route('support.index') }}"
+                class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('support.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                <i data-feather="life-buoy" class="w-4 h-4 mr-3"></i>
+                <span>Bantuan / Support</span>
+            </a>
         </div>
     </nav>
 
