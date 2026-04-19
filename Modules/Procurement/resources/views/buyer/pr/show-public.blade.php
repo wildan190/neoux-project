@@ -849,4 +849,3 @@
             document.addEventListener('turbo:load', initOfferCalculations);
         </script>
     @endsection
-@endsection

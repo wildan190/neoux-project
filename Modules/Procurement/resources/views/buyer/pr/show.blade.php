@@ -737,5 +737,4 @@
         document.addEventListener('turbo:load', initCommentSystem);
     </script>
 @endsection
-@endsection
 ```
