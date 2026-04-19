@@ -1,4 +1,4 @@
-@extends('admin::layouts.app', ['title' => 'Ticket #' . $ticket->id])
+@extends('layouts.app', ['title' => 'Ticket #' . $ticket->id])
 
 @section('content')
 @php
