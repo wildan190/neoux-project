@@ -623,8 +623,9 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">No comments yet. Be the first to ask a question!</p>
                 </div>
             @endforelse
-        </div>
-       @push('scripts')
+              @push('scripts')
+        @endpush
+
         <script>
             window.toggleReplyForm = function(formId) {
                 const form = document.getElementById('reply-form-' + formId);
@@ -731,11 +732,11 @@
                 if (emptyState) emptyState.remove();
 
                 const avatarHtml = comment.user_avatar 
-                    ? `<img src="${comment.user_avatar}" ...`
+                    ? `<img src="${comment.user_avatar}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">`
                     : `<div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
 
                 const nestedAvatarHtml = comment.user_avatar 
-                    ? `<img src="${comment.user_avatar}" ...`
+                    ? `<img src="${comment.user_avatar}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0">`
                     : `<div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
 
                 const commentHtml = `
@@ -830,14 +831,14 @@
 
             // Global Event Delegation
             document.addEventListener('input', function(e) {
-                if (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price')) {
+                if (e && e.target && e.target.classList && (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price'))) {
                     const row = e.target.getAttribute('data-row');
                     calculateOfferSubtotal(row);
                 }
             });
 
             document.addEventListener('change', function(e) {
-                if (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price')) {
+                if (e && e.target && e.target.classList && (e.target.classList.contains('offer-quantity') || e.target.classList.contains('offer-price'))) {
                     const row = e.target.getAttribute('data-row');
                     calculateOfferSubtotal(row);
                 }
@@ -847,5 +848,5 @@
             document.addEventListener('livewire:navigated', initOfferCalculations);
             document.addEventListener('turbo:load', initOfferCalculations);
         </script>
-    @endpush
+    @endsection
 @endsection
