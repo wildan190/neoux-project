@@ -550,190 +550,192 @@
         </div>
     </div>
 
-@push('scripts')
-<script>
-    function handlePrFormSubmit(form) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    @push('scripts')
+    @endpush
+
+    <script>
+        function handlePrFormSubmit(form) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                submitBtn.innerHTML = '<span class="flex items-center gap-2">' +
+                    '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+                    '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+                    '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+                    '</svg>' +
+                    'Processing...' +
+                    '</span>';
+            }
+            return true;
+        }
+
+        function openNegotiateModal(actionUrl) {
+            const modal = document.getElementById('negotiateModal');
+            const form = document.getElementById('negotiateForm');
+            form.action = actionUrl;
+            modal.classList.remove('hidden');
+        }
+
+        function closeNegotiateModal() {
+            document.getElementById('negotiateModal').classList.add('hidden');
+        }
+
+        // AJAX Comment Logic
+        window.toggleReplyForm = function(formId) {
+            const form = document.getElementById('reply-form-' + formId);
             
-            submitBtn.innerHTML = '<span class="flex items-center gap-2">' +
-                '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
-                '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
-                '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
-                '</svg>' +
-                'Processing...' +
-                '</span>';
-        }
-        return true;
-    }
-
-    function openNegotiateModal(actionUrl) {
-        const modal = document.getElementById('negotiateModal');
-        const form = document.getElementById('negotiateForm');
-        form.action = actionUrl;
-        modal.classList.remove('hidden');
-    }
-
-    function closeNegotiateModal() {
-        document.getElementById('negotiateModal').classList.add('hidden');
-    }
-
-    // AJAX Comment Logic
-    window.toggleReplyForm = function(formId) {
-        const form = document.getElementById('reply-form-' + formId);
-        
-        if (form.classList.contains('hidden')) {
-            document.querySelectorAll('[id^="reply-form-"]').forEach(f => {
-                f.classList.add('hidden');
-                const textarea = f.querySelector('textarea');
+            if (form.classList.contains('hidden')) {
+                document.querySelectorAll('[id^="reply-form-"]').forEach(f => {
+                    f.classList.add('hidden');
+                    const textarea = f.querySelector('textarea');
+                    if (textarea) textarea.value = '';
+                });
+                form.classList.remove('hidden');
+                const textarea = form.querySelector('textarea');
+                if (textarea) textarea.focus();
+            } else {
+                form.classList.add('hidden');
+                const textarea = form.querySelector('textarea');
                 if (textarea) textarea.value = '';
-            });
-            form.classList.remove('hidden');
-            const textarea = form.querySelector('textarea');
-            if (textarea) textarea.focus();
-        } else {
-            form.classList.add('hidden');
-            const textarea = form.querySelector('textarea');
-            if (textarea) textarea.value = '';
-        }
-        feather.replace();
-    }
-
-    window.setupAjaxComments = function() {
-        const mainForm = document.getElementById('main-comment-form');
-        if (mainForm) {
-            mainForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitComment(this);
-            });
+            }
+            feather.replace();
         }
 
-        document.querySelectorAll('.reply-form').forEach(form => {
-            form.removeEventListener('submit', handleReplySubmit);
-            form.addEventListener('submit', handleReplySubmit);
-        });
-    }
-
-    function handleReplySubmit(e) {
-        e.preventDefault();
-        submitComment(this);
-    }
-
-    window.submitComment = async function(form) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalBtnHtml = submitBtn.innerHTML;
-        const textarea = form.querySelector('textarea');
-        const formData = new FormData(form);
-
-        if (!textarea.value.trim()) return;
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SENDING...</span>`;
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server returned error:', response.status, errorText);
-                throw new Error(`Server Error (${response.status})`);
+        window.setupAjaxComments = function() {
+            const mainForm = document.getElementById('main-comment-form');
+            if (mainForm) {
+                mainForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitComment(this);
+                });
             }
 
-            const data = await response.json();
+            document.querySelectorAll('.reply-form').forEach(form => {
+                form.removeEventListener('submit', handleReplySubmit);
+                form.addEventListener('submit', handleReplySubmit);
+            });
+        }
 
-            if (data.status === 'success') {
-                appendComment(data.comment);
-                textarea.value = '';
-                if (form.classList.contains('reply-form')) {
-                    const parentId = formData.get('parent_id');
-                    const container = document.getElementById('reply-form-' + parentId);
-                    if (container) container.classList.add('hidden');
+        function handleReplySubmit(e) {
+            e.preventDefault();
+            submitComment(this);
+        }
+
+        window.submitComment = async function(form) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            const textarea = form.querySelector('textarea');
+            const formData = new FormData(form);
+
+            if (!textarea.value.trim()) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SENDING...</span>`;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server returned error:', response.status, errorText);
+                    throw new Error(`Server Error (${response.status})`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    appendComment(data.comment);
+                    textarea.value = '';
+                    if (form.classList.contains('reply-form')) {
+                        const parentId = formData.get('parent_id');
+                        const container = document.getElementById('reply-form-' + parentId);
+                        if (container) container.classList.add('hidden');
+                    }
+                } else {
+                    alert(data.message || 'Failed to post comment.');
+                }
+            } catch (error) {
+                console.error('AJAX Error:', error);
+                alert('An error occurred. Please check your connection and try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+        }
+
+        window.appendComment = function(comment) {
+            const emptyState = document.querySelector('#comments-list .text-center');
+            if (emptyState) emptyState.remove();
+
+            const avatarHtml = comment.user_avatar 
+                ? `<img src="${comment.user_avatar}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0">`
+                : `<div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+            const nestedAvatarHtml = comment.user_avatar 
+                ? `<img src="${comment.user_avatar}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">`
+                : `<div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center text-gray-500 font-bold text-[10px] flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+            const commentHtml = `
+                <div class="flex gap-4">
+                    ${comment.parent_id ? nestedAvatarHtml : avatarHtml}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">${comment.user_name}</p>
+                            <span class="text-xs text-gray-300">•</span>
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${comment.created_at}</p>
+                        </div>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-gray-800/30 p-3 rounded-xl border border-gray-50 dark:border-gray-700/50">
+                            ${comment.content}
+                        </div>
+                        ${!comment.parent_id ? `
+                            <div class="mt-3">
+                                <a href="javascript:void(0)" onclick="toggleReplyForm('${comment.id}')" class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                    <i data-feather="corner-down-right" class="w-3.5 h-3.5"></i>
+                                    Reply
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            if (comment.parent_id) {
+                const container = document.getElementById(`replies-container-${comment.parent_id}`);
+                if (container) {
+                    container.classList.remove('hidden');
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = commentHtml;
+                    container.appendChild(wrapper);
                 }
             } else {
-                alert(data.message || 'Failed to post comment.');
-            }
-        } catch (error) {
-            console.error('AJAX Error:', error);
-            alert('An error occurred. Please check your connection and try again.');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnHtml;
-        }
-    }
-
-    window.appendComment = function(comment) {
-        const emptyState = document.querySelector('#comments-list .text-center');
-        if (emptyState) emptyState.remove();
-
-        const avatarHtml = comment.user_avatar 
-            ? `<img src="${comment.user_avatar}" ...`
-            : `<div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
-
-        const nestedAvatarHtml = comment.user_avatar 
-            ? `<img src="${comment.user_avatar}" ...`
-            : `<div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center text-gray-500 font-bold text-[10px] flex-shrink-0 uppercase">${comment.user_initials}</div>`;
-
-        const commentHtml = `
-            <div class="flex gap-4">
-                ${comment.parent_id ? nestedAvatarHtml : avatarHtml}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">${comment.user_name}</p>
-                        <span class="text-xs text-gray-300">•</span>
-                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${comment.created_at}</p>
-                    </div>
-                    <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-gray-800/30 p-3 rounded-xl border border-gray-50 dark:border-gray-700/50">
-                        ${comment.content}
-                    </div>
-                    ${!comment.parent_id ? `
-                        <div class="mt-3">
-                            <a href="javascript:void(0)" onclick="toggleReplyForm('${comment.id}')" class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-all inline-flex items-center gap-1.5 cursor-pointer">
-                                <i data-feather="corner-down-right" class="w-3.5 h-3.5"></i>
-                                Reply
-                            </a>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-
-        if (comment.parent_id) {
-            const container = document.getElementById(`replies-container-${comment.parent_id}`);
-            if (container) {
-                container.classList.remove('hidden');
+                const list = document.getElementById('comments-list');
                 const wrapper = document.createElement('div');
+                wrapper.className = 'comment-item bg-white dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg hover:shadow-primary-600/5';
                 wrapper.innerHTML = commentHtml;
-                container.appendChild(wrapper);
+                list.insertBefore(wrapper, list.firstChild);
             }
-        } else {
-            const list = document.getElementById('comments-list');
-            const wrapper = document.createElement('div');
-            wrapper.className = 'comment-item bg-white dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg hover:shadow-primary-600/5';
-            wrapper.innerHTML = commentHtml;
-            list.insertBefore(wrapper, list.firstChild);
+
+            feather.replace();
         }
 
-        feather.replace();
-    }
+        window.initCommentSystem = function() {
+            setupAjaxComments();
+            feather.replace();
+        }
 
-    window.initCommentSystem = function() {
-        setupAjaxComments();
-        feather.replace();
-    }
-
-    document.addEventListener('DOMContentLoaded', initCommentSystem);
-    document.addEventListener('livewire:navigated', initCommentSystem);
-    document.addEventListener('turbo:load', initCommentSystem);
-</script>
-@endpush
+        document.addEventListener('DOMContentLoaded', initCommentSystem);
+        document.addEventListener('livewire:navigated', initCommentSystem);
+        document.addEventListener('turbo:load', initCommentSystem);
+    </script>
+@endsection
 @endsection
 ```
