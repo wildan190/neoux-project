@@ -289,6 +289,22 @@ class PurchaseRequisitionController extends Controller
             }
         }
 
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Comment posted successfully.',
+                'comment' => [
+                    'id' => $comment->id,
+                    'user_name' => $comment->user->name,
+                    'user_avatar' => $comment->user->userDetail?->profile_photo_url ?? null,
+                    'user_initials' => substr($comment->user->name, 0, 2),
+                    'content' => $comment->comment,
+                    'created_at' => $comment->created_at->diffForHumans(),
+                    'parent_id' => $comment->parent_id,
+                ]
+            ]);
+        }
+
         return back()->with('success', 'Comment posted successfully.');
     }
 

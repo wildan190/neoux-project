@@ -422,52 +422,134 @@
                 @endforeach
             </div>
         </div>
-    @endif
-
-    <!-- Reject Modal -->
-    <div id="rejectModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative">
-            <button onclick="document.getElementById('rejectModal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i data-feather="x" class="w-5 h-5"></i>
-            </button>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Reject Requisition</h3>
-            <form action="{{ route('procurement.pr.reject', $purchaseRequisition) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
-                @csrf
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason for Rejection</label>
-                        <textarea name="approval_notes" required rows="3" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
-                    </div>
-                    <button type="submit" class="w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">Confirm Rejection</button>
-                </div>
-            </form>
+    @endif    {{-- Comments Section --}}
+    <div class="bg-white dark:bg-gray-800 shadow-sm overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 mb-8">
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
+            <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white uppercase tracking-tight">Questions & Comments ({{ $purchaseRequisition->comments->count() }})</h3>
         </div>
-    </div>
-
-    <!-- Negotiate Modal (Shared) -->
-    <div id="negotiateModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6 relative">
-            <button onclick="closeNegotiateModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i data-feather="x" class="w-5 h-5"></i>
-            </button>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Invite to Negotiate</h3>
-            <p class="text-sm text-gray-500 mb-4">Send a message to the vendor explaining what needs to be revised.</p>
-            
-            <form id="negotiateForm" action="" method="POST" onsubmit="return handlePrFormSubmit(this)">
+        
+        {{-- Comment Form --}}
+        <div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+            <form id="main-comment-form" action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST">
                 @csrf
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Negotiation Message</label>
-                        <textarea name="message" rows="3" required placeholder="e.g. Can you lower the price by 5%?" class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
-                    </div>
-                    <div class="flex gap-3">
-                         <button type="button" onclick="closeNegotiateModal()" class="flex-1 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
-                         <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Send Invitation</button>
+                <div class="flex gap-3">
+                    @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
+                        <img src="{{ Auth::user()->userDetail->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+                    @else
+                        <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0">
+                            {{ substr(Auth::user()->name, 0, 2) }}
+                        </div>
+                    @endif
+                    <div class="flex-1">
+                        <textarea name="comment" id="comment" rows="3" required placeholder="Ask a question or leave a comment..." class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"></textarea>
+                        <div class="mt-3 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition shadow-xl shadow-primary-600/20">
+                                <i data-feather="send" class="w-3.5 h-3.5 inline mr-1"></i>
+                                Post Comment
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
+
+        {{-- Comments List --}}
+        <div id="comments-list" class="px-6 py-4 space-y-6">
+            @forelse($purchaseRequisition->comments->where('parent_id', null) as $comment)
+                <div class="comment-item bg-white dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg hover:shadow-primary-600/5">
+                    {{-- Main Comment --}}
+                    <div class="flex gap-4">
+                        @if($comment->user->userDetail && $comment->user->userDetail->profile_photo_url)
+                            <img src="{{ $comment->user->userDetail->profile_photo_url }}" alt="{{ $comment->user->name }}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0">
+                        @else
+                            <div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0">
+                                {{ substr($comment->user->name, 0, 2) }}
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $comment->user->name }}</p>
+                                <span class="text-xs text-gray-300 dark:text-gray-600">•</span>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ $comment->created_at->diffForHumans() }}</p>
+                            </div>
+                            <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-50 dark:border-gray-800">
+                                {!! preg_replace('/@(\w+)/', '<span class="text-primary-600 dark:text-primary-400 font-semibold">@$1</span>', e($comment->comment)) !!}
+                            </div>
+                            
+                            <div class="mt-3 flex items-center gap-4">
+                                {{-- Reply Button --}}
+                                <a href="javascript:void(0)" onclick="toggleReplyForm('{{ $comment->id }}')" class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                    <i data-feather="corner-down-right" class="w-3.5 h-3.5"></i>
+                                    Reply
+                                </a>
+                            </div>
+
+                            {{-- Reply Form (Hidden by default) --}}
+                            <div id="reply-form-{{ $comment->id }}" class="hidden mt-4">
+                                <form action="{{ route('procurement.pr.add-comment', $purchaseRequisition) }}" method="POST" class="flex gap-3 reply-form" data-parent-id="{{ $comment->id }}">
+                                    @csrf
+                                    <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                    @if(Auth::user()->userDetail && Auth::user()->userDetail->profile_photo_url)
+                                        <img src="{{ Auth::user()->userDetail->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">
+                                    @else
+                                        <div class="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-[10px] flex-shrink-0">
+                                            {{ substr(Auth::user()->name, 0, 2) }}
+                                        </div>
+                                    @endif
+                                    <div class="flex-1">
+                                        <textarea name="comment" rows="2" required placeholder="Write a reply..." class="block w-full rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 text-xs shadow-inner focus:border-primary-500/50 focus:ring-4 focus:ring-primary-500/5 dark:bg-gray-900 dark:text-white outline-none resize-none"></textarea>
+                                        <div class="mt-2 flex gap-2 justify-end">
+                                            <button type="button" onclick="toggleReplyForm('{{ $comment->id }}')" class="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-500 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-all">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[9px] font-black uppercase tracking-widest rounded-lg transition shadow-lg shadow-primary-600/10">
+                                                Post Reply
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Nested Replies --}}
+                    <div id="replies-container-{{ $comment->id }}" class="ml-12 mt-6 space-y-6 border-l-2 border-gray-100 dark:border-gray-800 pl-6 {{ $comment->replies->count() > 0 ? '' : 'hidden' }}">
+                        @foreach($comment->replies as $reply)
+                            <div>
+                                <div class="flex gap-3">
+                                    @if($reply->user->userDetail && $reply->user->userDetail->profile_photo_url)
+                                        <img src="{{ $reply->user->userDetail->profile_photo_url }}" alt="{{ $reply->user->name }}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">
+                                    @else
+                                        <div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-[10px] flex-shrink-0">
+                                            {{ substr($reply->user->name, 0, 2) }}
+                                        </div>
+                                    @endif
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $reply->user->name }}</p>
+                                            <span class="text-xs text-gray-300">•</span>
+                                            <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">{{ $reply->created_at->diffForHumans() }}</p>
+                                        </div>
+                                        <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-gray-800/30 p-3 rounded-xl border border-gray-50 dark:border-gray-700/50">
+                                            {!! preg_replace('/@(\w+)/', '<span class="text-primary-600 dark:text-primary-400 font-semibold">@$1</span>', e($reply->comment)) !!}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-50 dark:bg-gray-900/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-800">
+                        <i data-feather="message-circle" class="w-8 h-8 text-gray-200 dark:text-gray-700"></i>
+                    </div>
+                    <p class="text-[10px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-[0.2em]">No comments yet recorded</p>
+                </div>
+            @endforelse
+        </div>
     </div>
+
 @push('scripts')
 <script>
     function handlePrFormSubmit(form) {
@@ -497,6 +579,140 @@
     function closeNegotiateModal() {
         document.getElementById('negotiateModal').classList.add('hidden');
     }
+
+    // AJAX Comment Logic
+    function toggleReplyForm(formId) {
+        const form = document.getElementById('reply-form-' + formId);
+        
+        if (form.classList.contains('hidden')) {
+            document.querySelectorAll('[id^="reply-form-"]').forEach(f => {
+                f.classList.add('hidden');
+            });
+            form.classList.remove('hidden');
+            form.querySelector('textarea').focus();
+        } else {
+            form.classList.add('hidden');
+        }
+        feather.replace();
+    }
+
+    function setupAjaxComments() {
+        const mainForm = document.getElementById('main-comment-form');
+        if (mainForm) {
+            mainForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitComment(this);
+            });
+        }
+
+        document.querySelectorAll('.reply-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitComment(this);
+            });
+        });
+    }
+
+    async function submitComment(form) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnHtml = submitBtn.innerHTML;
+        const textarea = form.querySelector('textarea');
+        const formData = new FormData(form);
+
+        if (!textarea.value.trim()) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="flex items-center gap-1.5"><svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> SENDING...</span>`;
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                appendComment(data.comment);
+                textarea.value = '';
+                if (form.classList.contains('reply-form')) {
+                    form.closest('.hidden').classList.add('hidden');
+                }
+            } else {
+                alert(data.message || 'Failed to post comment.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
+    }
+
+    function appendComment(comment) {
+        const emptyState = document.querySelector('#comments-list .text-center');
+        if (emptyState) emptyState.remove();
+
+        const avatarHtml = comment.user_avatar 
+            ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0">`
+            : `<div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-xs flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+        const nestedAvatarHtml = comment.user_avatar 
+            ? `<img src="${comment.user_avatar}" alt="${comment.user_name}" class="w-9 h-9 rounded-xl object-cover flex-shrink-0">`
+            : `<div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center text-gray-500 font-bold text-[10px] flex-shrink-0 uppercase">${comment.user_initials}</div>`;
+
+        const commentHtml = `
+            <div class="flex gap-4">
+                ${comment.parent_id ? nestedAvatarHtml : avatarHtml}
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">${comment.user_name}</p>
+                        <span class="text-xs text-gray-300">•</span>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${comment.created_at}</p>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-gray-800/30 p-3 rounded-xl border border-gray-50 dark:border-gray-700/50">
+                        ${comment.content}
+                    </div>
+                    ${!comment.parent_id ? `
+                        <div class="mt-3">
+                            <a href="javascript:void(0)" onclick="toggleReplyForm('${comment.id}')" class="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 hover:text-primary-700 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+                                <i data-feather="corner-down-right" class="w-3.5 h-3.5"></i>
+                                Reply
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        if (comment.parent_id) {
+            const container = document.getElementById(`replies-container-${comment.parent_id}`);
+            if (container) {
+                container.classList.remove('hidden');
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = commentHtml;
+                container.appendChild(wrapper);
+            }
+        } else {
+            const list = document.getElementById('comments-list');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'comment-item bg-white dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:shadow-lg hover:shadow-primary-600/5';
+            wrapper.innerHTML = commentHtml;
+            list.insertBefore(wrapper, list.firstChild);
+        }
+
+        feather.replace();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setupAjaxComments();
+        feather.replace();
+    });
 </script>
 @endpush
 @endsection
