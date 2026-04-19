@@ -1,4 +1,4 @@
-@extends('admin::layouts.app', ['title' => 'Support Tickets'])
+@extends('layouts.app', ['title' => 'Support Tickets'])
 
 @section('content')
 <div class="p-8">

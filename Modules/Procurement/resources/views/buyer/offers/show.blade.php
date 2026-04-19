@@ -207,7 +207,9 @@
                 @csrf
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Negotiation Rationale</label>
-                    <textarea name="negotiation_message" rows="3" class="w-full p-5 rounded-2xl border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-bold uppercase tracking-tight focus:ring-primary-500 transition-all" placeholder="Explain the required pricing or term adjustments..."></textarea>
+                    <textarea name="negotiation_message" rows="3" 
+                        class="w-full p-5 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-bold uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-600" 
+                        placeholder="Explain the required pricing or term adjustments..."></textarea>
                 </div>
 
                 <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden shadow-inner">
@@ -228,11 +230,11 @@
                                     </td>
                                     <td class="px-5 py-4">
                                         <input type="number" name="items[{{ $loop->index }}][quantity_offered]" value="{{ $item->quantity_offered }}" min="1" required 
-                                            class="w-full px-3 py-2 text-center rounded-xl border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-[10px] font-black focus:ring-primary-500 item-quantity" data-index="{{ $loop->index }}">
+                                            class="w-full px-3 py-2 text-center rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-[10px] font-black focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-600 item-quantity" data-index="{{ $loop->index }}">
                                     </td>
                                     <td class="px-5 py-4">
                                         <input type="number" name="items[{{ $loop->index }}][unit_price]" value="{{ $item->unit_price }}" step="0.01" min="0" required 
-                                            class="w-full px-3 py-2 text-right rounded-xl border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-[10px] font-black focus:ring-primary-500 item-unit-price" data-index="{{ $loop->index }}">
+                                            class="w-full px-3 py-2 text-right rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-[10px] font-black focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-600 item-unit-price" data-index="{{ $loop->index }}">
                                     </td>
                                 </tr>
                             @endforeach
@@ -243,11 +245,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Delivery Time</label>
-                        <input type="text" name="delivery_time" value="{{ $offer->delivery_time }}" required class="w-full p-4 rounded-xl border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500">
+                        <input type="text" name="delivery_time" value="{{ $offer->delivery_time }}" required 
+                            class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-600">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Warranty</label>
-                        <input type="text" name="warranty" value="{{ $offer->warranty }}" required class="w-full p-4 rounded-xl border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500">
+                        <input type="text" name="warranty" value="{{ $offer->warranty }}" required 
+                            class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-600">
                     </div>
                 </div>
 
