@@ -471,11 +471,11 @@ class PurchaseOrderController extends Controller
                 return back()->with('error', 'Temporary file expired or not found.');
             }
 
-            // Dispatch Queue Job
-            ProcessPurchaseOrderImport::dispatch($path, Auth::id(), session('selected_company_id'), $request->import_role);
+            // Dispatch Synchronously to avoid "File Not Found" in multi-server/isolated staging environments
+            ProcessPurchaseOrderImport::dispatchSync($path, Auth::id(), session('selected_company_id'), $request->import_role);
 
             return redirect()->route('procurement.po.index')
-                ->with('success', 'Import has been queued. POs will appear in the list once processed.');
+                ->with('success', 'Import completed successfully. POs are now available in the list.');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to start import: ' . $e->getMessage());
         }
