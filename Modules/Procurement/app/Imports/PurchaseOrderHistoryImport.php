@@ -76,6 +76,21 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow, WithCa
                     return $this->sanitize($row[$totalKey] ?? 0);
                 });
 
+                // ── Parse Month into Created At ──────────────────────────────────────
+                $createdAt = $now;
+                if ($month) {
+                    try {
+                        // Handle numeric month (1-12) or string month (January-December)
+                        if (is_numeric($month)) {
+                            $createdAt = \Illuminate\Support\Carbon::create(date('Y'), (int)$month, 1, 0, 0, 0);
+                        } else {
+                            $createdAt = \Illuminate\Support\Carbon::parse("1 {$month} " . date('Y'));
+                        }
+                    } catch (\Exception $e) {
+                        $createdAt = $now;
+                    }
+                }
+
                 // ── Create Purchase Order ──────────────────────────────────────────────
                 $data = [
                     'po_number'              => $poNumber,
@@ -89,10 +104,12 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow, WithCa
                     'total_amount'           => $totalAmount,
                     'status'                 => 'completed',
                     'escrow_status'          => 'released',
-                    'confirmed_at'           => $now,
-                    'vendor_accepted_at'     => $now,
-                    'escrow_paid_at'         => $now,
-                    'escrow_released_at'     => $now,
+                    'confirmed_at'           => $createdAt,
+                    'vendor_accepted_at'     => $createdAt,
+                    'escrow_paid_at'         => $createdAt,
+                    'escrow_released_at'     => $createdAt,
+                    'created_at'             => $createdAt,
+                    'updated_at'             => $createdAt,
                 ];
 
                 if ($this->importRole === 'vendor') {

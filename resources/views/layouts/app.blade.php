@@ -284,7 +284,7 @@
             <div id="global-progress" class="fixed top-0 left-0 md:left-64 right-0 h-1 bg-primary-600 z-[60] transition-all duration-300 opacity-0" style="width: 0%"></div>
 
             {{-- Content --}}
-            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 {{ auth()->check() && $procurementMode === 'buyer' ? 'pb-32' : '' }}" data-layout="app">
+            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 {{ auth()->check() && $procurementMode === 'buyer' ? 'pb-40' : '' }}" data-layout="app">
                 <div class="w-full px-6 py-8" id="main-content-area">
                     @yield('content')
                 </div>

@@ -168,7 +168,7 @@ class CompanyDashboardController extends Controller
                 ->with('vendorCompany:id,name')
                 ->get()
                 ->map(fn($item) => [
-                    'name' => $item->vendorCompany->name ?? 'Unknown',
+                    'name' => $item->vendorCompany->name ?? $item->historical_vendor_name ?? 'Unknown',
                     'total' => (float) $item->total
                 ]);
 
@@ -273,8 +273,9 @@ class CompanyDashboardController extends Controller
                 ],
                 // Backward compatibility for existing widgets (optional, but good)
                 'total_purchases' => $totalSpend,
-                'active_orders' => (clone $poBaseQuery)->whereIn('status', ['pending', 'approved', 'received'])->count(),
-                'total_vendors' => (clone $poBaseQuery)->distinct('vendor_company_id')->count('vendor_company_id'),
+                'active_orders' => (clone $poBaseQuery)->whereIn('status', ['pending', 'approved', 'received', 'completed'])->count(),
+                'total_vendors' => (clone $poBaseQuery)->whereNotNull('vendor_company_id')->distinct('vendor_company_id')->count('vendor_company_id') 
+                                 + (clone $poBaseQuery)->whereNull('vendor_company_id')->whereNotNull('historical_vendor_name')->distinct('historical_vendor_name')->count('historical_vendor_name'),
                 'pending_pr' => $company->purchaseRequisitions()->where('approval_status', 'pending')->count(),
             ];
         } else {

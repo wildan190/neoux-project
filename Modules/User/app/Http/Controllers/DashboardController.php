@@ -36,7 +36,7 @@ class DashboardController extends Controller
 
         session(['selected_company_id' => $company->id]);
 
-        return redirect()->to('/')
+        return redirect()->route('company.dashboard')
             ->with('success', 'Switched to workspace: '.$company->name);
     }
 }
