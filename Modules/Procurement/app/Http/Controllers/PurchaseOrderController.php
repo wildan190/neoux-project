@@ -142,6 +142,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->update([
                 'status' => 'confirmed',
                 'confirmed_at' => now(),
+                'escrow_reference' => 'ESC-' . strtoupper(Str::random(10)),
             ]);
 
             // Automatically Generate Interim Invoice
@@ -391,19 +392,32 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Escrow has already been paid or processed.');
         }
 
-        $request->validate([
-            'escrow_reference' => 'required|string|max:100',
-        ]);
-
         $purchaseOrder->update([
             'escrow_status' => 'paid',
             'escrow_paid_at' => now(),
-            'escrow_reference' => $request->escrow_reference,
+            'escrow_reference' => $request->escrow_reference ?? ('TRX-' . strtoupper(\Illuminate\Support\Str::random(10))),
         ]);
 
-        // Notify Vendor
-        if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
-            $purchaseOrder->vendorCompany->user->notify(new \Modules\Procurement\Notifications\PaymentReceived($purchaseOrder));
+        // Notify Vendor (Company Owner and Offer Creator)
+        try {
+            $recipients = collect();
+            
+            // 1. Company Owner
+            if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
+                $recipients->push($purchaseOrder->vendorCompany->user);
+            }
+            
+            // 2. Offer Creator (Sales Rep)
+            if ($purchaseOrder->offer && $purchaseOrder->offer->user) {
+                $recipients->push($purchaseOrder->offer->user);
+            }
+            
+            // Send unique notifications
+            $recipients->unique('id')->each(function ($user) use ($purchaseOrder) {
+                $user->notify(new \Modules\Procurement\Notifications\PaymentReceived($purchaseOrder));
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send payment notification: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Pembayaran escrow berhasil dicatat! Vendor telah dinotifikasi dan dapat mulai mengirimkan barang.');

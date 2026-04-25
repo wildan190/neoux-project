@@ -54,7 +54,7 @@
         @if(in_array($purchaseOrder->status, ['issued', 'confirmed']) && $purchaseOrder->escrow_status === 'pending')
             <button onclick="document.getElementById('escrowPayModal').classList.remove('hidden')" 
                     class="px-8 py-3 bg-emerald-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition">
-                Pay to Escrow
+                Pay
             </button>
         @endif
 
@@ -65,6 +65,19 @@
                     Release Payout
                 </button>
             </form>
+        @endif
+
+        @php
+            $totalOrdered = $purchaseOrder->items->sum('quantity_ordered');
+            $totalReceived = $purchaseOrder->items->sum('quantity_received');
+            $canReceive = $purchaseOrder->status !== 'pending_vendor_acceptance' && $totalReceived < $totalOrdered;
+        @endphp
+
+        @if($canReceive)
+            <a href="{{ route('procurement.gr.create', $purchaseOrder) }}" 
+                class="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition">
+                Log Receipt
+            </a>
         @endif
     </div>
 

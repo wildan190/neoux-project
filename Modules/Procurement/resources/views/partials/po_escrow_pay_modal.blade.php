@@ -30,15 +30,7 @@
             <form action="{{ route('procurement.po.escrow-pay', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">No. Referensi / Bukti Transfer</label>
-                        <div class="relative">
-                            <i data-feather="hash" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" name="escrow_reference" required placeholder="Contoh: TRX-2026-XXXX" 
-                                   class="w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-900 rounded-xl border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 transition-all font-bold tabular-nums">
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-2 italic">Pastikan nomor referensi sesuai dengan bukti transfer Anda.</p>
-                    </div>
+
 
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="document.getElementById('escrowPayModal').classList.add('hidden')" 

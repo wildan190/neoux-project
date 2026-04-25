@@ -137,17 +137,17 @@
                     </div>
 
                     @if($offer->status === 'negotiating')
-                        <form action="{{ route('procurement.offers.vendor-accept-negotiation', $offer) }}" method="POST">
+                        <form id="acceptNegotiationForm" action="{{ route('procurement.offers.vendor-accept-negotiation', $offer) }}" method="POST">
                             @csrf
-                            <button type="submit" onclick="return confirm('Accept these revised terms proposed by the buyer?')"
+                            <button type="button" onclick="confirmAction('acceptNegotiationForm', 'Accept Revised Terms?', 'Are you sure you want to accept the new terms proposed by the buyer?', 'success', 'Yes, Accept')"
                                 class="w-full py-4 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition">
                                 Accept Revised Terms
                             </button>
                         </form>
                         
-                        <form action="{{ route('procurement.offers.vendor-reject-negotiation', $offer) }}" method="POST">
+                        <form id="rejectNegotiationForm" action="{{ route('procurement.offers.vendor-reject-negotiation', $offer) }}" method="POST">
                             @csrf
-                            <button type="submit" onclick="return confirm('Reject the revised terms? This will likely lead to bid disqualification.')"
+                            <button type="button" onclick="confirmAction('rejectNegotiationForm', 'Reject Terms?', 'This will likely lead to bid disqualification. Are you sure you want to withdraw?', 'warning', 'Yes, Reject')"
                                 class="w-full py-3 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-100 transition mt-2">
                                 Reject & Withdraw
                             </button>
@@ -193,5 +193,24 @@
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
         });
+
+        window.confirmAction = function(formId, title, text, icon, confirmText) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: icon === 'success' ? '#10b981' : '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancel',
+                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
     </script>
 @endpush

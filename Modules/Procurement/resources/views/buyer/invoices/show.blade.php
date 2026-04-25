@@ -140,23 +140,7 @@
                 <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Workflow Status</h3>
                 
                 <div class="space-y-4">
-                    @if($invoice->status === 'vendor_approved')
-                        <form action="{{ route('procurement.invoices.purchasing-approve', $invoice) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full py-4 bg-primary-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-600/20 hover:bg-primary-700 transition">
-                                Approve (Purchasing)
-                            </button>
-                        </form>
-                    @endif
-
-                    @if($invoice->status === 'purchasing_approved')
-                        <form action="{{ route('procurement.invoices.finance-approve', $invoice) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full py-4 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition">
-                                Approve & Pay (Finance)
-                            </button>
-                        </form>
-                    @endif
+                    {{-- Manual approval buttons removed as escrow handles payment lifecycle --}}
 
                     @if($invoice->status !== 'paid' && $invoice->status !== 'rejected')
                         <form action="{{ route('procurement.invoices.reject', $invoice) }}" method="POST" onsubmit="return confirm('Please provide a reason for rejection.')" class="mt-8">
