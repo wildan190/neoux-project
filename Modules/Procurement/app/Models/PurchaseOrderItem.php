@@ -15,9 +15,18 @@ class PurchaseOrderItem extends Model
         'purchase_order_id',
         'purchase_requisition_item_id',
         'item_name',
+        'unit',
+        'business_category',
+        'category',
+        'specifications',
         'quantity_ordered',
         'quantity_received',
         'unit_price',
+        'tax_amount',
+        'tax_rate',
+        'total_inc_tax',
+        'price_idr',
+        'price_original',
         'subtotal',
     ];
 

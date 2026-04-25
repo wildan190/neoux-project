@@ -2,7 +2,7 @@
 
 namespace Modules\Procurement\Jobs;
 
-use App\Modules\Procurement\Presentation\Http\Imports\PurchaseOrderHistoryImport;
+use Modules\Procurement\Imports\PurchaseOrderHistoryImport;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

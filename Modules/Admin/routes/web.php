@@ -6,7 +6,7 @@ use Modules\Admin\Http\Controllers\AdminManagementController;
 use Modules\Admin\Http\Controllers\Auth\AdminLoginController;
 use Modules\Admin\Http\Controllers\CompanyReviewController;
 use Modules\Admin\Http\Controllers\UserManagementController;
-use Modules\Catalogue\Http\Controllers\CategoryController;
+use Modules\Admin\Http\Controllers\CategoryController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -46,6 +46,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Category Management
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     });
 });

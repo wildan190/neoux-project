@@ -34,8 +34,9 @@ class MarketController extends Controller
         }
 
         $products = $query->latest()->paginate(16);
+        $categories = \Modules\Catalogue\Models\CatalogueCategory::all();
 
-        return view('catalogue::market.index', compact('products', 'search'));
+        return view('catalogue::market.index', compact('products', 'search', 'categories'));
     }
 
     /**

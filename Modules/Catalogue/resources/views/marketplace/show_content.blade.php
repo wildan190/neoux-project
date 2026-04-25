@@ -51,14 +51,22 @@
                 </div>
             </div>
 
-            @if($product->attributes && $product->attributes->count() > 0)
+            @php
+                // Handle both CatalogueProduct and CatalogueItem models
+                $isItem = $product instanceof \Modules\Catalogue\Models\CatalogueItem;
+                $items = $isItem ? collect([$product]) : ($product->items ?? collect());
+                $specItem = $isItem ? $product : $items->first();
+                $specs = $specItem ? $specItem->attributes : collect();
+            @endphp
+
+            @if($specs->isNotEmpty())
                 <div class="mb-8">
                     <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">Specifications</p>
                     <div class="grid grid-cols-2 gap-3">
-                        @foreach($product->attributes as $attr)
+                        @foreach($specs as $attr)
                             <div class="bg-gray-50 dark:bg-gray-900/30 p-3 rounded-xl border border-gray-100 dark:border-gray-800 group hover:border-primary-500/30 transition-colors">
-                                <p class="text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5 group-hover:text-primary-600">{{ $attr->name }}</p>
-                                <p class="font-bold text-gray-900 dark:text-white text-xs tracking-tight">{{ $attr->value }}</p>
+                                <p class="text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5 group-hover:text-primary-600">{{ $attr->attribute_key }}</p>
+                                <p class="font-bold text-gray-900 dark:text-white text-xs tracking-tight">{{ $attr->attribute_value }}</p>
                             </div>
                         @endforeach
                     </div>
@@ -88,7 +96,7 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        @foreach($product->items as $item)
+                        @foreach($items as $item)
                             <div class="relative">
                                 <div 
                                     onclick="selectVariant('{{ $item->id }}', this, '{{ $item->stock }}', '{{ $item->primaryImage ? $item->primaryImage->url : asset('assets/img/products/default-product.png') }}')"

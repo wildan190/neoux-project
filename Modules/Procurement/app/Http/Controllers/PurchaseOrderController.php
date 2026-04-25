@@ -231,8 +231,12 @@ class PurchaseOrderController extends Controller
                 'offer_id' => $offer->id,
                 'vendor_company_id' => $offer->company_id,
                 'created_by_user_id' => Auth::id(),
+                'approved_by_user_id' => Auth::id(),
                 'total_amount' => $offer->total_price,
                 'status' => 'pending_vendor_acceptance',
+                'purchase_type' => 'tender',
+                'month' => date('F'),
+                'currency' => 'IDR',
             ]);
 
             // Calculate negotiation ratio if total price differs from sum of items
@@ -252,6 +256,11 @@ class PurchaseOrderController extends Controller
                     'quantity_received' => 0,
                     'unit_price' => $adjustedUnitPrice,
                     'subtotal' => $adjustedSubtotal,
+                    'tax_amount' => 0,
+                    'tax_rate' => 0,
+                    'total_inc_tax' => $adjustedSubtotal,
+                    'price_idr' => $adjustedUnitPrice,
+                    'price_original' => $adjustedUnitPrice,
                 ]);
             }
 
@@ -519,9 +528,13 @@ class PurchaseOrderController extends Controller
                 'purchase_requisition_id' => $requisition->id,
                 'vendor_company_id' => $purchaseOrder->vendor_company_id,
                 'created_by_user_id' => Auth::id(),
+                'approved_by_user_id' => Auth::id(),
                 'total_amount' => $purchaseOrder->total_amount,
                 'status' => 'issued',
                 'vendor_accepted_at' => now(), // Manual repeat usually means pre-agreed
+                'purchase_type' => 'direct',
+                'month' => date('F'),
+                'currency' => 'IDR',
             ]);
 
             foreach ($requisition->items as $prItem) {
@@ -532,6 +545,11 @@ class PurchaseOrderController extends Controller
                     'quantity_received' => 0,
                     'unit_price' => $prItem->price,
                     'subtotal' => $prItem->quantity * $prItem->price,
+                    'tax_amount' => 0,
+                    'tax_rate' => 0,
+                    'total_inc_tax' => $prItem->quantity * $prItem->price,
+                    'price_idr' => $prItem->price,
+                    'price_original' => $prItem->price,
                 ]);
             }
 

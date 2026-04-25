@@ -14,6 +14,7 @@ class CatalogueCategory extends Model
         'name',
         'slug',
         'description',
+        'icon',
     ];
 
     protected static function boot()
@@ -22,7 +23,13 @@ class CatalogueCategory extends Model
 
         static::creating(function ($category) {
             if (empty($category->slug)) {
-                $category->slug = Str::slug($category->name);
+                $slug = Str::slug($category->name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $category->slug = $slug;
             }
         });
     }

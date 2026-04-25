@@ -21,10 +21,12 @@ Route::middleware(['auth', 'company.selected'])->group(function () {
         Route::post('/', [CatalogueController::class, 'store'])->name('store');
         Route::get('/{product}', [CatalogueController::class, 'show'])->name('show');
         Route::post('/{product}/sku', [CatalogueController::class, 'storeSku'])->name('store-sku');
+        Route::post('/{product}/generate-missing-images', [CatalogueController::class, 'generateMissingImages'])->name('generate-missing-images');
         Route::get('/{product}/edit', [CatalogueController::class, 'edit'])->name('edit');
         Route::put('/{product}', [CatalogueController::class, 'update'])->name('update');
         Route::delete('/{product}', [CatalogueController::class, 'destroy'])->name('destroy');
         Route::delete('/sku/{item}', [CatalogueController::class, 'destroySku'])->name('destroy-sku');
+        Route::put('/sku/{item}', [CatalogueController::class, 'updateSku'])->name('update-sku');
         Route::post('/generate-sku', [CatalogueController::class, 'generateSku'])->name('generate-sku');
     });
 

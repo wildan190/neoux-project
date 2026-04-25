@@ -43,7 +43,9 @@ class CatalogueServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Catalogue\Console\GenerateMissingImagesCommand::class,
+        ]);
     }
 
     /**

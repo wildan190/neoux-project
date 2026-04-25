@@ -66,7 +66,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                     <div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Legal Identifier</p>
-                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->registration_number }}</p>
+                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->npwp ?: 'NOT SPECIFIED' }}</p>
                     </div>
                     <div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Primary Industry</p>
@@ -74,15 +74,39 @@
                     </div>
                     <div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Operations Center</p>
-                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->address ?: 'NOT SPECIFIED' }}</p>
+                        <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->locations->first()->address ?? 'NOT SPECIFIED' }}</p>
                     </div>
                     <div>
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Registered Entity Owner</p>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-black text-primary-600 shadow-inner">
-                                {{ substr($company->owner->name ?? 'U', 0, 1) }}
+                                {{ substr($company->user->name ?? 'U', 0, 1) }}
                             </div>
-                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->owner->name ?? 'UNKNOWN' }}</p>
+                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->user->name ?? 'UNKNOWN' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-12 border-t border-gray-50 dark:border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Communication Signals</p>
+                            <div class="space-y-2">
+                                <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->email ?: 'NO EMAIL' }}</p>
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{{ $company->phone ?: 'NO PHONE' }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Web Interface</p>
+                            <a href="{{ $company->website ?: '#' }}" target="_blank" class="text-xs font-black text-primary-600 uppercase tracking-tight hover:underline">{{ $company->website ?: 'NO WEBSITE' }}</a>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Corporate Tag</p>
+                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->tag ?: 'NO TAG' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Operating Country</p>
+                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ $company->country ?: 'NOT SPECIFIED' }}</p>
                         </div>
                     </div>
                 </div>

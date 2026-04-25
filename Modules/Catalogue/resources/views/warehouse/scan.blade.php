@@ -187,7 +187,7 @@
     function processInput(input) {
         const warehouseId = document.getElementById('warehouse-id').value;
         
-        fetch("{{ route('warehouse.scan.process') }}", {
+        fetch("{{ route('warehouse.process-scan') }}", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
