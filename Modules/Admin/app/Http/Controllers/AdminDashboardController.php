@@ -3,7 +3,11 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\Company;
+use Modules\Procurement\Models\PurchaseOrder;
+use Modules\Procurement\Models\PurchaseRequisition;
+use Modules\Catalogue\Models\CatalogueItem;
 
 class AdminDashboardController extends Controller
 {
@@ -14,45 +18,63 @@ class AdminDashboardController extends Controller
         $activeCompanies = Company::where('status', 'active')->count();
         $declinedCompanies = Company::where('status', 'declined')->count();
 
-        // Recent Tender Activity (Awarded/Ordered PRs)
-        $recentTenders = \Modules\Procurement\Models\PurchaseRequisition::whereIn('status', ['awarded', 'ordered'])
-            ->with(['company', 'winningOffer.company', 'winningOffer.user', 'purchaseOrder'])
-            ->latest('updated_at')
-            ->take(5)
+        // ── Global Market Metrics ──────────────────────────────────────────────
+        $totalPOValue = (float) PurchaseOrder::sum('total_amount');
+        $totalPOCount = PurchaseOrder::count();
+
+        // Recent Global Activity (POs + PRs)
+        // We'll combine them or just show latest POs as they represent realized value
+        $recentActivity = PurchaseOrder::with(['buyerCompany', 'vendorCompany', 'createdBy'])
+            ->latest()
+            ->take(6)
             ->get();
 
-        // Top Selling Products (Based on PO Items)
-        // 1. Get stats via DB Query
-        $topStats = \Illuminate\Support\Facades\DB::table('purchase_order_items')
-            ->join('purchase_requisition_items', 'purchase_order_items.purchase_requisition_item_id', '=', 'purchase_requisition_items.id')
+        // Top Selling Products (Including Historical)
+        // Since historical data doesn't have catalogue_item_id, we group by item_name as fallback
+        $topStats = DB::table('purchase_order_items')
             ->select(
-                'purchase_requisition_items.catalogue_item_id',
-                \Illuminate\Support\Facades\DB::raw('count(*) as transaction_count'),
-                \Illuminate\Support\Facades\DB::raw('sum(purchase_order_items.quantity_ordered) as total_sold')
+                'item_name',
+                'purchase_requisition_item_id',
+                DB::raw('count(*) as transaction_count'),
+                DB::raw('sum(quantity_ordered) as total_sold')
             )
-            ->groupBy('purchase_requisition_items.catalogue_item_id')
+            ->groupBy('item_name', 'purchase_requisition_item_id')
             ->orderByDesc('transaction_count')
             ->limit(5)
             ->get();
 
-        // 2. Hydrate Models
+        // Hydrate Products for View
         $topProducts = collect();
-        if ($topStats->isNotEmpty()) {
-            $items = \Modules\Catalogue\Models\CatalogueItem::with(['category', 'primaryImage'])
-                ->whereIn('id', $topStats->pluck('catalogue_item_id'))
-                ->get()
-                ->keyBy('id');
-
-            foreach ($topStats as $stat) {
-                if ($item = $items->get($stat->catalogue_item_id)) {
-                    // Attach stats to model instance for the view
-                    $item->transaction_count = $stat->transaction_count;
-                    $item->total_sold = $stat->total_sold;
-                    // Helper property for the view
-                    $item->image_url = $item->primaryImage ? $item->primaryImage->image_path : null;
-                    $topProducts->push($item);
+        foreach ($topStats as $stat) {
+            $catalogueItem = null;
+            
+            // Try to find catalogue item via PR Item
+            if ($stat->purchase_requisition_item_id) {
+                $prItem = DB::table('purchase_requisition_items')->find($stat->purchase_requisition_item_id);
+                if ($prItem && $prItem->catalogue_item_id) {
+                    $catalogueItem = CatalogueItem::with(['category', 'primaryImage'])->find($prItem->catalogue_item_id);
                 }
             }
+
+            // Fallback: Try to find by name
+            if (!$catalogueItem) {
+                $catalogueItem = CatalogueItem::with(['category', 'primaryImage'])->where('name', $stat->item_name)->first();
+            }
+
+            // If still not found, create a placeholder object
+            if (!$catalogueItem) {
+                $product = new \stdClass();
+                $product->name = $stat->item_name;
+                $product->category = (object)['name' => 'Historical'];
+                $product->image_url = null;
+            } else {
+                $product = $catalogueItem;
+                $product->image_url = $catalogueItem->primaryImage ? $catalogueItem->primaryImage->image_path : null;
+            }
+
+            $product->transaction_count = $stat->transaction_count;
+            $product->total_sold = $stat->total_sold;
+            $topProducts->push($product);
         }
 
         return view('admin::dashboard', compact(
@@ -60,7 +82,9 @@ class AdminDashboardController extends Controller
             'pendingCompanies',
             'activeCompanies',
             'declinedCompanies',
-            'recentTenders',
+            'totalPOValue',
+            'totalPOCount',
+            'recentActivity',
             'topProducts'
         ));
     }

@@ -355,11 +355,32 @@ class PurchaseRequisitionController extends Controller
                 'tender_status' => 'open',
             ]);
 
-            // Notify all potential vendors (users in other companies)
+            // Notify matching vendors (companies who have products in the same categories)
             if ($purchaseRequisition->type === 'tender') {
-                $vendors = \Modules\User\Models\User::where('id', '!=', Auth::id())->get();
-                foreach ($vendors as $vendor) {
-                    $vendor->notify(new TenderPublished($purchaseRequisition));
+                $categoryIds = $purchaseRequisition->items->map(function($item) {
+                    return $item->catalogueItem?->product?->category_id ?? $item->catalogueItem?->category_id;
+                })->filter()->unique();
+
+                if ($categoryIds->isNotEmpty()) {
+                    // Find companies that have items in these categories (excluding the requester)
+                    $matchingCompanyIds = \Modules\Catalogue\Models\CatalogueItem::whereIn('category_id', $categoryIds)
+                        ->orWhereHas('product', function($q) use ($categoryIds) {
+                            $q->whereIn('category_id', $categoryIds);
+                        })
+                        ->where('company_id', '!=', $purchaseRequisition->company_id)
+                        ->distinct()
+                        ->pluck('company_id');
+
+                    if ($matchingCompanyIds->isNotEmpty()) {
+                        // Notify all users in these companies
+                        $vendors = \Modules\User\Models\User::whereHas('companies', function($q) use ($matchingCompanyIds) {
+                            $q->whereIn('companies.id', $matchingCompanyIds);
+                        })->get();
+
+                        foreach ($vendors as $vendor) {
+                            $vendor->notify(new TenderPublished($purchaseRequisition));
+                        }
+                    }
                 }
             }
 
