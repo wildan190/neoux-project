@@ -63,6 +63,9 @@ class MarketController extends Controller
             ->take(4)
             ->get();
 
-        return view('catalogue::market.show', compact('product', 'relatedProducts'));
+        $companyId = session('selected_company_id');
+        $locations = \Modules\Company\Models\CompanyLocation::where('company_id', $companyId)->get();
+
+        return view('catalogue::market.show', compact('product', 'relatedProducts', 'locations'));
     }
 }

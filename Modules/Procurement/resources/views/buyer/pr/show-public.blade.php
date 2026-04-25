@@ -334,10 +334,9 @@
                                 <i data-feather="truck" class="w-4 h-4 inline mr-1"></i>
                                 Delivery Time
                             </label>
-                            <input type="text" 
+                            <input type="date" 
                                    name="delivery_time" 
                                    id="delivery_time" 
-                                   placeholder="e.g. 7-10 working days"
                                    class="block w-full rounded-lg border @error('delivery_time') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
                                    value="{{ old('delivery_time', $myOffer ? $myOffer->delivery_time : '') }}"
                                    required>
@@ -366,10 +365,9 @@
                                 <i data-feather="credit-card" class="w-4 h-4 inline mr-1"></i>
                                 Payment Scheme
                             </label>
-                            <input type="text" 
+                            <input type="date" 
                                    name="payment_scheme" 
                                    id="payment_scheme" 
-                                   placeholder="e.g. Net 30 days"
                                    class="block w-full rounded-lg border @error('payment_scheme') border-red-500 @else border-gray-300 dark:border-gray-600 @enderror px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white" 
                                    value="{{ old('payment_scheme', $myOffer ? $myOffer->payment_scheme : '') }}"
                                    required>

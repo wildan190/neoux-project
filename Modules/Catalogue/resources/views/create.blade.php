@@ -67,16 +67,77 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="md:col-span-2">
-                                    <label for="category_id" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Category</label>
-                                    <select name="category_id" id="category_id" 
-                                        class="block w-full rounded-2xl border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shadow-inner focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm px-5 py-3.5" 
-                                        required>
-                                        <option value="">-- Select Category --</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="md:col-span-2" x-data="categoryDropdown()">
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Category</label>
+                                    
+                                    <div class="relative">
+                                        {{-- Hidden input to store actual value for form submission --}}
+                                        <input type="hidden" name="category_id" x-model="selectedId" required>
+                                        
+                                        {{-- The Trigger/Search Input --}}
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                                                <i data-feather="search" class="w-4 h-4 text-gray-400 group-focus-within:text-primary-500 transition-colors"></i>
+                                            </div>
+                                            <input type="text" 
+                                                x-model="search" 
+                                                @focus="open = true"
+                                                @click.away="open = false"
+                                                @keydown.escape="open = false"
+                                                placeholder="Search or add category..."
+                                                class="block w-full pl-12 pr-12 rounded-2xl border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 shadow-inner focus:border-primary-500 focus:ring-primary-500 dark:text-white transition-all text-sm py-3.5">
+                                            
+                                            <div class="absolute inset-y-0 right-0 pr-5 flex items-center">
+                                                <div x-show="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent"></div>
+                                                <i data-feather="chevron-down" x-show="!loading" class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''"></i>
+                                            </div>
+                                        </div>
+
+                                        {{-- The Dropdown Menu --}}
+                                        <div x-show="open" 
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                            class="absolute z-50 w-full mt-3 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden py-2"
+                                            style="display: none;">
+                                            
+                                            <div class="max-h-64 overflow-y-auto px-2 space-y-1">
+                                                <template x-for="cat in filteredCategories" :key="cat.id">
+                                                    <button type="button" 
+                                                        @click="select(cat)"
+                                                        class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 text-left transition-all group">
+                                                        <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
+                                                            <i data-feather="tag" class="w-3.5 h-3.5"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight" x-text="cat.name"></p>
+                                                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Select Category</p>
+                                                        </div>
+                                                    </button>
+                                                </template>
+
+                                                {{-- Add New Option --}}
+                                                <div x-show="search.length > 0 && !exactMatch" class="p-1">
+                                                    <button type="button" 
+                                                        @click="addNew()"
+                                                        class="w-full flex items-center gap-4 p-4 rounded-2xl bg-primary-500 text-white shadow-lg shadow-primary-500/20 hover:bg-primary-600 transition-all">
+                                                        <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                                                            <i data-feather="plus" class="w-4 h-4"></i>
+                                                        </div>
+                                                        <div class="text-left">
+                                                            <p class="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Create New Category</p>
+                                                            <p class="text-xs font-black leading-none" x-text="'&quot;' + search + '&quot;'"></p>
+                                                        </div>
+                                                    </button>
+                                                </div>
+
+                                                <div x-show="filteredCategories.length === 0 && search.length === 0" class="p-8 text-center">
+                                                    <i data-feather="search" class="w-8 h-8 text-gray-100 dark:text-gray-800 mx-auto mb-3"></i>
+                                                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Type to search categories...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     @error('category_id') <span class="text-red-500 text-[10px] font-bold mt-1 block ml-1 uppercase tracking-wider">{{ $message }}</span> @enderror
                                 </div>
 
@@ -218,8 +279,67 @@
 </div>
 
 <script>
+    function categoryDropdown() {
+        return {
+            open: false,
+            search: '{{ old('category_id') ? ($categories->find(old('category_id'))->name ?? '') : '' }}',
+            selectedId: '{{ old('category_id') }}',
+            loading: false,
+            categories: @json($categories),
+            get filteredCategories() {
+                if (this.search === '') return this.categories;
+                return this.categories.filter(c => 
+                    c.name.toLowerCase().includes(this.search.toLowerCase())
+                );
+            },
+            get exactMatch() {
+                return this.categories.some(c => 
+                    c.name.toLowerCase() === this.search.toLowerCase()
+                );
+            },
+            select(cat) {
+                this.selectedId = cat.id;
+                this.search = cat.name;
+                this.open = false;
+                
+                // Trigger preview update manually since hidden input doesn't trigger 'input'
+                setTimeout(() => {
+                    window.updateProductPreview();
+                }, 50);
+            },
+            async addNew() {
+                if (this.loading) return;
+                this.loading = true;
+                
+                try {
+                    const response = await fetch('{{ route('catalogue.categories.quick-store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ name: this.search })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.categories.push(data);
+                        this.select(data);
+                    } else {
+                        alert(data.message || 'Failed to create category');
+                    }
+                } catch (error) {
+                    alert('An error occurred');
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }
+    }
+
     function generateSku() {
-        const catId = document.getElementById('category_id').value;
+        const catId = document.querySelector('input[name="category_id"]').value;
         if(!catId) {
             alert('Please select a category first');
             return;
@@ -240,28 +360,33 @@
     }
 
     // Dynamic Preview Logic
+    window.updateProductPreview = function() {
+        const nameInput = document.getElementById('name');
+        const brandInput = document.getElementById('brand');
+        const priceInput = document.getElementById('price');
+        const stockInput = document.getElementById('stock');
+        const catIdInput = document.querySelector('input[name="category_id"]');
+        const catNameInput = document.querySelector('input[x-model="search"]');
+
+        document.getElementById('preview-name').innerText = nameInput.value || 'New Product Title';
+        document.getElementById('preview-brand').innerText = brandInput.value || 'Generic Brand';
+        
+        const price = parseFloat(priceInput.value) || 0;
+        document.getElementById('preview-price').innerText = 'Rp ' + price.toLocaleString('id-ID');
+        
+        document.getElementById('preview-stock').innerText = (stockInput.value || 0) + ' Units';
+        
+        document.getElementById('preview-category').innerText = catIdInput.value ? (catNameInput.value || 'UNSELECTED CATEGORY') : 'UNSELECTED CATEGORY';
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         const nameInput = document.getElementById('name');
         const brandInput = document.getElementById('brand');
         const priceInput = document.getElementById('price');
         const stockInput = document.getElementById('stock');
-        const catSelect = document.getElementById('category_id');
 
-        function updatePreview() {
-            document.getElementById('preview-name').innerText = nameInput.value || 'New Product Title';
-            document.getElementById('preview-brand').innerText = brandInput.value || 'Generic Brand';
-            
-            const price = parseFloat(priceInput.value) || 0;
-            document.getElementById('preview-price').innerText = 'Rp ' + price.toLocaleString('id-ID');
-            
-            document.getElementById('preview-stock').innerText = (stockInput.value || 0) + ' Units';
-            
-            const selectedCat = catSelect.options[catSelect.selectedIndex].text;
-            document.getElementById('preview-category').innerText = catSelect.value ? selectedCat : 'UNSELECTED CATEGORY';
-        }
-
-        [nameInput, brandInput, priceInput, stockInput, catSelect].forEach(input => {
-            input.addEventListener('input', updatePreview);
+        [nameInput, brandInput, priceInput, stockInput].forEach(input => {
+            input.addEventListener('input', window.updateProductPreview);
         });
 
         feather.replace();

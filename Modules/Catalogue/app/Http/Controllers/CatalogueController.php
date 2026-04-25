@@ -421,4 +421,21 @@ class CatalogueController extends Controller
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function quickStoreCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:catalogue_categories,name',
+        ]);
+
+        $category = CatalogueCategory::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+        ]);
+
+        return response()->json([
+            'id' => $category->id,
+            'name' => $category->name,
+        ]);
+    }
 }

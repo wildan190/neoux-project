@@ -28,7 +28,7 @@
 
             @if($isOwner)
                 <a href="{{ route('procurement.offers.print', $offer) }}" target="_blank"
-                    class="px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2">
+                    class="px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-2">
                     <i data-feather="printer" class="w-3.5 h-3.5"></i>
                     Analysis Report (PDF)
                 </a>
@@ -147,7 +147,7 @@
                         </form>
                         
                         <button type="button" onclick="document.getElementById('negotiateModal').classList.remove('hidden')"
-                            class="w-full py-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all">
+                            class="w-full py-4 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
                             Propose Negotiation
                         </button>
 
@@ -272,7 +272,7 @@
                 </div>
 
                 <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="document.getElementById('negotiateModal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all">Cancel</button>
+                    <button type="button" onclick="document.getElementById('negotiateModal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">Cancel</button>
                     <button type="submit" class="flex-1 py-4 bg-primary-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary-600/20 hover:bg-primary-700 transition-all">Send Proposal</button>
                 </div>
             </form>
@@ -299,7 +299,7 @@
                 </div>
 
                 <div class="flex gap-4">
-                    <button type="button" onclick="document.getElementById('rejectWinnerModal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all">Cancel</button>
+                    <button type="button" onclick="document.getElementById('rejectWinnerModal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">Cancel</button>
                     <button type="submit" class="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:bg-red-700 transition-all">Confirm Rejection</button>
                 </div>
             </form>
