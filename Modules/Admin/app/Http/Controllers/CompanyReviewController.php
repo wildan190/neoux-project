@@ -82,4 +82,23 @@ class CompanyReviewController extends Controller
 
         return back()->with('success', 'Company has been declined.');
     }
+
+    public function updateModes(Request $request, Company $company)
+    {
+        $modes = $request->input('authorized_modes', []);
+        
+        $company->update([
+            'authorized_modes' => $modes
+        ]);
+
+        // Log activity
+        \Modules\Admin\Models\CompanyActivity::create([
+            'company_id' => $company->id,
+            'admin_id' => auth('admin')->id(),
+            'action' => 'modes_updated',
+            'description' => 'Authorized modes updated to: ' . implode(', ', $modes),
+        ]);
+
+        return back()->with('success', 'Authorized modes updated successfully.');
+    }
 }

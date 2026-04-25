@@ -7,7 +7,7 @@
 ])
 
 @section('content')
-<div class="space-y-12">
+<div class="max-w-[1600px] mx-auto space-y-12">
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

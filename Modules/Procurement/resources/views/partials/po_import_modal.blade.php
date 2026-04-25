@@ -23,22 +23,7 @@
                                         Upload an Excel file (.xlsx) containing your historical Purchase Orders.
                                     </p>
                                 </div>
-                                <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-xl">
-                                    <label class="block text-sm font-bold text-amber-800 dark:text-amber-400 mb-2">Import Role Classification</label>
-                                    <div class="flex flex-col sm:flex-row gap-4">
-                                        <label class="inline-flex items-center cursor-pointer group">
-                                            <input type="radio" name="import_role" value="buyer" checked class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500">
-                                            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">My Purchases (Buyer)</span>
-                                        </label>
-                                        <label class="inline-flex items-center cursor-pointer group">
-                                            <input type="radio" name="import_role" value="vendor" class="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500">
-                                            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 transition-colors">My Sales (Vendor)</span>
-                                        </label>
-                                    </div>
-                                    <p class="mt-2 text-[10px] text-amber-600/70 dark:text-amber-400/50 italic">
-                                        * Choose 'Buyer' if these are orders you SENT to vendors. Choose 'Vendor' if these are orders you RECEIVED from customers.
-                                    </p>
-                                </div>
+                                <input type="hidden" name="import_role" value="{{ session('procurement_mode', 'buyer') }}">
                                 <div class="mt-6">
                                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select File</label>
                                     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-xl hover:border-primary-500 dark:hover:border-primary-500 transition-colors bg-gray-50 dark:bg-gray-700/50">

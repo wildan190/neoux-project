@@ -13,16 +13,7 @@
     </style>
     
     <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="inline-flex p-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl">
-            <a href="{{ route('procurement.po.index', ['view' => 'buyer']) }}"
-                class="px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all text-gray-400 hover:bg-gray-50">
-                Purchases
-            </a>
-            <a href="{{ route('procurement.po.index', ['view' => 'vendor']) }}"
-                class="px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all bg-primary-600 text-white shadow-lg shadow-primary-600/20">
-                Sales
-            </a>
-        </div>
+        <div></div>
 
         <div class="flex items-center gap-2">
             <a href="{{ route('procurement.po.export-template') }}" target="_blank"
