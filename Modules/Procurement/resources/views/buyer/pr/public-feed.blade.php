@@ -28,6 +28,7 @@
                 </p>
             </div>
             
+            @if(session('procurement_mode') === 'buyer')
             <div class="shrink-0">
                 <a href="{{ route('procurement.pr.create') }}"
                    class="h-16 px-10 flex items-center bg-white text-gray-900 text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl hover:bg-primary-500 hover:text-white transition-all active:scale-[0.98]">
@@ -35,6 +36,7 @@
                     Initialize Request
                 </a>
             </div>
+            @endif
         </div>
     </div>
 
