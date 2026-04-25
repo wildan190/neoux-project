@@ -28,6 +28,7 @@ Route::middleware(['auth', 'company.selected'])->group(function () {
         Route::delete('/sku/{item}', [CatalogueController::class, 'destroySku'])->name('destroy-sku');
         Route::put('/sku/{item}', [CatalogueController::class, 'updateSku'])->name('update-sku');
         Route::post('/generate-sku', [CatalogueController::class, 'generateSku'])->name('generate-sku');
+        Route::post('/categories/quick-store', [CatalogueController::class, 'quickStoreCategory'])->name('categories.quick-store');
     });
 
     // Warehouse Routes

@@ -47,8 +47,11 @@ class MarketplaceController extends Controller
         }
 
         $product->load(['category', 'items.images', 'items.attributes']);
+        
+        $companyId = session('selected_company_id');
+        $locations = \Modules\Company\Models\CompanyLocation::where('company_id', $companyId)->get();
 
-        return view('catalogue::marketplace.show', compact('product'));
+        return view('catalogue::marketplace.show', compact('product', 'locations'));
     }
 
     public function addToCart(Request $request)

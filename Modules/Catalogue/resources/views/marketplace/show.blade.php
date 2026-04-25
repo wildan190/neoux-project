@@ -146,8 +146,13 @@
                             <label for="delivery_point" class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                 <i data-feather="truck" class="w-3 h-3"></i> Delivery Point
                             </label>
-                            <input type="text" name="delivery_point" id="delivery_point" placeholder="e.g. Warehouse A / Floor 2" 
-                                class="w-full px-6 py-4 rounded-2xl border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900 font-bold text-gray-900 dark:text-white shadow-inner focus:ring-0 focus:border-primary-500 transition-all" required>
+                            <select name="delivery_point" id="delivery_point" 
+                                class="w-full px-6 py-4 rounded-2xl border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900 font-bold text-gray-900 dark:text-white shadow-inner focus:ring-0 focus:border-primary-500 transition-all appearance-none" required>
+                                <option value="">-- Select Storage Point --</option>
+                                @foreach($locations as $loc)
+                                    <option value="{{ $loc->address }}">{{ $loc->address }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
