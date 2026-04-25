@@ -423,7 +423,9 @@ class PurchaseOrderController extends Controller
 
         try {
             $file = $request->file('file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
+            $originalName = $file->getClientOriginalName();
+            $sanitizedName = preg_replace('/[^A-Za-z0-9._-]/', '_', $originalName);
+            $fileName = time() . '_' . $sanitizedName;
             $path = $file->storeAs('temp_imports', $fileName, 'local');
 
             // Parse for preview
