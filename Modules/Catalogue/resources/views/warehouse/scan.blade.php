@@ -8,13 +8,13 @@
 ])
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-8 pb-20">
+<div class="max-w-7xl mx-auto space-y-8 pb-20">
     {{-- Terminal Header --}}
-    <div class="bg-gray-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+    <div class="bg-gray-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-2xl">
         <div class="absolute top-0 right-0 p-8 opacity-10">
             <i data-feather="maximize" class="w-24 h-24"></i>
         </div>
-        <div class="relative z-10 space-y-4">
+        <div class="relative z-10 space-y-2">
             <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                 <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -26,119 +26,190 @@
         </div>
     </div>
 
-    {{-- Main Interface --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {{-- Camera/Scanner Unit --}}
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+
+        {{-- LEFT PANEL: Instructions --}}
         <div class="space-y-6">
-            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-4 shadow-sm relative aspect-square overflow-hidden group">
-                {{-- Scanner Frame Overlay --}}
-                <div class="absolute inset-0 z-10 flex items-center justify-center p-12 pointer-events-none">
-                    <div class="w-full h-full border-2 border-white/20 rounded-3xl relative">
-                        <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 -mt-1 -ml-1 rounded-tl-lg"></div>
-                        <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 -mt-1 -mr-1 rounded-tr-lg"></div>
-                        <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 -mb-1 -ml-1 rounded-bl-lg"></div>
-                        <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 -mb-1 -mr-1 rounded-br-lg"></div>
-                        
-                        {{-- Scanning Line Animation --}}
-                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary-500 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-scan-line"></div>
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-50 dark:border-gray-800">
+                    <div class="w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-xl flex items-center justify-center text-primary-600">
+                        <i data-feather="book-open" class="w-4 h-4"></i>
                     </div>
+                    <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">How To Scan</p>
                 </div>
-
-                {{-- Camera Feed Simulator/Video --}}
-                <div id="scanner-container" class="w-full h-full bg-gray-100 dark:bg-gray-900 rounded-2xl flex flex-col items-center justify-center space-y-4">
-                    <div class="w-16 h-16 rounded-full bg-primary-600/10 flex items-center justify-center text-primary-600 animate-pulse">
-                        <i data-feather="camera" class="w-8 h-8"></i>
-                    </div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Waiting for hardware initialization...</p>
-                    <button onclick="startScanner()" class="px-6 py-2.5 bg-primary-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20 active:scale-95">
-                        INITIALIZE CAMERA
-                    </button>
-                    <div id="reader" style="width: 100%; display: none;"></div>
-                </div>
-            </div>
-
-            <div class="bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-6 border border-primary-100 dark:border-primary-900/20 text-primary-600">
-                <div class="flex items-start gap-4">
-                    <i data-feather="info" class="w-5 h-5 mt-0.5"></i>
-                    <div class="space-y-1">
-                        <h3 class="text-xs font-black uppercase tracking-widest">Direct Input Fallback</h3>
-                        <p class="text-[10px] font-medium leading-relaxed opacity-80">If scanning fails, manually enter the SKU below to override system validation.</p>
-                        <div class="pt-3 flex gap-2">
-                            <input type="text" id="manual-sku" placeholder="ENTER SKU CODE" class="flex-1 bg-white border border-primary-200 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-primary-500 outline-none">
-                            <button onclick="lookupSku()" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-primary-700 transition-all">OK</button>
+                <ol class="space-y-4">
+                    @foreach([
+                        ['icon'=>'layers','title'=>'Select Warehouse','desc'=>'Choose the target warehouse node from the dropdown on the right.'],
+                        ['icon'=>'camera','title'=>'Init Camera','desc'=>'Click "Initialize Camera" and allow browser camera access.'],
+                        ['icon'=>'maximize','title'=>'Aim at QR','desc'=>'Point camera at the item QR code until it gets authenticated.'],
+                        ['icon'=>'edit-2','title'=>'Or Manual Entry','desc'=>'If camera fails, type the SKU code directly in the input field.'],
+                        ['icon'=>'check-circle','title'=>'Adjust Stock','desc'=>'After authentication, use the IN/OUT buttons to update stock levels.'],
+                    ] as $i => $step)
+                    <li class="flex gap-3">
+                        <div class="w-6 h-6 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center text-white dark:text-gray-900 text-[9px] font-black shrink-0 mt-0.5">{{ $i+1 }}</div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-0.5">{{ $step['title'] }}</p>
+                            <p class="text-[10px] text-gray-400 font-medium leading-relaxed">{{ $step['desc'] }}</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Results & Actions Unit --}}
-        <div class="space-y-8">
-            {{-- Target Warehouse Selector --}}
-            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm">
-                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Target Warehouse</h3>
-                <select id="warehouse-id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                    @foreach($warehouses as $wh)
-                        <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                    </li>
                     @endforeach
-                </select>
+                </ol>
             </div>
 
-            {{-- Validation Result (Hidden by default) --}}
-            <div id="result-container" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-xl">
-                    <div class="bg-green-500 px-6 py-3 flex items-center justify-between">
-                        <span class="text-[10px] font-black text-white uppercase tracking-widest">Asset Authenticated</span>
-                        <div class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-white">
-                            <i data-feather="check" class="w-3.5 h-3.5"></i>
-                        </div>
-                    </div>
-                    <div class="p-8 space-y-8">
-                        <div class="flex items-start gap-6">
-                            <div class="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center text-primary-600 border border-gray-100 dark:border-gray-800">
-                                <i data-feather="package" class="w-10 h-10"></i>
-                            </div>
-                            <div class="space-y-1">
-                                <h4 id="item-name" class="text-xl font-black text-gray-900 dark:text-white tracking-tight uppercase">Product Name</h4>
-                                <p id="item-sku" class="text-xs font-bold text-primary-600 uppercase tracking-widest">SKU: PROD-123456</p>
-                                <p id="item-warehouse" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Warehouse: Main Hub</p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
-                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Stock</p>
-                                <p id="item-stock" class="text-xl font-black text-gray-900 dark:text-white">0</p>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
-                                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Base Price</p>
-                                <p id="item-price" class="text-xl font-black text-gray-900 dark:text-white">0</p>
-                            </div>
-                        </div>
-
-                        {{-- Adjustment Controls --}}
-                        <div class="space-y-4 pt-4">
-                            <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Execute Adjustment</h5>
-                            <div class="flex items-center gap-3">
-                                <input type="number" id="adjust-qty" value="1" min="1" class="w-24 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-center text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-                                <button onclick="adjust('in')" class="flex-1 py-3 bg-green-600 text-white rounded-xl text-xs font-black tracking-widest uppercase hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95">STOCKED IN (+)</button>
-                                <button onclick="adjust('out')" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-xs font-black tracking-widest uppercase hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 active:scale-95">STOCKED OUT (-)</button>
-                            </div>
-                            <p class="text-[9px] text-gray-400 font-bold text-center uppercase tracking-widest">All actions are recorded for audit compliance</p>
-                        </div>
-                    </div>
+            <div class="bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30 p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-feather="alert-triangle" class="w-4 h-4 text-amber-600"></i>
+                    <p class="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Note</p>
                 </div>
-            </div>
-
-            {{-- Idle State --}}
-            <div id="idle-container" class="bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 p-12 text-center group">
-                <div class="w-16 h-16 mx-auto bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center text-gray-300 dark:text-gray-600 group-hover:scale-110 transition-transform">
-                    <i data-feather="pocket" class="w-8 h-8"></i>
-                </div>
-                <h4 class="mt-6 text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Scanner Ready</h4>
-                <p class="mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-loose">Position the asset QR code within the frame to authenticate and manage inventory levels.</p>
+                <p class="text-[10px] font-medium text-amber-700/80 dark:text-amber-400/80 leading-relaxed">All stock adjustments are permanently recorded in the audit log. Ensure quantity is correct before submitting.</p>
             </div>
         </div>
+
+        {{-- CENTER: Scanner --}}
+        <div class="xl:col-span-2 flex flex-col gap-6">
+            {{-- 1. Selection Header --}}
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Target Warehouse</h3>
+                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-tight">Active Node Selection</p>
+                    </div>
+                    <div class="w-full md:w-72">
+                        <select id="warehouse-id" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-xs font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none uppercase tracking-widest">
+                            @foreach($warehouses as $wh)
+                                <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 2. Scanner Visualizer --}}
+            <div class="bg-gray-900 dark:bg-black rounded-3xl p-4 shadow-2xl relative overflow-hidden group">
+                <div class="absolute inset-0 z-10 flex items-center justify-center p-8 md:p-16 pointer-events-none opacity-50">
+                    <div class="w-full h-full border border-white/20 rounded-3xl relative">
+                        <div class="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary-500 rounded-tl-lg"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary-500 rounded-tr-lg"></div>
+                        <div class="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary-500 rounded-bl-lg"></div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary-500 rounded-br-lg"></div>
+                    </div>
+                </div>
+
+                <div id="scanner-container" class="w-full h-[320px] bg-gray-900 flex flex-col items-center justify-center space-y-4">
+                    <div class="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500 animate-pulse border border-primary-500/20">
+                        <i data-feather="maximize" class="w-6 h-6"></i>
+                    </div>
+                    <button onclick="startScanner()" class="px-8 py-3 bg-primary-600 text-white rounded-xl text-[10px] font-black tracking-[0.2em] uppercase hover:bg-primary-700 transition-all shadow-xl shadow-primary-600/30">
+                        OPEN CAMERA TERMINAL
+                    </button>
+                    <div id="reader" class="w-full h-full hidden overflow-hidden rounded-2xl"></div>
+                </div>
+            </div>
+
+            {{-- 3. Interaction & Data Unit --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Manual Command Center --}}
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Direct SKU Override</h3>
+                        <p class="text-[9px] font-bold text-gray-500 uppercase tracking-tight mb-6">Manually authenticate via barcode data</p>
+                    </div>
+                    <div class="flex gap-2 bg-gray-50 dark:bg-gray-900 p-1 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <input type="text" id="manual-sku" placeholder="SKU-XXXX-XXXX" class="w-full bg-transparent border-none px-3 py-2 text-[11px] font-black text-gray-900 dark:text-white placeholder-gray-400 focus:ring-0 outline-none uppercase">
+                        <button onclick="lookupSku()" class="px-5 py-2 bg-gray-900 dark:bg-primary-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">EXEC</button>
+                    </div>
+                </div>
+
+                {{-- Asset Result Unit --}}
+                <div class="relative min-h-[160px]">
+                    {{-- Result Display --}}
+                    <div id="result-container" class="hidden absolute inset-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                        <div class="bg-emerald-600 px-4 py-2 flex items-center justify-between">
+                            <span class="text-[9px] font-black text-white uppercase tracking-widest">Asset Authenticated</span>
+                            <div class="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center text-white">
+                                <i data-feather="check" class="w-2.5 h-2.5"></i>
+                            </div>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center text-emerald-600 shrink-0">
+                                    <i data-feather="package" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 id="item-name" class="text-[11px] font-black text-gray-900 dark:text-white uppercase truncate">Product Name</h4>
+                                    <p id="item-sku" class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">SKU: PROD-123</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mt-4">
+                                <input type="number" id="adjust-qty" value="1" min="1" class="w-14 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-lg py-2 text-center text-xs font-black text-gray-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none">
+                                <button onclick="adjust('in')" class="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20">STOCKED (+)</button>
+                                <button onclick="adjust('out')" class="flex-1 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-600/20">ISSUED (-)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Idle Display --}}
+                    <div id="idle-container" class="absolute inset-0 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center p-6 text-center group">
+                        <div class="w-10 h-10 bg-gray-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-gray-300 dark:text-gray-600 mb-3 group-hover:scale-110 transition-transform">
+                            <i data-feather="target" class="w-5 h-5"></i>
+                        </div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Awaiting Scanner Input</p>
+                    </div>
+                </div>
+            </div>
+        </div> {{-- end center col --}}
+
+        {{-- RIGHT PANEL: Warehouse Stats --}}
+        <div class="space-y-6">
+            <div class="bg-gray-900 dark:bg-black rounded-2xl border border-gray-800 p-6 text-white relative overflow-hidden">
+                <div class="absolute bottom-0 right-0 -mb-8 -mr-8 w-32 h-32 bg-primary-600/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="flex items-center gap-3 mb-5 pb-4 border-b border-white/5 relative z-10">
+                    <div class="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center text-primary-400">
+                        <i data-feather="layers" class="w-4 h-4"></i>
+                    </div>
+                    <p class="text-[10px] font-black text-white uppercase tracking-widest">Warehouse Nodes</p>
+                </div>
+                <div class="space-y-3 relative z-10">
+                    @foreach($warehouses as $wh)
+                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                        <div>
+                            <p class="text-[10px] font-black text-white uppercase tracking-widest">{{ $wh->name }}</p>
+                            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{{ $wh->code }}</p>
+                        </div>
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                    @endforeach
+                    @if($warehouses->isEmpty())
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center py-4">No warehouses registered</p>
+                    @endif
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-50 dark:border-gray-800">
+                    <div class="w-8 h-8 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-400">
+                        <i data-feather="shield" class="w-4 h-4"></i>
+                    </div>
+                    <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Scan Modes</p>
+                </div>
+                <div class="space-y-3">
+                    @foreach([
+                        ['color'=>'green','label'=>'Stock In','desc'=>'Add received goods to warehouse'],
+                        ['color'=>'red','label'=>'Stock Out','desc'=>'Remove dispatched goods from stock'],
+                    ] as $mode)
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <div class="w-3 h-3 rounded-full bg-{{ $mode['color'] }}-500 shrink-0"></div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest">{{ $mode['label'] }}</p>
+                            <p class="text-[9px] font-medium text-gray-400">{{ $mode['desc'] }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

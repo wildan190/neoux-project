@@ -85,6 +85,7 @@
                             <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Issued To</th>
                             <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Financials</th>
                             <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Fulfillment</th>
+                            <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Clerk</th>
                             <th scope="col" class="px-8 py-4"></th>
                         </tr>
                     </thead>
@@ -116,6 +117,12 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-yellow-50 text-yellow-600 border border-yellow-100">{{ strtoupper(str_replace('_', ' ', $po->status)) }}</span>
                                     @endif
                                 </td>
+                                <td class="px-6 py-5">
+                                    <div class="text-[11px] font-black text-gray-900 dark:text-white uppercase">{{ $po->createdBy->name ?? 'SYSTEM' }}</div>
+                                    @if($po->approved_by_user_id)
+                                        <div class="text-[9px] text-emerald-500 font-bold uppercase tracking-widest mt-1">APP: {{ $po->approvedBy?->name }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-8 py-5 text-right">
                                     <a href="{{ route('procurement.po.show', $po) }}" class="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-primary-600 transition-all uppercase tracking-widest">
                                         TRACK PO
@@ -125,7 +132,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-8 py-16 text-center">
+                                <td colspan="6" class="px-8 py-16 text-center">
                                     <div class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
                                         <i data-feather="package" class="w-6 h-6 text-gray-300"></i>
                                     </div>

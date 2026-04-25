@@ -9,41 +9,39 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class PurchaseOrderTemplateExport implements FromCollection, WithHeadings, WithTitle
 {
-    /**
-     * Return a collection of data.
-     * For a template, we return an empty collection or sample row.
-     */
     public function collection(): Collection
     {
         return collect([
             [
-                '1',                        // ID
-                'PR-2026-0001',             // PR Reference Number
-                'Original',                 // Purchase Type
-                'PO-2026-0001',             // Order No
-                'Sample Buyer Company',     // Purchase Company
-                '123456789',               // Purchase Company No
-                'buyer@example.com',        // Purchase Company Email
-                'Finance',                  // Dept
-                'April',                    // Month
-                'Sample Vendor',            // Vendor
-                'Sample Item Description',  // Description
-                'Ballpoint Pen',            // Inventory name
-                'Blue Ink, 0.5mm',          // Specifications
-                'Office Supplies',          // Business Category
-                'Stationery',              // Category
-                'PCS',                      // Primary UOM
-                '10',                       // Qty
-                'IDR',                      // Currency
-                '5000',                     // Orgi Curr Unit Price
-                '5000',                     // Unit price in original currency
-                '50000',                    // Amount in original currency
-                '5500',                     // Tax amount in original currency
-                '55000',                    // Original Currency Total Amount
-                '55000',                    // Price in Indonesia Rupiah
-                '2026-04-25',              // Expected receiving date
-                'Admin User',              // Created By
-                'Manager User',            // Approved by
+                1,                              // SN
+                '',                             // Select
+                'PR/SER24010002',               // PR Refference Number
+                'Original purchase',            // Purchase Type
+                'PO/EXS24010006',              // Order No
+                'Service-EX SP',               // Purchase Category
+                '',                             // Purchase Contract No
+                '',                             // Purchase Contract_head
+                '02/01/24',                    // Date
+                1,                              // Month
+                'PT. SAMPLE VENDOR',           // Vendor
+                'Finance Department',          // Department
+                'John Doe',                    // Clerk
+                'IDR',                         // Currency
+                1,                              // Exchange rate
+                'INV-001',                     // Inventory Code
+                '',                            // Category
+                'Sample Item Name',            // Inventory name
+                '',                            // Specifications
+                'Pc',                          // Primary UOM
+                1,                              // Qty
+                '1.000.000',                   // Orgi Curr Unit Price
+                '1.000.000',                   // Unit price in original currency
+                '1.000.000',                   // Amount in original currency
+                '110.000',                     // Tax amount in original currency
+                '1.110.000',                   // Original Currency Total Amount
+                '02/01/24',                    // Expected receiving date
+                'John Doe',                    // Created By
+                'Manager Name',                // Approved by
             ],
         ]);
     }
@@ -51,30 +49,32 @@ class PurchaseOrderTemplateExport implements FromCollection, WithHeadings, WithT
     public function headings(): array
     {
         return [
-            'ID',
-            'PR Reference Number',
+            'SN',
+            'Select',
+            'PR Refference Number',
             'Purchase Type',
             'Order No',
-            'Purchase Company',
-            'Purchase Company No',
-            'Purchase Company Email',
-            'Dept',
+            'Purchase Category',
+            'Purchase Contract No',
+            'Purchase Contract_head',
+            'Date',
             'Month',
             'Vendor',
-            'Description',
+            'Department',
+            'Clerk',
+            'Currency',
+            'Exchange rate',
+            'Inventory Code',
+            'Category',
             'Inventory name',
             'Specifications',
-            'Business Category',
-            'Category',
             'Primary UOM',
             'Qty',
-            'Currency',
             'Orgi Curr Unit Price',
             'Unit price in original currency',
             'Amount in original currency',
             'Tax amount in original currency',
             'Original Currency Total Amount',
-            'Price in Indonesia Rupiah',
             'Expected receiving date',
             'Created By',
             'Approved by',
