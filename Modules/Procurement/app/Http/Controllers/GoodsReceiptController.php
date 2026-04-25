@@ -353,18 +353,37 @@ class GoodsReceiptController extends Controller
             $totalReceived = $purchaseOrder->items->sum('quantity_received');
 
             if ($totalReceived >= $totalOrdered) {
-                $purchaseOrder->update(['status' => 'full_delivery']);
+                $purchaseOrder->update([
+                    'status' => 'received', // Changed from full_delivery to received per user flow
+                ]);
 
-                // Auto-trigger escrow 3-way matching if escrow is paid
+                // Finalize Interim Invoices
+                $interimInvoices = $purchaseOrder->invoices()->where('status', 'interim')->get();
+                foreach ($interimInvoices as $invoice) {
+                    $invoice->update([
+                        'status' => 'final',
+                        'invoice_number' => str_replace('INT-', 'INV-', $invoice->invoice_number),
+                    ]);
+                    
+                    // Notify about Final Invoice
+                    if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
+                        $purchaseOrder->vendorCompany->user->notify(new \Modules\Procurement\Notifications\FinalInvoiceIssued($invoice));
+                    }
+                }
+
+                // Auto-trigger escrow 3-way matching if escrow is paid (Take out / Send to Finance)
                 if ($purchaseOrder->escrow_status === 'paid') {
                     $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
                     $matchingService->matchEscrow($purchaseOrder);
+                    
+                    // Transaction is now essentially "Sent to Finance" (Completed)
+                    $purchaseOrder->update(['status' => 'completed']);
                 }
             } elseif ($totalReceived > 0) {
                 $purchaseOrder->update(['status' => 'partial_delivery']);
             }
 
-            // Notify Vendor
+            // Notify Vendor about Receipt
             if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
                 $purchaseOrder->vendorCompany->user->notify(new GoodsReceiptCreated($goodsReceipt));
             }

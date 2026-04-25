@@ -193,6 +193,20 @@
             font-size: 8px;
             margin-top: 30px;
         }
+
+        /* PDF Watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 70pt;
+            color: rgba(0, 0, 0, 0.03);
+            font-weight: bold;
+            z-index: -1000;
+            width: 100%;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -207,6 +221,9 @@
 @endphp
 
 <body>
+    @if($invoice->status === 'interim')
+        <div class="watermark">INTERIM / PROFORMA</div>
+    @endif
     <div class="header">
         <div class="header-flex">
             <div class="header-left">

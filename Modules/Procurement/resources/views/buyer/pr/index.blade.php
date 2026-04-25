@@ -7,193 +7,166 @@
 ])
 
 @section('content')
-    {{-- Simplified Filter Tabs --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div class="inline-flex p-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl">
-            <a href="{{ route('procurement.pr.index', ['filter' => 'open']) }}"
-                class="px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200
-                    {{ $filter === 'open' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-400 hover:bg-gray-50' }}">
-                Open ({{ $openCount }})
-            </a>
-
-            <a href="{{ route('procurement.pr.index', ['filter' => 'closed']) }}"
-                class="px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200
-                    {{ $filter === 'closed' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-400 hover:bg-gray-50' }}">
-                Closed ({{ $closedCount }})
-            </a>
-
-            <a href="{{ route('procurement.pr.index', ['filter' => 'all']) }}"
-                class="px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200
-                    {{ $filter === 'all' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-400 hover:bg-gray-50' }}">
-                All
+<div class="max-w-7xl mx-auto space-y-8">
+    {{-- Header Section --}}
+    <div class="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-10 text-primary-500/5 pointer-events-none">
+            <i data-feather="file-text" style="width:180px;height:180px;"></i>
+        </div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="px-3 py-1 bg-primary-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest">Internal Logistics</span>
+                    <div class="h-px w-8 bg-gray-200 dark:bg-gray-700"></div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Company Registry</span>
+                </div>
+                <h1 class="text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-2">
+                    Purchase <span class="text-primary-600">Requisitions</span>
+                </h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Manage and track your company's internal procurement requests and approval status.</p>
+            </div>
+            
+            <a href="{{ route('procurement.pr.create') }}" 
+               class="h-16 px-10 flex items-center bg-gray-900 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-gray-900/20 hover:bg-primary-600 transition-all active:scale-[0.98]">
+                <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+                New Request
             </a>
         </div>
-
-        <a href="{{ route('procurement.pr.create') }}"
-            class="inline-flex items-center justify-center px-6 py-3 bg-gray-900 dark:bg-primary-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/10">
-            <i data-feather="plus" class="w-4 h-4 mr-2"></i>
-            Create New Request
-        </a>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div class="hidden md:block overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-50 dark:divide-gray-700">
-                <thead class="bg-gray-50/50 dark:bg-gray-900/50">
-                    <tr>
-                        <th scope="col" class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Request Details</th>
-                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Requester</th>
-                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Date</th>
-                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
-                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Scope</th>
-                        <th scope="col" class="px-8 py-4"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
-                    @forelse($requisitions as $pr)
-                        <tr class="group hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-all duration-200">
-                            <td class="px-8 py-5">
-                                <div class="text-sm font-black text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{{ $pr->title }}</div>
-                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{{ Str::limit($pr->description, 40) ?: 'NO DESCRIPTION' }}</div>
-                            </td>
-                            <td class="px-6 py-5">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black text-gray-500 overflow-hidden shadow-sm">
-                                        @if($pr->user->userDetail && $pr->user->userDetail->profile_photo_url)
-                                            <img class="w-full h-full object-cover" src="{{ $pr->user->userDetail->profile_photo_url }}" alt="{{ $pr->user->name }}">
-                                        @else
-                                            {{ substr($pr->user->name, 0, 2) }}
-                                        @endif
-                                    </div>
-                                    <div class="text-[11px] font-bold text-gray-600 dark:text-gray-300">{{ explode(' ', $pr->user->name)[0] }}</div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-5 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
-                                {{ $pr->created_at->format('d M Y') }}
-                            </td>
-                            <td class="px-6 py-5">
-                                @if(in_array($pr->status, ['awarded', 'ordered']))
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-600 border border-green-100">
-                                        {{ $pr->status }}
-                                    </span>
-                                @elseif($pr->status === 'rejected')
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-100">
-                                        REJECTED
-                                    </span>
-                                @elseif(str_starts_with($pr->approval_status, 'pending'))
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-yellow-50 text-yellow-600 border border-yellow-100">
-                                        PENDING
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-primary-50 text-primary-600 border border-primary-100">
-                                        {{ $pr->status }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-5">
-                                <span class="text-[11px] font-black text-gray-900 dark:text-white">{{ $pr->items->count() }}</span>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Items</span>
-                            </td>
-                            <td class="px-8 py-5 text-right">
-                                <a href="{{ route('procurement.pr.show', $pr) }}" class="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-primary-600 transition-all uppercase tracking-widest">
-                                    DETAILS
-                                    <i data-feather="arrow-right" class="w-3 h-3"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-8 py-16 text-center">
-                                <div class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
-                                    <i data-feather="file-text" class="w-6 h-6 text-gray-300"></i>
-                                </div>
-                                <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">No Requisitions</h3>
-                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Start by creating your first purchase request</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    {{-- Main 3-Column Layout --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {{-- LEFT: Filters --}}
+        <div class="lg:col-span-3 space-y-6">
+            <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-2 shadow-sm">
+                <div class="space-y-1">
+                    <a href="{{ route('procurement.pr.index', ['filter' => 'open']) }}" 
+                       class="flex items-center justify-between px-5 py-4 rounded-2xl transition-all group {{ $filter === 'open' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="clock" class="w-4 h-4 {{ $filter === 'open' ? 'text-white' : 'text-gray-400 group-hover:text-primary-600' }}"></i>
+                            <span class="text-[11px] font-black uppercase tracking-widest">Active ({{ $openCount }})</span>
+                        </div>
+                    </a>
+                    <a href="{{ route('procurement.pr.index', ['filter' => 'closed']) }}" 
+                       class="flex items-center justify-between px-5 py-4 rounded-2xl transition-all group {{ $filter === 'closed' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="check-circle" class="w-4 h-4 {{ $filter === 'closed' ? 'text-white' : 'text-gray-400 group-hover:text-primary-600' }}"></i>
+                            <span class="text-[11px] font-black uppercase tracking-widest">Closed ({{ $closedCount }})</span>
+                        </div>
+                    </a>
+                    <a href="{{ route('procurement.pr.index', ['filter' => 'all']) }}" 
+                       class="flex items-center justify-between px-5 py-4 rounded-2xl transition-all group {{ $filter === 'all' ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800' }}">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="list" class="w-4 h-4 {{ $filter === 'all' ? 'text-white' : 'text-gray-400 group-hover:text-primary-600' }}"></i>
+                            <span class="text-[11px] font-black uppercase tracking-widest">All Activity</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-primary-50 dark:bg-primary-900/10 rounded-3xl border border-primary-100 dark:border-primary-900/30 p-6">
+                <p class="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest mb-3">Direct Purchase</p>
+                <p class="text-[10px] font-medium text-primary-700/70 dark:text-primary-400/70 leading-relaxed">
+                    Requisitions for marketplace items will be automatically routed to respective vendors upon approval.
+                </p>
+            </div>
         </div>
 
-        <!-- Mobile View (Card List) -->
-        <div class="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
-            @forelse($requisitions as $pr)
-                <div x-data="{ expanded: false }" class="p-4 bg-white dark:bg-gray-800">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex flex-col min-w-0">
-                            <span class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $pr->title }}</span>
-                            <span class="text-[10px] text-gray-500 font-medium">{{ $pr->created_at->format('M d, Y') }}</span>
-                        </div>
-                        <div class="flex-shrink-0">
-                            @if(in_array($pr->status, ['awarded', 'ordered']))
-                                <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-tight">
-                                    {{ $pr->status }}
-                                </span>
-                            @elseif($pr->status === 'rejected')
-                                <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-tight">
-                                    {{ $pr->status }}
-                                </span>
-                            @elseif(str_starts_with($pr->approval_status, 'pending'))
-                                <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 uppercase tracking-tight">
-                                    Pending
-                                </span>
-                            @else
-                                <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 uppercase tracking-tight">
-                                    {{ $pr->status }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center min-w-0">
-                            <div class="flex-shrink-0 h-6 w-6">
-                                @if($pr->user->userDetail && $pr->user->userDetail->profile_photo_url)
-                                    <img class="h-6 w-6 rounded-lg object-cover" src="{{ $pr->user->userDetail->profile_photo_url }}" alt="{{ $pr->user->name }}">
-                                @else
-                                    <div class="h-6 w-6 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold text-[8px]">
-                                        {{ substr($pr->user->name, 0, 1) }}
+        {{-- CENTER: Table --}}
+        <div class="lg:col-span-9">
+            <div class="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-50 dark:divide-gray-800">
+                        <thead class="bg-gray-50/50 dark:bg-gray-900/50">
+                            <tr>
+                                <th class="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Request Details</th>
+                                <th class="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Requester</th>
+                                <th class="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
+                                <th class="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Items</th>
+                                <th class="px-8 py-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                            @forelse($requisitions as $pr)
+                            <tr class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-all">
+                                <td class="px-8 py-6">
+                                    <p class="text-sm font-black text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors uppercase">{{ $pr->title }}</p>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{{ $pr->pr_number }} • {{ $pr->created_at->format('d M Y') }}</p>
+                                </td>
+                                <td class="px-6 py-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 overflow-hidden shadow-inner">
+                                            @if($pr->user->userDetail && $pr->user->userDetail->profile_photo_url)
+                                                <img class="w-full h-full object-cover" src="{{ $pr->user->userDetail->profile_photo_url }}" alt="">
+                                            @else
+                                                {{ substr($pr->user->name, 0, 1) }}
+                                            @endif
+                                        </div>
+                                        <p class="text-[11px] font-bold text-gray-600 dark:text-gray-300">{{ $pr->user->name }}</p>
                                     </div>
-                                @endif
-                            </div>
-                            <span class="ml-2 text-xs text-gray-600 dark:text-gray-400 truncate">{{ $pr->user->name }}</span>
-                            <span class="mx-2 text-gray-300 dark:text-gray-700 text-xs">•</span>
-                            <span class="text-[10px] font-bold text-gray-900 dark:text-white">{{ $pr->items->count() }} items</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button @click="expanded = !expanded" class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500">
-                                <i x-show="!expanded" data-feather="chevron-down" class="w-5 h-5"></i>
-                                <i x-show="expanded" data-feather="chevron-up" class="w-5 h-5" x-cloak></i>
-                            </button>
-                            <a href="{{ route('procurement.pr.show', $pr) }}" class="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg">
-                                <i data-feather="eye" class="w-5 h-5"></i>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Expandable Context -->
-                    <div x-show="expanded" x-cloak class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 italic">
-                            {{ $pr->description ?: 'No description provided.' }}
-                        </p>
-                        <div class="mt-2 flex gap-1 pt-1">
-                             <a href="{{ route('procurement.pr.show', $pr) }}" class="text-[10px] font-bold text-primary-600 hover:underline">View Details →</a>
-                        </div>
-                    </div>
+                                </td>
+                                <td class="px-6 py-6">
+                                    @php
+                                        $statusClasses = [
+                                            'draft' => 'bg-gray-100 text-gray-500',
+                                            'pending' => 'bg-yellow-50 text-yellow-600',
+                                            'approved' => 'bg-emerald-50 text-emerald-600',
+                                            'rejected' => 'bg-red-50 text-red-600',
+                                            'ordered' => 'bg-blue-50 text-blue-600',
+                                            'awarded' => 'bg-purple-50 text-purple-600',
+                                        ];
+                                        $currentStatus = in_array($pr->status, ['awarded', 'ordered']) ? $pr->status : $pr->approval_status;
+                                        $class = $statusClasses[$currentStatus] ?? 'bg-gray-100 text-gray-500';
+                                    @endphp
+                                    <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $class }} border border-current opacity-80">
+                                        {{ $currentStatus }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-6">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-gray-900 dark:text-white">{{ $pr->items->count() }}</span>
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKUs</span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <a href="{{ route('procurement.pr.show', $pr) }}" class="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-primary-600 transition-all uppercase tracking-widest">
+                                        View Details
+                                        <i data-feather="arrow-right" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="px-8 py-20 text-center">
+                                    <div class="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center text-gray-200 mx-auto mb-4 border border-gray-100 dark:border-gray-700">
+                                        <i data-feather="inbox" class="w-8 h-8"></i>
+                                    </div>
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest">No requisitions found in this filter.</p>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            @empty
-                <div class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    <i data-feather="shopping-cart" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600"></i>
-                    <p class="font-bold">No requisitions found</p>
-                </div>
-            @endforelse
+                
+                @if($requisitions->hasPages())
+                    <div class="p-8 border-t border-gray-50 dark:border-gray-800">
+                        {{ $requisitions->links() }}
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
-    
-    @if($requisitions->hasPages())
-        <div class="mt-6">
-            {{ $requisitions->links() }}
-        </div>
-    @endif
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+</script>
+@endpush
 @endsection

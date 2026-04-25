@@ -29,10 +29,10 @@
     </div>
 
     {{-- Main 3-Column Layout --}}
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {{-- LEFT: Guide Panel --}}
-        <div class="space-y-6">
+        <div class="lg:col-span-3 space-y-6">
             <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50 dark:border-gray-800">
                     <div class="w-9 h-9 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center text-emerald-600">
@@ -50,7 +50,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Unit Name</p>
-                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">The official name of the storage facility. E.g. <span class="font-black text-gray-700 dark:text-gray-300">MAIN WAREHOUSE</span>, <span class="font-black text-gray-700 dark:text-gray-300">COLD STORAGE A</span>.</p>
+                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">The official name of the storage facility. E.g. <span class="font-black text-gray-700 dark:text-gray-300">MAIN WAREHOUSE</span>.</p>
                         </div>
                     </div>
                     <div class="flex gap-3">
@@ -59,7 +59,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Reference Code</p>
-                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">A unique short code used in inventory tracking and QR generation. E.g. <span class="font-black text-gray-700 dark:text-gray-300">WH-A1</span>, <span class="font-black text-gray-700 dark:text-gray-300">CS-01</span>.</p>
+                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">A unique short code used in tracking. E.g. <span class="font-black text-gray-700 dark:text-gray-300">WH-A1</span>.</p>
                         </div>
                     </div>
                     <div class="flex gap-3">
@@ -68,7 +68,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Delivery Address</p>
-                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">Full physical address used for delivery routing and logistics coordination.</p>
+                            <p class="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed">Full physical address for delivery routing.</p>
                         </div>
                     </div>
                 </div>
@@ -83,22 +83,18 @@
                 <ul class="space-y-3">
                     <li class="flex items-start gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-400/80 leading-relaxed">Reference codes must be unique within your company.</p>
+                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-400/80 leading-relaxed">Reference codes must be unique.</p>
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-400/80 leading-relaxed">You can generate QR codes for each warehouse after creation.</p>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-400/80 leading-relaxed">Goods receipts from POs will be linked to warehouses you define here.</p>
+                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-400/80 leading-relaxed">QR codes can be generated after creation.</p>
                     </li>
                 </ul>
             </div>
         </div>
 
         {{-- CENTER: Main Form --}}
-        <div class="xl:col-span-1">
+        <div class="lg:col-span-6">
             <form action="{{ route('procurement.warehouse.store') }}" method="POST" class="space-y-6">
                 @csrf
 
@@ -152,7 +148,7 @@
         </div>
 
         {{-- RIGHT: Status / Info Panel --}}
-        <div class="space-y-6">
+        <div class="lg:col-span-3 space-y-6">
             {{-- Warehouse Stats --}}
             <div class="bg-gray-900 dark:bg-black rounded-2xl border border-gray-800 p-6 text-white relative overflow-hidden">
                 <div class="absolute bottom-0 right-0 -mb-10 -mr-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-2xl pointer-events-none"></div>

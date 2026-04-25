@@ -21,7 +21,12 @@
 
         <div id="printable-content" class="bg-white shadow-lg rounded-lg overflow-hidden">
             <!-- Header Section -->
-            <div class="bg-gradient-to-r from-primary-500 to-secondary-500 px-8 py-6 text-white">
+            <div class="bg-gradient-to-r from-primary-500 to-secondary-500 px-8 py-6 text-white relative overflow-hidden">
+                @if($invoice->status === 'interim')
+                    <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none -rotate-12">
+                        <span class="text-8xl font-black border-8 border-white p-4">INTERIM</span>
+                    </div>
+                @endif
                 <div class="flex justify-between items-start">
                     @php
                         $company = $invoice->purchaseOrder->vendorCompany;
@@ -211,6 +216,21 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
+        /* Watermark for Print */
+        @if($invoice->status === 'interim')
+        #printable-content::after {
+            content: "INTERIM / PROFORMA";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 8rem;
+            color: rgba(0,0,0,0.05);
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        @endif
     }
 </style>
 @endpush
