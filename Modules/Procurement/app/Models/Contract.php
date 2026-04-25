@@ -27,11 +27,18 @@ class Contract extends Model
         'source_po_id',
         'created_by_user_id',
         'notes',
+        'vendor_signed_at',
+        'vendor_signed_by_user_id',
+        'buyer_approved_at',
+        'buyer_approved_by_user_id',
+        'rejection_reason',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'vendor_signed_at' => 'datetime',
+        'buyer_approved_at' => 'datetime',
     ];
 
     public function buyer(): BelongsTo
@@ -59,6 +66,16 @@ class Contract extends Model
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    public function vendorSignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vendor_signed_by_user_id');
+    }
+
+    public function buyerApprovedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'buyer_approved_by_user_id');
+    }
+
     public function relatedRequisitions(): HasMany
     {
         return $this->hasMany(PurchaseRequisition::class, 'contract_id');
@@ -68,7 +85,10 @@ class Contract extends Model
     {
         return match ($this->status) {
             'draft' => 'gray',
+            'proposed' => 'blue',
+            'signed' => 'indigo',
             'active' => 'emerald',
+            'rejected' => 'red',
             'expired' => 'red',
             'terminated' => 'orange',
             default => 'gray',

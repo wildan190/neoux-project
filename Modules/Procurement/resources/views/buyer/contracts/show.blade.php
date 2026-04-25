@@ -23,15 +23,56 @@
         </div>
         
         <div class="flex items-center gap-4">
-            <form action="{{ route('procurement.contracts.repeat-order', $contract) }}" method="POST" onsubmit="return confirm('Initiate a repeat order based on this contract?')">
-                @csrf
-                <button type="submit" class="h-16 px-10 flex items-center bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-[0.98]">
-                    <i data-feather="refresh-cw" class="w-4 h-4 mr-2"></i>
-                    Initiate Repeat Order
-                </button>
-            </form>
+            @if($contract->status === 'draft')
+                <form action="{{ route('procurement.contracts.propose', $contract) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="h-16 px-10 flex items-center bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-[0.98]">
+                        <i data-feather="send" class="w-4 h-4 mr-2"></i>
+                        Propose to Vendor
+                    </button>
+                </form>
+            @elseif($contract->status === 'signed')
+                <div class="flex items-center gap-4">
+                    <form action="{{ route('procurement.contracts.reject', $contract) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="reason" value="Sent back for revision">
+                        <button type="submit" class="h-16 px-8 flex items-center bg-white border border-gray-200 text-gray-500 text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all">
+                            <i data-feather="x-circle" class="w-4 h-4 mr-2"></i>
+                            Reject
+                        </button>
+                    </form>
+                    <form action="{{ route('procurement.contracts.approve', $contract) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="h-16 px-10 flex items-center bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all active:scale-[0.98]">
+                            <i data-feather="check-circle" class="w-4 h-4 mr-2"></i>
+                            Approve & Activate
+                        </button>
+                    </form>
+                </div>
+            @elseif($contract->status === 'active')
+                <form action="{{ route('procurement.contracts.repeat-order', $contract) }}" method="POST" onsubmit="return confirm('Initiate a repeat order based on this contract?')">
+                    @csrf
+                    <button type="submit" class="h-16 px-10 flex items-center bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-[0.98]">
+                        <i data-feather="refresh-cw" class="w-4 h-4 mr-2"></i>
+                        Initiate Repeat Order
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
+
+    {{-- Rejection Message if Draft --}}
+    @if($contract->status === 'draft' && $contract->rejection_reason)
+        <div class="p-6 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[2rem]">
+            <div class="flex items-start gap-4">
+                <i data-feather="alert-circle" class="w-5 h-5 text-red-500 mt-1"></i>
+                <div>
+                    <h5 class="text-xs font-black text-red-600 uppercase tracking-widest mb-1">Contract Sent Back</h5>
+                    <p class="text-sm text-red-400 font-medium italic">"{{ $contract->rejection_reason }}"</p>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {{-- Contract Insights --}}
@@ -70,6 +111,38 @@
                         </a>
                     </div>
                 @endif
+
+                {{-- Signing Details --}}
+                <div class="space-y-4 pt-8 border-t border-gray-50 dark:border-gray-800/50">
+                    @if($contract->vendor_signed_at)
+                        <div>
+                            <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3">Vendor Signature</label>
+                            <div class="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-800/20">
+                                <p class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase mb-1">Signed By</p>
+                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase">{{ $contract->vendorSignedBy->name }}</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase mt-2">{{ $contract->vendor_signed_at->format('M d, Y H:i') }}</p>
+                            </div>
+                        </div>
+                    @else
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Vendor Signature</label>
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 flex items-center justify-center italic text-[10px] text-gray-400 font-bold uppercase">
+                                Awaiting Signature
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($contract->buyer_approved_at)
+                        <div>
+                            <label class="block text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-3">Buyer Approval</label>
+                            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/20">
+                                <p class="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase mb-1">Approved By</p>
+                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase">{{ $contract->buyerApprovedBy->name }}</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase mt-2">{{ $contract->buyer_approved_at->format('M d, Y H:i') }}</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <div class="bg-indigo-600 rounded-[2.5rem] p-10 text-white space-y-4 shadow-xl shadow-indigo-600/20">

@@ -231,10 +231,10 @@
                     <span>Return Requests</span>
                 </a>
 
-                <a href="{{ route('procurement.debit-notes.index') }}"
-                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.debit-notes.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
-                    <i data-feather="file-minus" class="w-4 h-4 mr-3"></i>
-                    <span>Debit Notes</span>
+                <a href="{{ route('procurement.contracts.index') }}"
+                    class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.contracts.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
+                    <i data-feather="file-text" class="w-4 h-4 mr-3 text-emerald-500"></i>
+                    <span>Sales Contracts</span>
                 </a>
             </div>
         @endif
