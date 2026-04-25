@@ -138,6 +138,9 @@ class ThreeWayMatchingService
                 'escrow_released_at' => now(),
                 'status' => 'completed',
             ]);
+
+            // Automatically mark all related invoices as paid since escrow is released
+            $purchaseOrder->invoices()->where('status', '!=', 'rejected')->update(['status' => 'paid']);
         }
 
         return $matchResults;

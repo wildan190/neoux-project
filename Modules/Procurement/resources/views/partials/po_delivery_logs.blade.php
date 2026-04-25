@@ -24,15 +24,23 @@
                         @endif
                     </p>
                 </div>
-                @if($do->status === 'pending' && $isVendor)
-                    <button onclick="shipOrder('{{ $do->id }}')" class="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
-                        <i data-feather="send" class="w-4 h-4"></i>
-                    </button>
-                    <form id="ship-form-{{ $do->id }}" action="{{ route('procurement.do.ship', $do) }}" method="POST" class="hidden">
-                        @csrf
-                        <input type="hidden" name="tracking_number" id="tracking-input-{{ $do->id }}">
-                    </form>
-                @endif
+                <div class="flex flex-col gap-2">
+                    <a href="{{ route('procurement.do.print', $do) }}" target="_blank" 
+                        class="p-2 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg hover:bg-gray-100 transition shadow-sm border border-gray-100 dark:border-gray-600"
+                        title="Print DO">
+                        <i data-feather="printer" class="w-4 h-4"></i>
+                    </a>
+                    
+                    @if($do->status === 'pending' && $isVendor)
+                        <button onclick="shipOrder('{{ $do->id }}')" class="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20" title="Ship Order">
+                            <i data-feather="send" class="w-4 h-4"></i>
+                        </button>
+                        <form id="ship-form-{{ $do->id }}" action="{{ route('procurement.do.ship', $do) }}" method="POST" class="hidden">
+                            @csrf
+                            <input type="hidden" name="tracking_number" id="tracking-input-{{ $do->id }}">
+                        </form>
+                    @endif
+                </div>
             </div>
         @endforeach
     </div>

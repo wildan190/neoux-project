@@ -17,9 +17,9 @@
             <h1 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Technical & Financial Analysis</h1>
         </div>
             @if($offer->status === 'accepted')
-                <form action="{{ route('procurement.po.generate', $purchaseRequisition) }}" method="POST">
+                <form id="generatePOForm" action="{{ route('procurement.po.generate', $purchaseRequisition) }}" method="POST">
                     @csrf
-                    <button type="submit" onclick="return confirm('Generate Purchase Order?')"
+                    <button type="button" onclick="confirmAction('generatePOForm', 'Generate Purchase Order?', 'Are you sure you want to generate a PO for this request?', 'success', 'Yes, Generate')"
                         class="px-5 py-2.5 bg-primary-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary-600/20 hover:bg-primary-700 transition-all">
                         Generate PO
                     </button>
@@ -138,9 +138,9 @@
                     @endphp
 
                     @if($canApprove && in_array($offer->status, ['pending', 'negotiating']))
-                        <form action="{{ route('procurement.offers.accept', $offer) }}" method="POST">
+                        <form id="awardWinnerForm" action="{{ route('procurement.offers.accept', $offer) }}" method="POST">
                             @csrf
-                            <button type="submit" onclick="return confirm('Award tender to {{ $offer->company->name }}?')"
+                            <button type="button" onclick="confirmAction('awardWinnerForm', 'Award Tender?', 'Award tender to {{ $offer->company->name }}?', 'success', 'Yes, Award')"
                                 class="w-full py-4 bg-primary-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-600/20 hover:bg-primary-700 transition-all">
                                 Select as Winner
                             </button>
@@ -151,9 +151,9 @@
                             Propose Negotiation
                         </button>
 
-                        <form action="{{ route('procurement.offers.reject', $offer) }}" method="POST">
+                        <form id="rejectOfferForm" action="{{ route('procurement.offers.reject', $offer) }}" method="POST">
                             @csrf
-                            <button type="submit" onclick="return confirm('Reject this offer?')"
+                            <button type="button" onclick="confirmAction('rejectOfferForm', 'Reject Offer?', 'Are you sure you want to reject this offer?', 'error', 'Yes, Reject')"
                                 class="w-full py-3 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-red-100 transition-all mt-4">
                                 Reject Offer
                             </button>
@@ -162,9 +162,9 @@
 
                     @if($canApprove && $offer->status === 'winning')
                         <div class="space-y-3">
-                            <form action="{{ route('procurement.offers.approve-winner', $offer) }}" method="POST">
+                            <form id="approveWinnerForm" action="{{ route('procurement.offers.approve-winner', $offer) }}" method="POST">
                                 @csrf
-                                <button type="submit" onclick="return confirm('Final approval for {{ $offer->company->name }}?')"
+                                <button type="button" onclick="confirmAction('approveWinnerForm', 'Approve Winner?', 'Final approval for {{ $offer->company->name }}?', 'success', 'Yes, Approve')"
                                     class="w-full py-4 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
                                     Approve Winner
                                 </button>
@@ -254,8 +254,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Delivery Time</label>
-                        <input type="text" name="delivery_time" value="{{ $offer->delivery_time }}" required 
-                            class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500">
+                        <input type="date" name="delivery_time" value="{{ $offer->delivery_time }}" required 
+                            class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Warranty</label>
@@ -266,9 +266,8 @@
 
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Payment Scheme</label>
-                    <input type="text" name="payment_scheme" value="{{ $offer->payment_scheme }}" required 
-                        class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500"
-                        placeholder="e.g. 50% Upfront, 50% After Delivery">
+                    <input type="date" name="payment_scheme" value="{{ $offer->payment_scheme }}" required 
+                        class="w-full p-4 rounded-lg border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-[11px] font-black uppercase tracking-tight text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all">
                 </div>
 
                 <div class="flex gap-4 pt-4">
@@ -370,5 +369,24 @@
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
         });
+
+        window.confirmAction = function(formId, title, text, icon, confirmText) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: icon === 'success' ? '#10b981' : (icon === 'error' ? '#ef4444' : '#f59e0b'),
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancel',
+                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
     </script>
 @endpush

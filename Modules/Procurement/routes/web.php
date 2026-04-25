@@ -76,6 +76,7 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::get('/po/{purchaseOrder}/create', [DeliveryOrderController::class, 'create'])->name('create');
         Route::post('/po/{purchaseOrder}', [DeliveryOrderController::class, 'store'])->name('store');
         Route::post('/{deliveryOrder}/ship', [DeliveryOrderController::class, 'markAsShipped'])->name('ship');
+        Route::get('/{deliveryOrder}/print', [DeliveryOrderController::class, 'print'])->name('print');
     });
     Route::get('/gr/{id}/print', [GoodsReceiptController::class, 'print'])->name('gr.print');
     Route::get('/gr/{id}/download-pdf', [GoodsReceiptController::class, 'downloadPdf'])->name('gr.download-pdf');

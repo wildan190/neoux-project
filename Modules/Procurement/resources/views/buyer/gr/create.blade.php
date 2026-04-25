@@ -8,7 +8,7 @@
 ])
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="max-w-[1400px] mx-auto">
     <div class="mb-10">
         <div class="flex items-center gap-3 mb-1">
             <span class="px-3 py-1 bg-gray-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">INTAKE OPERATION</span>
@@ -47,25 +47,29 @@
             <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm group hover:border-primary-200 transition-all">
                 <label for="received_at" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Reception Timestamp</label>
                 <input type="date" name="received_at" id="received_at" required
-                       class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-900 transition-all"
-                       value="{{ now()->format('Y-m-d') }}">
+                       class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-900 dark:text-white px-5 py-4">
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm group hover:border-primary-200 transition-all">
                 <label for="warehouse_id" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Storage Point (Warehouse)</label>
-                <select name="warehouse_id" id="warehouse_id" required
-                        class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-900 transition-all">
-                    @foreach($warehouses as $warehouse)
-                        <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-                    @endforeach
-                </select>
+                <div class="relative">
+                    <select name="warehouse_id" id="warehouse_id" required
+                            class="w-full bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-900 dark:text-white appearance-none pl-5 pr-12 py-4 cursor-pointer">
+                        @foreach($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <i data-feather="chevron-down" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm group hover:border-primary-200 transition-all">
                 <label for="delivery_note" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Delivery Note (SJ) Number</label>
                 <input type="text" name="delivery_note" id="delivery_note" 
                        placeholder="e.g. SJ-001"
-                       class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white dark:focus:bg-gray-900 transition-all"
+                       class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white px-5 py-4"
                        value="{{ $deliveryOrder->delivery_number ?? '' }}">
             </div>
         </div>
@@ -138,16 +142,16 @@
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                 <div class="relative">
-                                    <i data-feather="alert-circle" class="w-4 h-4 absolute left-4 top-4 text-gray-300"></i>
+                                    <i data-feather="alert-circle" class="w-4 h-4 absolute left-4 top-4 text-gray-300 dark:text-gray-600"></i>
                                     <input type="text" name="items[{{ $index }}][rejected_reason]" 
                                            placeholder="REASON FOR REJECTION (IF ANY)..."
-                                           class="w-full pl-12 pr-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border-0 rounded-xl text-[10px] font-bold uppercase tracking-widest text-gray-600 focus:ring-primary-500 transition-all">
+                                           class="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl text-[10px] font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                                 </div>
                                 <div class="relative">
-                                    <i data-feather="info" class="w-4 h-4 absolute left-4 top-4 text-gray-300"></i>
+                                    <i data-feather="info" class="w-4 h-4 absolute left-4 top-4 text-gray-300 dark:text-gray-600"></i>
                                     <input type="text" name="items[{{ $index }}][condition]" 
                                            placeholder="TECHNICAL CONDITION NOTES..."
-                                           class="w-full pl-12 pr-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border-0 rounded-xl text-[10px] font-bold uppercase tracking-widest text-gray-400 focus:ring-primary-500 transition-all">
+                                           class="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
                                 </div>
                             </div>
 
@@ -161,8 +165,8 @@
             
             <div class="p-10 bg-gray-50 dark:bg-gray-900/10 border-t border-gray-50 dark:border-gray-800/50">
                 <label for="notes" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Overall Reception Remarks</label>
-                <textarea name="notes" id="notes" rows="2" 
-                          class="w-full bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-800 rounded-2xl text-[11px] font-bold uppercase tracking-tight focus:ring-primary-500 transition-all"
+                <textarea name="notes" id="notes" rows="4" 
+                          class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-[11px] font-bold uppercase tracking-tight focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 p-6"
                           placeholder="Anything significant about this delivery..."></textarea>
             </div>
         </div>

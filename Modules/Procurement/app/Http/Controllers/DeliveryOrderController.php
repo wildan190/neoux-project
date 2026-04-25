@@ -133,4 +133,29 @@ class DeliveryOrderController extends Controller
 
         return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: '.$request->tracking_number);
     }
+    /**
+     * Print DO
+     */
+    public function print(DeliveryOrder $deliveryOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        $purchaseOrder = $deliveryOrder->purchaseOrder;
+
+        // Authorization: Buyer or Vendor
+        $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
+        $isVendor = $purchaseOrder->vendor_company_id == $selectedCompanyId;
+
+        if (!$isBuyer && !$isVendor) {
+            abort(403, 'Unauthorized to view this Delivery Order.');
+        }
+
+        $deliveryOrder->load([
+            'items.purchaseOrderItem.purchaseRequisitionItem.catalogueItem',
+            'purchaseOrder.vendorCompany',
+            'purchaseOrder.purchaseRequisition.company',
+            'purchaseOrder.createdBy'
+        ]);
+
+        return view('procurement::do.print', compact('deliveryOrder', 'purchaseOrder'));
+    }
 }
