@@ -13,6 +13,16 @@ class Company extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::creating(function ($company) {
+            if (empty($company->authorized_modes)) {
+                $defaultMode = in_array($company->category, ['vendor', 'supplier']) ? 'vendor' : 'buyer';
+                $company->authorized_modes = [$defaultMode];
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'name',
@@ -33,11 +43,13 @@ class Company extends Model
         'approved_at',
         'declined_by',
         'declined_at',
+        'authorized_modes',
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
         'declined_at' => 'datetime',
+        'authorized_modes' => 'array',
     ];
 
     public function user(): BelongsTo

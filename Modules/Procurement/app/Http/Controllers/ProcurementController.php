@@ -67,9 +67,22 @@ class ProcurementController extends Controller
     public function switchMode(Request $request)
     {
         $mode = $request->input('mode');
+        $selectedCompanyId = session('selected_company_id');
+
+        if (!$selectedCompanyId) {
+            return back()->with('error', 'No company selected.');
+        }
+
+        $company = \Modules\Company\Models\Company::find($selectedCompanyId);
 
         if (!in_array($mode, ['buyer', 'vendor'])) {
             return back()->with('error', 'Invalid mode.');
+        }
+
+        // Approval Check
+        $authorizedModes = $company->authorized_modes ?? [];
+        if (!in_array($mode, $authorizedModes)) {
+            return back()->with('error', 'Anda belum memiliki akses ke mode ' . strtoupper($mode) . '. Silahkan hubungi Admin Internal untuk aktivasi mode ini.');
         }
 
         session(['procurement_mode' => $mode]);

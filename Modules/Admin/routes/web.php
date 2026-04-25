@@ -27,6 +27,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{company}', [CompanyReviewController::class, 'show'])->name('show');
             Route::post('/{company}/approve', [CompanyReviewController::class, 'approve'])->name('approve');
             Route::post('/{company}/decline', [CompanyReviewController::class, 'decline'])->name('decline');
+            Route::post('/{company}/update-modes', [CompanyReviewController::class, 'updateModes'])->name('update-modes');
         });
 
         // User Management

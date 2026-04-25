@@ -278,7 +278,9 @@
                 </div>
             </template>
 
-            @include('layouts.partials.bottom-nav')
+            @if(!$isAdminView)
+                @include('layouts.partials.bottom-nav')
+            @endif
 
             {{-- Progress Bar (at top of main) --}}
             <div id="global-progress" class="fixed top-0 left-0 md:left-64 right-0 h-1 bg-primary-600 z-[60] transition-all duration-300 opacity-0" style="width: 0%"></div>

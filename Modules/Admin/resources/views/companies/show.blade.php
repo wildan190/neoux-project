@@ -8,7 +8,7 @@
 ])
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-10">
+<div class="max-w-[1600px] mx-auto space-y-10">
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div class="flex items-center gap-8">
@@ -177,6 +177,40 @@
                     </div>
                     @endif
                 </div>
+            </div>
+
+            {{-- Mode Access Control --}}
+            <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 shadow-sm">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8">Mode Access Control</h3>
+                
+                <form action="{{ route('admin.companies.update-modes', $company) }}" method="POST" class="space-y-6">
+                    @csrf
+                    @php
+                        $authorized = $company->authorized_modes ?? [];
+                    @endphp
+                    
+                    <div class="space-y-4">
+                        <label class="flex items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-transparent hover:border-primary-100 transition-all cursor-pointer group">
+                            <input type="checkbox" name="authorized_modes[]" value="buyer" {{ in_array('buyer', $authorized) ? 'checked' : '' }} class="w-5 h-5 rounded-lg border-gray-300 text-primary-600 focus:ring-primary-500">
+                            <div class="ml-4">
+                                <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest leading-none mb-1">Buyer Mode</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tight leading-none">Allows purchasing activities</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-transparent hover:border-emerald-100 transition-all cursor-pointer group">
+                            <input type="checkbox" name="authorized_modes[]" value="vendor" {{ in_array('vendor', $authorized) ? 'checked' : '' }} class="w-5 h-5 rounded-lg border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                            <div class="ml-4">
+                                <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest leading-none mb-1">Vendor Mode</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tight leading-none">Allows selling activities</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="w-full h-12 bg-gray-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-gray-800 transition-all shadow-lg shadow-black/10">
+                        Update Permissions
+                    </button>
+                </form>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 shadow-sm">

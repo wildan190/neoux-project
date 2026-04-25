@@ -36,7 +36,11 @@ class DashboardController extends Controller
 
         session(['selected_company_id' => $company->id]);
 
+        // Set active mode based on company category for the session
+        $mode = in_array($company->category, ['vendor', 'supplier']) ? 'vendor' : 'buyer';
+        session(['procurement_mode' => $mode]);
+
         return redirect()->route('company.dashboard')
-            ->with('success', 'Switched to workspace: '.$company->name);
+            ->with('success', 'Switched to workspace: '.$company->name . ' (Mode: ' . strtoupper($mode) . ')');
     }
 }
