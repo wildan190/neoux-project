@@ -9,6 +9,28 @@
 
 @section('content')
 <div class="space-y-12 pb-24">
+    @if(session('success'))
+        <div class="p-6 bg-emerald-50 border border-emerald-100 rounded-[2rem] flex items-center gap-4 text-emerald-600 text-[11px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-top-4 duration-500">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                <i data-feather="check" class="w-4 h-4"></i>
+            </div>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-6 bg-red-50 border border-red-100 rounded-[2rem] space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
+            @foreach($errors->all() as $error)
+                <div class="flex items-center gap-4 text-red-600 text-[11px] font-black uppercase tracking-widest">
+                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                        <i data-feather="alert-circle" class="w-4 h-4"></i>
+                    </div>
+                    {{ $error }}
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -96,18 +118,21 @@
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Category Identity</label>
                     <input type="text" name="name" id="cat_name" required 
-                        class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-5 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner">
+                        class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-5 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner @error('name') ring-2 ring-red-500 @enderror">
+                    @error('name') <p class="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Architectural Icon</label>
-                    <input type="file" name="icon" class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-5 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner">
+                    <input type="file" name="icon" class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-5 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner @error('icon') ring-2 ring-red-500 @enderror">
+                    @error('icon') <p class="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Functional Description</label>
                     <textarea name="description" id="cat_description" rows="3"
-                        class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-6 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner leading-relaxed"></textarea>
+                        class="w-full bg-gray-50 dark:bg-gray-900 border-none rounded-2xl p-6 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 shadow-inner leading-relaxed @error('description') ring-2 ring-red-500 @enderror"></textarea>
+                    @error('description') <p class="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -156,6 +181,10 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         feather.replace();
+
+        @if($errors->any())
+            document.getElementById('category_modal').classList.remove('hidden');
+        @endif
     });
 </script>
 @endpush

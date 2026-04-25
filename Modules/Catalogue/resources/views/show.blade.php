@@ -66,9 +66,17 @@
         <div class="bg-white dark:bg-gray-800 shadow rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">Variants / SKUs</h2>
-                <button onclick="openAddSkuModal()" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition flex items-center gap-2">
-                    <i data-feather="plus" class="w-4 h-4"></i> Add Variant
-                </button>
+                <div class="flex gap-2">
+                    <form action="{{ route('catalogue.generate-missing-images', $product) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-indigo-700 transition flex items-center gap-2 shadow-sm hover:shadow-md" title="Generate AI images for variants without images">
+                            <i data-feather="image" class="w-4 h-4"></i> Generate AI Images
+                        </button>
+                    </form>
+                    <button onclick="openAddSkuModal()" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition flex items-center gap-2">
+                        <i data-feather="plus" class="w-4 h-4"></i> Add Variant
+                    </button>
+                </div>
             </div>
             
             <div class="overflow-x-auto">
@@ -125,6 +133,20 @@
                                     <a href="{{ route('warehouse.generate-qr', $item->id) }}" target="_blank" class="text-gray-400 hover:text-primary-600 transition" title="Print QR Code">
                                         <i data-feather="printer" class="w-4 h-4"></i>
                                     </a>
+                                    <button class="text-gray-400 hover:text-blue-600 transition edit-sku-btn" title="Edit Variant"
+                                        data-item='{!! htmlspecialchars(json_encode([
+                                            "id"         => $item->id,
+                                            "sku"        => $item->sku,
+                                            "price"      => $item->price,
+                                            "stock"      => $item->stock,
+                                            "unit"       => $item->unit,
+                                            "is_active"  => $item->is_active,
+                                            "attributes" => $item->attributes->map(fn($a) => ["key" => $a->attribute_key, "value" => $a->attribute_value])->values(),
+                                            "images"     => $item->images->map(fn($img) => ["id" => $img->id, "url" => $img->url, "is_primary" => $img->is_primary])->values(),
+                                            "update_url" => route("catalogue.update-sku", $item->id),
+                                        ]), ENT_QUOTES, "UTF-8") !!}'>
+                                        <i data-feather="edit-2" class="w-4 h-4"></i>
+                                    </button>
                                     <button class="text-gray-400 hover:text-red-600 transition" title="Delete SKU" onclick="confirmDeleteSku('{{ $item->id }}')">
                                         <i data-feather="trash-2" class="w-4 h-4"></i>
                                     </button>
@@ -145,6 +167,94 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Edit SKU Modal --}}
+<div id="edit-sku-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-gray-900/75 backdrop-blur-sm" aria-hidden="true" onclick="closeEditSkuModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full z-10 relative border border-gray-100 dark:border-gray-700">
+            <div class="px-6 pt-6 pb-6 bg-white dark:bg-gray-800">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Edit Variant</h3>
+                    <button onclick="closeEditSkuModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form id="edit-sku-form" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">SKU</label>
+                            <input type="text" name="sku" id="edit-sku-sku"
+                                class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white text-sm px-4 py-2.5"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</label>
+                            <input type="text" name="unit" id="edit-sku-unit" placeholder="Pcs, Box, Kg"
+                                class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white text-sm px-4 py-2.5"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Price (IDR)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 pointer-events-none text-sm font-medium">Rp</span>
+                                <input type="number" name="price" id="edit-sku-price" min="0"
+                                    class="block w-full pl-10 pr-4 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white text-sm py-2.5"
+                                    required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Stock</label>
+                            <input type="number" name="stock" id="edit-sku-stock" min="0"
+                                class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:text-white text-sm px-4 py-2.5"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" name="is_active" id="edit-sku-active" value="1" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        <label for="edit-sku-active" class="text-sm text-gray-700 dark:text-gray-300 font-medium">Active</label>
+                    </div>
+
+                    {{-- Attributes --}}
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Attributes</label>
+                            <button type="button" onclick="addEditAttribute()" class="text-xs font-bold text-primary-600 hover:text-primary-700 transition">+ Add Attribute</button>
+                        </div>
+                        <div id="edit-attributes-container" class="space-y-3 p-4 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl border border-gray-100 dark:border-gray-700/50"></div>
+                    </div>
+
+                    {{-- Existing Images --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Current Images</label>
+                        <div id="edit-existing-images" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    {{-- Add New Images --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Add New Images</label>
+                        <input type="file" name="images[]" multiple accept="image/*"
+                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-primary-600 file:text-white hover:file:bg-primary-700 file:transition-all cursor-pointer">
+                    </div>
+
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" onclick="closeEditSkuModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary-700">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -245,7 +355,87 @@
 {{-- SweetAlert2 loaded via Vite --}}
 <script>
     let modalAttributeIndex = 0;
+    let editAttributeIndex = 0;
 
+    // ----------- Edit SKU Modal -----------
+    function openEditSkuModal(item) {
+        editAttributeIndex = 0;
+        const modal = document.getElementById('edit-sku-modal');
+        const form  = document.getElementById('edit-sku-form');
+
+        form.action = item.update_url;
+        document.getElementById('edit-sku-sku').value   = item.sku;
+        document.getElementById('edit-sku-unit').value  = item.unit;
+        document.getElementById('edit-sku-price').value = item.price;
+        document.getElementById('edit-sku-stock').value = item.stock;
+        document.getElementById('edit-sku-active').checked = item.is_active == 1;
+
+        // Render attributes
+        const attrContainer = document.getElementById('edit-attributes-container');
+        attrContainer.innerHTML = '';
+        (item.attributes || []).forEach(attr => {
+            appendEditAttributeRow(attr.key, attr.value);
+        });
+
+        // Render existing images
+        const imgContainer = document.getElementById('edit-existing-images');
+        imgContainer.innerHTML = '';
+        if (item.images && item.images.length > 0) {
+            item.images.forEach(img => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'relative group';
+                wrapper.innerHTML = `
+                    <img src="${img.url}" class="w-16 h-16 object-cover rounded-lg border-2 ${img.is_primary ? 'border-primary-500' : 'border-gray-200 dark:border-gray-700'}">
+                    <label class="absolute -top-1.5 -right-1.5 cursor-pointer" title="Delete this image">
+                        <input type="checkbox" name="delete_images[]" value="${img.id}" class="sr-only peer">
+                        <span class="flex items-center justify-center w-5 h-5 bg-white dark:bg-gray-700 rounded-full border border-gray-300 dark:border-gray-600 peer-checked:bg-red-500 peer-checked:border-red-500 text-gray-400 peer-checked:text-white transition-all shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </span>
+                    </label>
+                    ${img.is_primary ? '<span class="absolute bottom-0 left-0 right-0 text-[9px] text-center bg-primary-500 text-white rounded-b-lg py-0.5">Primary</span>' : ''}
+                `;
+                imgContainer.appendChild(wrapper);
+            });
+        } else {
+            imgContainer.innerHTML = '<p class="text-xs text-gray-400 italic">No images yet.</p>';
+        }
+
+        modal.classList.remove('hidden');
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function closeEditSkuModal() {
+        document.getElementById('edit-sku-modal').classList.add('hidden');
+    }
+
+    function appendEditAttributeRow(key = '', value = '') {
+        const container = document.getElementById('edit-attributes-container');
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-2 gap-3 pb-3 border-b border-gray-200/50 dark:border-gray-700/50 last:border-0 last:pb-0';
+        div.innerHTML = `
+            <div>
+                <input type="text" name="attributes[${editAttributeIndex}][key]" value="${key}" placeholder="Key (e.g. Color)"
+                    class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm px-4 py-2">
+            </div>
+            <div class="flex gap-2">
+                <input type="text" name="attributes[${editAttributeIndex}][value]" value="${value}" placeholder="Value (e.g. Red)"
+                    class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm px-4 py-2">
+                <button type="button" onclick="this.closest('.grid').remove()"
+                    class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+        if (typeof feather !== 'undefined') feather.replace();
+        editAttributeIndex++;
+    }
+
+    function addEditAttribute() {
+        appendEditAttributeRow();
+    }
+
+    // ----------- Add SKU Modal -----------
     function openAddSkuModal() {
         const modal = document.getElementById('add-sku-modal');
         modal.classList.remove('hidden');
@@ -319,6 +509,14 @@
     // Feather icons
     document.addEventListener('DOMContentLoaded', function() {
         feather.replace();
+
+        // Edit SKU button — use event delegation to handle data-item attribute safely
+        document.querySelectorAll('.edit-sku-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const item = JSON.parse(this.getAttribute('data-item'));
+                openEditSkuModal(item);
+            });
+        });
         
         @if(session('success'))
             Swal.fire({

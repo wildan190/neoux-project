@@ -146,9 +146,13 @@ class ContractController extends Controller
                 'purchase_requisition_id' => $requisition->id,
                 'vendor_company_id' => $contract->vendor_company_id,
                 'created_by_user_id' => Auth::id(),
+                'approved_by_user_id' => Auth::id(),
                 'total_amount' => $totalAmount,
                 'status' => 'issued', // Immediately issued for repeat orders
                 'vendor_accepted_at' => now(), // Auto-accept since its part of a master agreement
+                'purchase_type' => 'contract',
+                'month' => date('F'),
+                'currency' => 'IDR',
             ]);
 
             foreach ($requisition->items as $prItem) {
@@ -159,6 +163,11 @@ class ContractController extends Controller
                     'quantity_received' => 0,
                     'unit_price' => $prItem->price,
                     'subtotal' => $prItem->quantity * $prItem->price,
+                    'tax_amount' => 0,
+                    'tax_rate' => 0,
+                    'total_inc_tax' => $prItem->quantity * $prItem->price,
+                    'price_idr' => $prItem->price,
+                    'price_original' => $prItem->price,
                 ]);
             }
 

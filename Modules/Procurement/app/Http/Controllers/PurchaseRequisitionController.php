@@ -386,8 +386,12 @@ class PurchaseRequisitionController extends Controller
                         'purchase_requisition_id' => $purchaseRequisition->id,
                         'vendor_company_id' => $vendorId,
                         'created_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
+                        'approved_by_user_id' => \Illuminate\Support\Facades\Auth::id(),
                         'total_amount' => $totalAmount,
                         'status' => 'issued', // Immediately issued
+                        'purchase_type' => 'direct',
+                        'month' => date('F'),
+                        'currency' => 'IDR',
                     ]);
 
                     foreach ($items as $item) {
@@ -398,6 +402,11 @@ class PurchaseRequisitionController extends Controller
                             'quantity_received' => 0,
                             'unit_price' => $item->price,
                             'subtotal' => $item->quantity * $item->price,
+                            'tax_amount' => 0, // Default for now
+                            'tax_rate' => 0,
+                            'total_inc_tax' => $item->quantity * $item->price,
+                            'price_idr' => $item->price,
+                            'price_original' => $item->price,
                         ]);
 
                         // Deduct Stock from Vendor (Seller)

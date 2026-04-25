@@ -205,10 +205,7 @@
         </div>
     </div>
 
-    {{-- Common Modals --}}
+    {{-- Common Modals & Scripts --}}
     @include('procurement::partials.po_import_modal')
-@endsection
-
-@push('scripts')
     @include('procurement::partials.po_index_scripts')
-@endpush
+@endsection

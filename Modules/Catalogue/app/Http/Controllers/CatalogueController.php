@@ -14,9 +14,30 @@ use Modules\Catalogue\Models\CatalogueCategory;
 use Modules\Catalogue\Models\CatalogueItem;
 use Modules\Catalogue\Models\CatalogueProduct;
 use Modules\Company\Models\Company;
+use Illuminate\Support\Facades\Artisan;
 
 class CatalogueController extends Controller
 {
+    public function generateMissingImages(Request $request, CatalogueProduct $product)
+    {
+        $companyId = session('selected_company_id');
+
+        if (!$companyId || $product->company_id !== $companyId) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized.');
+        }
+
+        $itemsWithoutImages = $product->items()->whereDoesntHave('images')->get();
+
+        if ($itemsWithoutImages->isEmpty()) {
+            return redirect()->back()->with('info', 'All variants for this product already have images.');
+        }
+
+        foreach ($itemsWithoutImages as $item) {
+            \Modules\Catalogue\Jobs\GenerateMissingItemImageJob::dispatch($item->id);
+        }
+
+        return redirect()->back()->with('success', 'Image generation process started for ' . $itemsWithoutImages->count() . ' variants. They will appear shortly.');
+    }
     public function index(Request $request)
     {
         $companyId = session('selected_company_id');
@@ -48,14 +69,14 @@ class CatalogueController extends Controller
         }
 
         $products = $query->latest()->paginate(12);
-        $categories = CatalogueCategory::all();
+        $categories = CatalogueCategory::orderBy('name')->get();
 
         return view('catalogue::index', compact('products', 'categories'));
     }
 
     public function create()
     {
-        $categories = CatalogueCategory::all();
+        $categories = CatalogueCategory::orderBy('name')->get();
 
         return view('catalogue::create', compact('categories'));
     }
@@ -122,7 +143,7 @@ class CatalogueController extends Controller
         if ($product->company_id !== session('selected_company_id')) {
             abort(403);
         }
-        $categories = CatalogueCategory::all();
+        $categories = CatalogueCategory::orderBy('name')->get();
 
         return view('catalogue::edit', compact('product', 'categories'));
     }
@@ -205,6 +226,76 @@ class CatalogueController extends Controller
         }
 
         return redirect()->back()->with('success', 'SKU added successfully.');
+    }
+
+    public function updateSku(Request $request, CatalogueItem $item)
+    {
+        if ($item->company_id !== session('selected_company_id')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'sku'               => 'required|string|max:255',
+            'price'             => 'required|numeric|min:0',
+            'stock'             => 'required|integer|min:0',
+            'unit'              => 'required|string|max:50',
+            'is_active'         => 'nullable|boolean',
+            'attributes'        => 'nullable|array',
+            'attributes.*.key'  => 'required_with:attributes.*.value|string',
+            'attributes.*.value'=> 'required_with:attributes.*.key|string',
+            'images.*'          => 'nullable|image|max:2048',
+            'delete_images'     => 'nullable|array',
+            'delete_images.*'   => 'integer',
+        ]);
+
+        $item->update([
+            'sku'       => $request->sku,
+            'price'     => $request->price,
+            'stock'     => $request->stock,
+            'unit'      => $request->unit,
+            'is_active' => $request->boolean('is_active', true),
+        ]);
+
+        // Delete selected images
+        if ($request->has('delete_images')) {
+            foreach ($request->delete_images as $imageId) {
+                $image = $item->images()->find($imageId);
+                if ($image) {
+                    Storage::disk('public')->delete($image->image_path);
+                    $image->delete();
+                }
+            }
+        }
+
+        // Sync attributes: delete old, insert new
+        $item->attributes()->delete();
+        if ($request->has('attributes') && is_array($request->input('attributes'))) {
+            foreach ($request->input('attributes') as $attribute) {
+                if (!empty($attribute['key']) && !empty($attribute['value'])) {
+                    $item->attributes()->create([
+                        'attribute_key'   => $attribute['key'],
+                        'attribute_value' => $attribute['value'],
+                    ]);
+                }
+            }
+        }
+
+        // Add new images
+        if ($request->hasFile('images')) {
+            $nextOrder = $item->images()->max('order') + 1;
+            $hasPrimary = $item->images()->where('is_primary', true)->exists();
+            foreach ($request->file('images') as $index => $file) {
+                $path = $file->store('catalogue_images', 'public');
+                $item->images()->create([
+                    'image_path' => $path,
+                    'is_primary' => !$hasPrimary && $index === 0,
+                    'order'      => $nextOrder + $index,
+                ]);
+                if (!$hasPrimary && $index === 0) $hasPrimary = true;
+            }
+        }
+
+        return redirect()->back()->with('success', 'Variant updated successfully.');
     }
 
     public function destroySku(CatalogueItem $item)

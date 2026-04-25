@@ -239,10 +239,17 @@
         <div class="info-box">
             <h3>Buyer</h3>
             <p style="font-weight: bold; font-size: 13px;">{{ $company?->name ?? 'N/A' }}</p>
-            <p>{{ $company?->email ?? 'N/A' }}</p>
-            @if($company?->phone)
-                <p>{{ $company->phone }}</p>
-            @endif
+            <p>{{ $purchaseOrder->purchase_company_email ?? $company?->email ?? 'N/A' }}</p>
+            <p>{{ $purchaseOrder->purchase_company_no ?? $company?->phone ?? 'N/A' }}</p>
+            
+            <div style="margin-top: 10px; border-top: 1px solid #eee; pt: 5px;">
+                @if($purchaseOrder->purchase_type)
+                    <p><span class="detail-label">Type:</span> <span class="detail-value">{{ $purchaseOrder->purchase_type }}</span></p>
+                @endif
+                @if($purchaseOrder->dept)
+                    <p><span class="detail-label">Dept:</span> <span class="detail-value">{{ $purchaseOrder->dept }}</span></p>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -258,6 +265,10 @@
         <div class="detail-item">
             <div class="detail-label">Status</div>
             <div class="detail-value">{{ strtoupper($purchaseOrder->status) }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">Month / Currency</div>
+            <div class="detail-value">{{ $purchaseOrder->month ?? '-' }} / {{ $purchaseOrder->currency ?? 'IDR' }}</div>
         </div>
         <div class="detail-item">
             <div class="detail-label">Created By</div>
@@ -281,13 +292,33 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>
-                        <strong>{{ $item->purchaseRequisitionItem?->catalogueItem->name ?? $item->item_name ?? 'N/A' }}</strong><br>
-                        <span style="font-size: 9px; color: #666;">SKU:
-                            {{ $item->purchaseRequisitionItem?->catalogueItem->sku ?? 'N/A' }}</span>
+                        <strong>{{ $item->purchaseRequisitionItem?->catalogueItem->name ?? $item->item_name ?? 'N/A' }}</strong>
+                        @if($item->category) <span style="font-size: 8px; color: #EC6A2D;">[{{ $item->category }}]</span> @endif
+                        <br>
+                        <span style="font-size: 8px; color: #666;">
+                            SKU: {{ $item->purchaseRequisitionItem?->catalogueItem->sku ?? 'N/A' }} 
+                            @if($item->business_category) | BIZ: {{ $item->business_category }} @endif
+                        </span>
+                        @if($item->specifications)
+                            <div style="font-size: 8px; color: #777; font-style: italic; margin-top: 2px;">Spec: {{ $item->specifications }}</div>
+                        @endif
                     </td>
-                    <td class="text-center"><strong>{{ $item->quantity_ordered }}</strong></td>
-                    <td class="text-right">{{ $item->formatted_unit_price }}</td>
-                    <td class="text-right"><strong>{{ $item->formatted_subtotal }}</strong></td>
+                    <td class="text-center">
+                        <strong>{{ $item->quantity_ordered }}</strong>
+                        @if($item->unit) <br><span style="font-size: 8px;">{{ $item->unit }}</span> @endif
+                    </td>
+                    <td class="text-right">
+                        {{ $item->formatted_unit_price }}
+                        @if($item->tax_amount > 0)
+                            <br><span style="font-size: 7px; color: #C62828;">Tax: {{ number_format($item->tax_amount, 0, ',', '.') }}</span>
+                        @endif
+                    </td>
+                    <td class="text-right">
+                        <strong>{{ $item->formatted_subtotal }}</strong>
+                        @if($item->total_inc_tax > 0)
+                            <br><span style="font-size: 7px; color: #666;">Inc Tax</span>
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

@@ -56,7 +56,7 @@
         <a href="{{ route('admin.categories.index') }}"
             class="flex items-center px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('admin.categories.*') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-white/5 hover:text-white' }}">
             <i data-feather="list" class="w-4 h-4 mr-3 {{ request()->routeIs('admin.categories.*') ? 'text-white' : 'text-gray-500 group-hover:text-primary-400' }}"></i>
-            <span>Module Categories</span>
+            <span>Product Categories</span>
         </a>
 
         <div class="px-4 pt-8 pb-4">

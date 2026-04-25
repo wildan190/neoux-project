@@ -12,6 +12,9 @@ class StoreCompanyRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        if ($this->hasFile('historical_po') && !$this->file('historical_po')->isValid()) {
+            dd('UPLOAD ERROR: ' . $this->file('historical_po')->getErrorMessage());
+        }
         return true;
     }
 
@@ -37,6 +40,7 @@ class StoreCompanyRequest extends FormRequest
             'locations.*' => 'nullable|string|max:255',
             'documents' => 'nullable|array',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'historical_po' => 'nullable|file|max:10240',
         ];
     }
 }

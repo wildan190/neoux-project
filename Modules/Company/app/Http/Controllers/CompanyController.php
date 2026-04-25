@@ -69,6 +69,13 @@ class CompanyController extends Controller
             }
         }
 
+        if ($request->hasFile('historical_po')) {
+            $poFile = $request->file('historical_po');
+            $poPath = $poFile->store('temp_imports', 'local');
+            $importRole = $company->category === 'vendor' ? 'vendor' : 'buyer';
+            \Modules\Procurement\Jobs\ProcessPurchaseOrderImport::dispatch($poPath, Auth::id(), $company->id, $importRole);
+        }
+
         return redirect()->route('companies.index')->with('success', 'Company created successfully.');
     }
 
