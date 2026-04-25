@@ -5,8 +5,8 @@
 
 @auth
 @if($procurementMode === 'buyer')
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-lg px-6 md:px-0">
-        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-100 dark:border-gray-800 rounded-[2rem] shadow-2xl shadow-gray-200/50 dark:shadow-black/50 p-2 flex items-center justify-between" id="bottomNav">
+    <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] w-[92%] max-w-lg">
+        <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-gray-100/50 dark:border-gray-800 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-black/50 p-1.5 flex items-center justify-around" id="bottomNav">
             
             {{-- Marketplace / Home --}}
             <a href="/" data-no-pjax

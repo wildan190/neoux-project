@@ -19,7 +19,7 @@
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         @php
             $isBuyer = ($procurementMode === 'buyer');
-            $dashboardRoute = session('selected_company_id') ? ($isBuyer ? url('/') : route('company.dashboard')) : route('dashboard');
+            $dashboardRoute = session('selected_company_id') ? route('company.dashboard') : route('dashboard');
             $isDashboardActive = request()->is('/') || request()->routeIs('dashboard') || request()->routeIs('company.dashboard');
         @endphp
 
