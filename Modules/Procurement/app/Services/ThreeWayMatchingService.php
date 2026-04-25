@@ -66,6 +66,11 @@ class ThreeWayMatchingService
             'match_status' => $matchResults,
         ]);
 
+        // If PO is already completed/escrow released and this invoice matches, mark as paid
+        if ($matchResults['status'] === 'matched' && $purchaseOrder->escrow_status === 'released') {
+            $invoice->update(['status' => 'paid']);
+        }
+
         return $matchResults;
     }
 

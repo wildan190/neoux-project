@@ -145,10 +145,17 @@
 
                         {{-- Footer Actions --}}
                         <div class="flex items-center gap-4">
-                            <a href="{{ route('procurement.pr.show-public', $pr) }}" 
-                               class="flex-1 h-14 flex items-center justify-center bg-gray-900 dark:bg-primary-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-900/10">
-                                PARTICIPATE IN TENDER
-                            </a>
+                            @if($pr->status === 'open' || $pr->status === 'pending')
+                                <a href="{{ route('procurement.pr.show-public', $pr) }}" 
+                                   class="flex-1 h-14 flex items-center justify-center bg-gray-900 dark:bg-primary-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-900/10">
+                                    PARTICIPATE IN TENDER
+                                </a>
+                            @else
+                                <a href="{{ route('procurement.pr.show-public', $pr) }}" 
+                                   class="flex-1 h-14 flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all border border-gray-100 dark:border-gray-700">
+                                    VIEW TENDER DETAILS
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>

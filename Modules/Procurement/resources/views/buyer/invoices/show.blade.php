@@ -142,15 +142,7 @@
                 <div class="space-y-4">
                     {{-- Manual approval buttons removed as escrow handles payment lifecycle --}}
 
-                    @if($invoice->status !== 'paid' && $invoice->status !== 'rejected')
-                        <form action="{{ route('procurement.invoices.reject', $invoice) }}" method="POST" onsubmit="return confirm('Please provide a reason for rejection.')" class="mt-8">
-                            @csrf
-                            <input type="text" name="reason" placeholder="Reason for rejection..." class="w-full py-3 px-4 bg-gray-50 dark:bg-gray-900/50 border-gray-100 dark:border-gray-700 rounded-xl text-[11px] font-bold uppercase tracking-tight mb-3 focus:ring-primary-500 focus:border-primary-500" required>
-                            <button type="submit" class="w-full py-3 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-100 transition">
-                                Reject Invoice
-                            </button>
-                        </form>
-                    @endif
+                    {{-- Manual rejection removed to shorten the flow --}}
 
                     @if($invoice->status === 'paid')
                         <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
