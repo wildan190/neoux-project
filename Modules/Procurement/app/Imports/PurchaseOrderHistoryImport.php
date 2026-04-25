@@ -7,13 +7,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 use Modules\Company\Models\Company;
 use Modules\Procurement\Models\PurchaseOrder;
 use Modules\Procurement\Models\PurchaseOrderItem;
 use Modules\Procurement\Models\PurchaseRequisition;
 use Modules\User\Models\User;
 
-class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow
+class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow, WithCalculatedFormulas
 {
     protected $userId;
     protected $companyId;
