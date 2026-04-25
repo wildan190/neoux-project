@@ -25,8 +25,8 @@ class DeliveryOrderController extends Controller
             abort(403, 'Unauthorized to create Delivery Order for this PO.');
         }
 
-        if ($purchaseOrder->status !== 'issued' && $purchaseOrder->status !== 'partial_delivery') {
-            return back()->with('error', 'You can only create a Delivery Order for issued or partially delivered Purchase Orders.');
+        if (!in_array($purchaseOrder->status, ['issued', 'confirmed', 'partial_delivery'])) {
+            return back()->with('error', 'You can only create a Delivery Order for issued, confirmed, or partially delivered Purchase Orders.');
         }
 
         // Check if anything is left to ship
@@ -127,6 +127,9 @@ class DeliveryOrderController extends Controller
             'shipped_at' => now(),
             'tracking_number' => $request->tracking_number,
         ]);
+
+        // Update PO status to shipping per user flow
+        $deliveryOrder->purchaseOrder->update(['status' => 'shipping']);
 
         return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: '.$request->tracking_number);
     }

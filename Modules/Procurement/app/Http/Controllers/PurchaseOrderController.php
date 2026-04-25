@@ -144,6 +144,29 @@ class PurchaseOrderController extends Controller
                 'confirmed_at' => now(),
             ]);
 
+            // Automatically Generate Interim Invoice
+            $invoiceNumber = 'INT-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+            $invoice = \Modules\Procurement\Models\Invoice::create([
+                'invoice_number' => $invoiceNumber,
+                'purchase_order_id' => $purchaseOrder->id,
+                'vendor_company_id' => $purchaseOrder->vendor_company_id,
+                'invoice_date' => now(),
+                'due_date' => now()->addDays(7),
+                'total_amount' => $purchaseOrder->total_amount,
+                'status' => 'interim',
+            ]);
+
+            // Create Invoice Items from PO Items
+            foreach ($purchaseOrder->items as $poItem) {
+                \Modules\Procurement\Models\InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'purchase_order_item_id' => $poItem->id,
+                    'quantity_invoiced' => $poItem->quantity_ordered,
+                    'unit_price' => $poItem->unit_price,
+                    'subtotal' => $poItem->subtotal,
+                ]);
+            }
+
             DB::commit();
 
             // Notify Buyer (the user who created the PO)
@@ -378,7 +401,12 @@ class PurchaseOrderController extends Controller
             'escrow_reference' => $request->escrow_reference,
         ]);
 
-        return back()->with('success', 'Pembayaran escrow berhasil dicatat! Vendor dapat mulai mengirimkan barang.');
+        // Notify Vendor
+        if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
+            $purchaseOrder->vendorCompany->user->notify(new \Modules\Procurement\Notifications\PaymentReceived($purchaseOrder));
+        }
+
+        return back()->with('success', 'Pembayaran escrow berhasil dicatat! Vendor telah dinotifikasi dan dapat mulai mengirimkan barang.');
     }
 
     /**
