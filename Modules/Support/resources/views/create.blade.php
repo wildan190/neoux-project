@@ -7,7 +7,7 @@
 ])
 
 @section('content')
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-[1400px] mx-auto">
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-1">
                 <span class="px-3 py-1 bg-primary-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">HELPDESK</span>
