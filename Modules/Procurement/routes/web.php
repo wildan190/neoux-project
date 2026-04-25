@@ -148,6 +148,10 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
         Route::get('/', [ContractController::class, 'index'])->name('index');
         Route::get('/{contract}', [ContractController::class, 'show'])->name('show');
         Route::post('/from-order/{purchaseOrder}', [ContractController::class, 'createFromOrder'])->name('create-from-order');
+        Route::post('/{contract}/propose', [ContractController::class, 'propose'])->name('propose');
+        Route::post('/{contract}/vendor-sign', [ContractController::class, 'vendorSign'])->name('vendor-sign');
+        Route::post('/{contract}/approve', [ContractController::class, 'approve'])->name('approve');
+        Route::post('/{contract}/reject', [ContractController::class, 'reject'])->name('reject');
         Route::post('/{contract}/repeat-order', [ContractController::class, 'repeatOrder'])->name('repeat-order');
         Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy');
     });

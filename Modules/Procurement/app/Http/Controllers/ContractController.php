@@ -19,28 +19,43 @@ class ContractController extends Controller
     public function index()
     {
         $selectedCompanyId = session('selected_company_id');
+        $currentView = request('view', session('procurement_mode', 'buyer'));
+
         if (!$selectedCompanyId) {
             return redirect()->back()->with('error', 'Please select a company first.');
         }
 
-        $contracts = Contract::with(['vendor', 'createdBy'])
-            ->where('company_id', $selectedCompanyId)
-            ->latest()
-            ->paginate(10);
+        if ($currentView === 'buyer') {
+            $contracts = Contract::with(['vendor', 'createdBy'])
+                ->where('company_id', $selectedCompanyId)
+                ->latest()
+                ->paginate(10);
+        } else {
+            $contracts = Contract::with(['buyer', 'createdBy'])
+                ->where('vendor_company_id', $selectedCompanyId)
+                ->latest()
+                ->paginate(10);
+        }
 
-        return view('procurement::buyer.contracts.index', compact('contracts'));
+        $viewPath = 'procurement::' . $currentView . '.contracts.index';
+        return view($viewPath, compact('contracts', 'currentView'));
     }
 
     public function show(Contract $contract)
     {
         $selectedCompanyId = session('selected_company_id');
-        if ($contract->company_id != $selectedCompanyId) {
+        
+        $isBuyer = $contract->company_id == $selectedCompanyId;
+        $isVendor = $contract->vendor_company_id == $selectedCompanyId;
+
+        if (!$isBuyer && !$isVendor) {
             abort(403);
         }
 
-        $contract->load(['vendor', 'items.catalogueItem', 'createdBy', 'sourcePo']);
+        $contract->load(['vendor', 'buyer', 'items.catalogueItem', 'createdBy', 'sourcePo', 'vendorSignedBy', 'buyerApprovedBy']);
 
-        return view('procurement::buyer.contracts.show', compact('contract'));
+        $viewPath = $isBuyer ? 'procurement::buyer.contracts.show' : 'procurement::vendor.contracts.show';
+        return view($viewPath, compact('contract', 'isBuyer', 'isVendor'));
     }
 
     /**
@@ -66,7 +81,7 @@ class ContractController extends Controller
                 'title' => 'Annual Contract: ' . ($purchaseOrder->vendorCompany->name ?? 'Vendor'),
                 'start_date' => now(),
                 'end_date' => now()->addYear(),
-                'status' => 'active',
+                'status' => 'draft', // Initial state
                 'source_po_id' => $purchaseOrder->id,
                 'created_by_user_id' => Auth::id(),
                 'notes' => 'Contract generated from PO ' . $purchaseOrder->po_number,
@@ -84,12 +99,108 @@ class ContractController extends Controller
             DB::commit();
 
             return redirect()->route('procurement.contracts.show', $contract)
-                ->with('success', 'Annual Contract has been created successfully based on negotiated prices.');
+                ->with('success', 'Draft Annual Contract has been initialized. Please review and propose to vendor.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Failed to create contract: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Propose contract to vendor
+     */
+    public function propose(Contract $contract)
+    {
+        if ($contract->status !== 'draft') {
+            return back()->with('error', 'Only draft contracts can be proposed.');
+        }
+
+        $contract->update(['status' => 'proposed']);
+
+        // Notify Vendor
+        try {
+            if ($contract->vendor && $contract->vendor->user) {
+                $contract->vendor->user->notify(new \Modules\Procurement\Notifications\ContractProposed($contract));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Contract notification failed: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Contract proposed to vendor for signing.');
+    }
+
+    /**
+     * Vendor signs the contract
+     */
+    public function vendorSign(Contract $contract)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        if ($contract->vendor_company_id != $selectedCompanyId) {
+            abort(403, 'Only the vendor can sign this contract.');
+        }
+
+        if ($contract->status !== 'proposed') {
+            return back()->with('error', 'Contract must be in proposed state to sign.');
+        }
+
+        $contract->update([
+            'status' => 'signed',
+            'vendor_signed_at' => now(),
+            'vendor_signed_by_user_id' => Auth::id(),
+        ]);
+
+        // Notify Buyer
+        try {
+            if ($contract->buyer && $contract->buyer->user) {
+                $contract->buyer->user->notify(new \Modules\Procurement\Notifications\ContractSigned($contract));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Contract notification failed: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Contract signed successfully! Waiting for buyer final approval.');
+    }
+
+    /**
+     * Buyer approves and activates the contract
+     */
+    public function approve(Contract $contract)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        if ($contract->company_id != $selectedCompanyId) {
+            abort(403);
+        }
+
+        if ($contract->status !== 'signed') {
+            return back()->with('error', 'Contract must be signed by vendor before approval.');
+        }
+
+        $contract->update([
+            'status' => 'active',
+            'buyer_approved_at' => now(),
+            'buyer_approved_by_user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Contract approved and activated successfully!');
+    }
+
+    /**
+     * Buyer rejects/sends back to draft
+     */
+    public function reject(Request $request, Contract $contract)
+    {
+        $selectedCompanyId = session('selected_company_id');
+        if ($contract->company_id != $selectedCompanyId) {
+            abort(403);
+        }
+
+        $contract->update([
+            'status' => 'draft',
+            'rejection_reason' => $request->reason,
+        ]);
+
+        return back()->with('success', 'Contract sent back to draft.');
     }
 
     /**
