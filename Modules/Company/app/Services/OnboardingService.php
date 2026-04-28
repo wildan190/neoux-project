@@ -78,6 +78,7 @@ class OnboardingService
         // Set sessions
         session(['selected_company_id' => $company->id]);
         session(['procurement_mode' => $company->category === 'vendor' ? 'vendor' : 'buyer']);
+        session()->forget('needs_onboarding');
 
         return $company;
     }

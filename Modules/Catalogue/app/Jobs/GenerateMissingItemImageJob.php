@@ -41,8 +41,6 @@ class GenerateMissingItemImageJob implements ShouldQueue
             return;
         }
 
-        // Throttle job to max 20 requests every 60 seconds across all workers
-        // to prevent hitting Gemini API or Pollinations API limits
         \Illuminate\Support\Facades\Redis::throttle('gemini-image-gen')
             ->allow(20)
             ->every(60)
@@ -52,10 +50,9 @@ class GenerateMissingItemImageJob implements ShouldQueue
                     Log::info("Successfully generated image for item {$this->itemId}");
                 } catch (\Exception $e) {
                     Log::error("Failed to generate image for item {$this->itemId}: " . $e->getMessage());
-                    throw $e; // Re-throw to allow job retries
+                    throw $e;
                 }
             }, function () {
-                // Could not obtain lock; release job back to the queue after 10 seconds
                 $this->release(10);
             });
     }

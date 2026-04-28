@@ -27,30 +27,26 @@ class ProductImageGeneratorService
     public function generateFor(CatalogueItem $item): ?CatalogueItemImage
     {
         if ($item->images()->count() > 0) {
-            return $item->primaryImage; // Already has an image
+            return $item->primaryImage;
         }
 
         $productName = $item->product ? $item->product->name : $item->name;
         $categoryName = ($item->product && $item->product->category) ? $item->product->category->name : 'General';
         $modelOrTags = $item->tags ?? $item->sku;
 
-        // 1. Generate descriptive image prompt using Gemini
-        $prompt = $this->generateImagePrompt((string)$productName, (string)$categoryName, (string)$modelOrTags);
+        $prompt = $this->generateImagePrompt((string) $productName, (string) $categoryName, (string) $modelOrTags);
 
-        // 2. Fetch image from pollinations.ai
         $imageContent = $this->fetchImageFromPollinations($prompt);
 
         if (!$imageContent) {
             return null;
         }
 
-        // 3. Save Image locally
         $filename = 'generated_' . $item->sku . '_' . Str::random(5) . '.jpg';
         $path = 'products/images/' . $filename;
-        
+
         Storage::disk('public')->put($path, $imageContent);
 
-        // 4. Create CatalogueItemImage record
         return CatalogueItemImage::create([
             'catalogue_item_id' => $item->id,
             'image_path' => $path,
@@ -100,7 +96,7 @@ PROMPT;
                 ],
                 'generationConfig' => [
                     'maxOutputTokens' => 120,
-                    'temperature' => 0.4, // Lower = more accurate/factual
+                    'temperature' => 0.4,
                 ]
             ]);
 
@@ -111,7 +107,6 @@ PROMPT;
                 }
             }
 
-            // Fallback: construct a basic but accurate prompt directly
             return "A professional product photo of {$name} ({$category}), showing its real-world physical form, clean white studio background, sharp focus, photorealistic, high quality";
         });
     }
@@ -121,15 +116,13 @@ PROMPT;
      */
     private function fetchImageFromPollinations(string $prompt): ?string
     {
-        // URL encode the prompt
         $encodedPrompt = urlencode($prompt);
-        
-        // Use a 800x800 resolution with no logo
+
         $url = "https://image.pollinations.ai/prompt/{$encodedPrompt}?width=800&height=800&nologo=true";
 
         try {
             $response = Http::timeout(60)->get($url);
-            
+
             if ($response->successful()) {
                 return $response->body();
             }

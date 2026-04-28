@@ -13,10 +13,10 @@ class CatalogueItem extends Model
     protected $fillable = [
         'company_id',
         'catalogue_product_id',
-        'category_id', // Deprecated, moved to Product
+        'category_id',
         'sku',
-        'name', // Deprecated, moved to Product
-        'description', // Deprecated, moved to Product
+        'name',
+        'description',
         'tags',
         'price',
         'stock',

@@ -44,7 +44,7 @@ class ContractController extends Controller
     public function show(Contract $contract)
     {
         $selectedCompanyId = session('selected_company_id');
-        
+
         $isBuyer = $contract->company_id == $selectedCompanyId;
         $isVendor = $contract->vendor_company_id == $selectedCompanyId;
 
@@ -64,8 +64,7 @@ class ContractController extends Controller
     public function createFromOrder(PurchaseOrder $purchaseOrder)
     {
         $selectedCompanyId = session('selected_company_id');
-        
-        // Ensure user owns the PO as buyer
+
         if ($purchaseOrder->company_id != $selectedCompanyId && $purchaseOrder->purchaseRequisition?->company_id != $selectedCompanyId) {
             abort(403);
         }
@@ -73,7 +72,7 @@ class ContractController extends Controller
         DB::beginTransaction();
         try {
             $contractNumber = 'CON-' . strtoupper(Str::random(8));
-            
+
             $contract = Contract::create([
                 'company_id' => $selectedCompanyId,
                 'vendor_company_id' => $purchaseOrder->vendor_company_id,
@@ -81,7 +80,7 @@ class ContractController extends Controller
                 'title' => 'Annual Contract: ' . ($purchaseOrder->vendorCompany->name ?? 'Vendor'),
                 'start_date' => now(),
                 'end_date' => now()->addYear(),
-                'status' => 'draft', // Initial state
+                'status' => 'draft',
                 'source_po_id' => $purchaseOrder->id,
                 'created_by_user_id' => Auth::id(),
                 'notes' => 'Contract generated from PO ' . $purchaseOrder->po_number,
@@ -219,21 +218,19 @@ class ContractController extends Controller
 
         DB::beginTransaction();
         try {
-            // Generate PR Number
             $prNumber = 'PR-RO-' . date('Y') . '-' . strtoupper(Str::random(6));
 
-            // Create a DIRECT Purchase Requisition
             $requisition = PurchaseRequisition::create([
                 'pr_number' => $prNumber,
                 'company_id' => $selectedCompanyId,
                 'user_id' => Auth::id(),
                 'title' => 'Repeat Order: ' . $contract->title,
                 'description' => 'Automated repeat order from Contract ' . $contract->contract_number,
-                'status' => 'ordered', // Mark as ordered immediately
-                'approval_status' => 'approved', // Auto-approve for direct contract orders
+                'status' => 'ordered',
+                'approval_status' => 'approved',
                 'tender_status' => 'draft',
                 'type' => 'direct',
-                'contract_id' => $contract->id, // Tracking
+                'contract_id' => $contract->id,
             ]);
 
             foreach ($contract->items as $item) {
@@ -247,7 +244,7 @@ class ContractController extends Controller
 
             // IMMEDIATELY GENERATE PO
             $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
-            $totalAmount = $contract->items->sum(function($item) {
+            $totalAmount = $contract->items->sum(function ($item) {
                 return 1 * $item->fixed_price;
             });
 
