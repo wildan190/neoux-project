@@ -38,7 +38,7 @@
                         <div>
                             <label for="name" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Official Legal Name</label>
                             <input type="text" name="name" id="name" required value="{{ old('name') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="e.g. PT. Global Solusi">
                             @error('name') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -46,7 +46,7 @@
                         <div>
                             <label for="npwp" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Registration Terminal ID</label>
                             <input type="text" name="npwp" id="npwp" required value="{{ old('npwp') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="Tax ID (NPWP) or Business ID (NIB)">
                             @error('npwp') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -85,7 +85,7 @@
                         <div>
                             <label for="business_category" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Business Sector</label>
                             <input type="text" name="business_category" id="business_category" required value="{{ old('business_category') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="e.g. IT, Retail, Manufacturing">
                             @error('business_category') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -106,7 +106,7 @@
                         <div>
                             <label for="tag" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Enterprise Tag</label>
                             <input type="text" name="tag" id="tag" required value="{{ old('tag') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="e.g. B2B, B2C, Distributor">
                             @error('tag') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -116,7 +116,7 @@
                         <div>
                             <label for="email" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Communication Email</label>
                             <input type="email" name="email" id="email" value="{{ old('email') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="signals@entity.dev">
                             @error('email') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -124,7 +124,7 @@
                         <div>
                             <label for="phone" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Direct Operational Line</label>
                             <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="+XX XXXX XXXX">
                             @error('phone') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -132,7 +132,7 @@
                         <div>
                             <label for="website" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Official Web Interface</label>
                             <input type="url" name="website" id="website" value="{{ old('website') }}"
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="https://entity-node.dev">
                             @error('website') <p class="mt-2 text-[10px] font-bold text-red-500 uppercase">{{ $message }}</p> @enderror
                         </div>
@@ -141,7 +141,7 @@
                     <div>
                         <label for="description" class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Enterprise Mission Statement</label>
                         <textarea name="description" id="description" rows="4"
-                            class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner leading-loose"
+                            class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner leading-loose placeholder:text-gray-500"
                             placeholder="Briefly describe your company's core business and services...">{{ old('description') }}</textarea>
                     </div>
                 </div>
@@ -155,7 +155,7 @@
                     <div id="location-container" class="space-y-6">
                         <div class="location-input relative">
                             <input type="text" name="locations[]" 
-                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                                 placeholder="Headquarters full address (Street, City, Province, Postal Code)">
                         </div>
                     </div>
@@ -261,7 +261,7 @@
         div.className = 'location-input relative flex items-center gap-4';
         div.innerHTML = `
             <input type="text" name="locations[]" 
-                class="flex-1 bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner"
+                class="flex-1 bg-gray-50 dark:bg-gray-900 border-transparent rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-primary-500 focus:bg-white transition-all shadow-inner placeholder:text-gray-500"
                 placeholder="Branch or warehouse full address">
             <button type="button" onclick="this.parentElement.remove()" class="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center shadow-sm">
                 <i data-feather="x" class="w-4 h-4"></i>

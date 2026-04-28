@@ -74,7 +74,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Official Legal Name</label>
                             <input type="text" name="name" required value="{{ old('name', $company->name) }}"
-                                class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white placeholder-gray-400">
+                                class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white placeholder:text-gray-500">
                         </div>
 
                         <div class="grid grid-cols-2 gap-6">
@@ -223,7 +223,7 @@
                             @foreach($company->locations as $location)
                                 <div class="location-input flex items-center gap-3">
                                     <input type="text" name="locations[]" value="{{ $location->address }}"
-                                        class="flex-1 bg-white/5 border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-white placeholder-gray-600">
+                                        class="flex-1 bg-white/5 border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-white placeholder:text-gray-500">
                                     <button type="button" onclick="this.parentElement.remove()" class="w-10 h-10 bg-red-500/10 text-red-400 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
                                         <i data-feather="x" class="w-4 h-4"></i>
                                     </button>
@@ -286,7 +286,7 @@
         div.className = 'location-input flex items-center gap-3';
         div.innerHTML = `
             <input type="text" name="locations[]" 
-                class="flex-1 bg-white/5 border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-white placeholder-gray-600"
+                class="flex-1 bg-white/5 border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-tight focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-white placeholder:text-gray-500"
                 placeholder="ENTER PHYSICAL ADDRESS">
             <button type="button" onclick="this.parentElement.remove()" class="w-10 h-10 bg-red-500/10 text-red-400 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
                 <i data-feather="x" class="w-4 h-4"></i>
