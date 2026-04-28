@@ -11,6 +11,10 @@ Route::get('/invitation/{token}', [TeamController::class, 'acceptInvitation'])->
 Route::post('/invitation/process', [TeamController::class, 'processAcceptInvitation'])->name('team.process-acceptance');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/onboarding', [\Modules\Company\Http\Controllers\OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::post('/onboarding/validate-npwp', [\Modules\Company\Http\Controllers\OnboardingController::class, 'validateNpwp'])->name('onboarding.validate-npwp');
+    Route::post('/onboarding/store', [\Modules\Company\Http\Controllers\OnboardingController::class, 'store'])->name('onboarding.store');
+
     Route::get('/company-pending-approval', function () {
         return view('company::pending-approval');
     })->name('company.pending-approval')->middleware('company.selected');

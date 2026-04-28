@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             '/logout'
         ]);
 
+        $middleware->web(append: [
+            \App\Http\Middleware\OnboardingMiddleware::class,
+        ]);
+
         $middleware->alias([
             'admin' => \Modules\Admin\Http\Middleware\AdminMiddleware::class,
             'guest.admin' => \Modules\Admin\Http\Middleware\RedirectIfAdminAuthenticated::class,
