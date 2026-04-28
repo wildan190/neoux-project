@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Company\app\Http\Controllers;
+namespace Modules\Company\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Modules\Company\app\Http\Requests\ValidateNpwpRequest;
-use Modules\Company\app\Http\Requests\StoreOnboardingRequest;
-use Modules\Company\app\Services\OnboardingService;
+use Modules\Company\Http\Requests\ValidateNpwpRequest;
+use Modules\Company\Http\Requests\StoreOnboardingRequest;
+use Modules\Company\Services\OnboardingService;
 
 class OnboardingController extends Controller
 {

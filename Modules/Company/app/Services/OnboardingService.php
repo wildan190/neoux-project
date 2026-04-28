@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Company\app\Services;
+namespace Modules\Company\Services;
 
-use Modules\Company\app\Models\Company;
+use Modules\Company\Models\Company;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 

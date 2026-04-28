@@ -172,7 +172,6 @@
                                         class="w-full bg-slate-900/50 border border-white/10 rounded-xl md:rounded-2xl px-5 md:px-6 py-3.5 md:py-4 text-white text-sm md:text-base font-semibold transition-all appearance-none cursor-pointer">
                                         <option value="buyer" {{ old('category') == 'buyer' ? 'selected' : '' }}>Buyer / Procurement</option>
                                         <option value="vendor" {{ old('category') == 'vendor' ? 'selected' : '' }}>Vendor / Sales</option>
-                                        <option value="supplier" {{ old('category') == 'supplier' ? 'selected' : '' }}>Supplier</option>
                                     </select>
                                     <i data-feather="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"></i>
                                 </div>

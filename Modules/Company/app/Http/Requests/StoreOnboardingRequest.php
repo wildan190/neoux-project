@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Company\app\Http\Requests;
+namespace Modules\Company\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +13,7 @@ class StoreOnboardingRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'category' => 'required|in:buyer,vendor,supplier',
+            'category' => 'required|in:buyer,vendor',
             'business_category' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
