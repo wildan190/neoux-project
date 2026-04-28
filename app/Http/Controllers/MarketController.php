@@ -19,17 +19,17 @@ class MarketController extends Controller
 
         if ($search) {
             $searchLower = strtolower($search);
-            $query->where(function($q) use ($searchLower) {
+            $query->where(function ($q) use ($searchLower) {
                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(sku) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(tags) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereHas('product', function($pq) use ($searchLower) {
-                      $pq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
-                         ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchLower}%"]);
-                  })
-                  ->orWhereHas('company', function($cq) use ($searchLower) {
-                      $cq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"]);
-                  });
+                    ->orWhereRaw('LOWER(sku) LIKE ?', ["%{$searchLower}%"])
+                    ->orWhereRaw('LOWER(tags) LIKE ?', ["%{$searchLower}%"])
+                    ->orWhereHas('product', function ($pq) use ($searchLower) {
+                        $pq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
+                            ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchLower}%"]);
+                    })
+                    ->orWhereHas('company', function ($cq) use ($searchLower) {
+                        $cq->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"]);
+                    });
             });
         }
 
@@ -45,18 +45,17 @@ class MarketController extends Controller
     public function show($id)
     {
         $product = CatalogueItem::with([
-            'product', 
-            'images', 
+            'product',
+            'images',
             'company',
             'product.category',
             'attributes'
         ])->where('is_active', true)->findOrFail($id);
 
-        // Fetch related products from the same company or category
         $relatedProducts = CatalogueItem::with(['product', 'primaryImage', 'company'])
             ->where('is_active', true)
             ->where('id', '!=', $id)
-            ->where(function($q) use ($product) {
+            ->where(function ($q) use ($product) {
                 $q->where('company_id', $product->company_id);
             })
             ->latest()

@@ -18,14 +18,16 @@ class OnboardingMiddleware
     {
         if (Auth::check()) {
             $user = Auth::user();
-            
-            // Allow access to onboarding routes, logout, and static assets
+
+            if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
+                return $next($request);
+            }
+
             if ($request->is('onboarding*') || $request->is('logout') || $request->is('api/*')) {
                 return $next($request);
             }
 
-            // If user has no company, redirect to onboarding
-            if (!$user->companies()->exists()) {
+            if (session('needs_onboarding') && !$user->companies()->exists()) {
                 return redirect()->route('onboarding.index');
             }
         }
