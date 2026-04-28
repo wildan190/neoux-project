@@ -1,0 +1,74 @@
+{
+    "013456789012000": {
+        "name": "PT GLOBAL TEKNOLOGI INDONESIA",
+        "address": "Jl. Sudirman No. 45, South Jakarta",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "024567890123000": {
+        "name": "CV MAJU JAYA BERSAMA",
+        "address": "Jababeka Industrial Area Block C-12, Bekasi",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "098765432109000": {
+        "name": "WILDAN BELFIORE PERSONAL",
+        "address": "Komp. Melati No. 7, Bandung",
+        "status": "Active",
+        "type": "Individual"
+    },
+    "123456789012000": {
+        "name": "PT INDO FOOD MAKMUR",
+        "address": "Sudirman Plaza Lt. 12, South Jakarta",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "234567890123000": {
+        "name": "PT TELKOM INDONESIA TBK",
+        "address": "Jl. Gatot Subroto No. 52, Jakarta",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "345678901234000": {
+        "name": "CV KARYA ANAK BANGSA",
+        "address": "Kuningan Tower Lt. 5, Jakarta Selatan",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "456789012345000": {
+        "name": "PT BANK CENTRAL ASIA TBK",
+        "address": "Menara BCA Lt. 20, Grand Indonesia, Jakarta",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "567890123456000": {
+        "name": "PT PERTAMINA (PERSERO)",
+        "address": "Jl. Medan Merdeka Timur No. 1, Jakarta",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "678901234567000": {
+        "name": "PT UNILEVER INDONESIA TBK",
+        "address": "BSD Green Office Park Kav. 3, Tangerang",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "789012345678000": {
+        "name": "CV SINAR LOGISTIK JAYA",
+        "address": "Kawasan Industri Pulo Gadung, Jakarta Timur",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "890123456789000": {
+        "name": "PT TOKOPEDIA INDONESIA",
+        "address": "Tokopedia Tower Lt. 48, Jakarta Selatan",
+        "status": "Active",
+        "type": "Corporate Entity"
+    },
+    "901234567890000": {
+        "name": "PT TRAVELOKA INDONESIA",
+        "address": "Wisma 77 Lt. 15, Slipi, Jakarta Barat",
+        "status": "Active",
+        "type": "Corporate Entity"
+    }
+}
