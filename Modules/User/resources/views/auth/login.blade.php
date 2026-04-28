@@ -17,10 +17,10 @@
             <div class="mb-12">
                 <p class="text-primary-600 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Secure Authentication</p>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white uppercase tracking-tight leading-none mb-4">
-                    Selamat <span class="text-primary-600 font-medium">Datang</span>
+                    Welcome <span class="text-primary-600 font-medium">Back</span>
                 </h1>
                 <p class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-relaxed">
-                    Masuk ke akun Anda untuk mulai mengelola procurement dan vendor.
+                    Sign in to your account to start managing procurement and vendors.
                 </p>
             </div>
 
@@ -36,7 +36,7 @@
                                 <i data-feather="mail" class="w-5 h-5"></i>
                             </div>
                             <input type="email" name="email" id="email" required value="{{ old('email') }}" autofocus
-                                class="w-full bg-gray-50 dark:bg-gray-800/50 border border-transparent rounded-2xl pl-16 pr-8 py-5 text-sm font-semibold focus:ring-4 focus:ring-primary-500/10 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 transition-all text-gray-900 dark:text-white shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-800/50 border border-transparent rounded-2xl pl-16 pr-8 py-5 text-sm font-semibold focus:ring-4 focus:ring-primary-500/10 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 transition-all text-gray-900 dark:text-white shadow-inner placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                 placeholder="you@company.com">
                         </div>
                         @error('email') <p class="mt-4 text-[10px] font-bold text-red-500 uppercase tracking-widest pl-6">{{ $message }}</p> @enderror
@@ -46,7 +46,7 @@
                         <div class="flex items-center justify-between mb-4">
                             <label for="password" class="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Password</label>
                             @if (Route::has('password.request'))
-                                <a href="{{ route('password.request') }}" class="text-[9px] font-black text-primary-600 uppercase tracking-widest hover:underline">Lupa Password?</a>
+                                <a href="{{ route('password.request') }}" class="text-[9px] font-black text-primary-600 uppercase tracking-widest hover:underline">Forgot Password?</a>
                             @endif
                         </div>
                         <div class="relative">
@@ -54,7 +54,7 @@
                                 <i data-feather="lock" class="w-5 h-5"></i>
                             </div>
                             <input type="password" name="password" id="password" required
-                                class="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent rounded-[2rem] pl-16 pr-8 py-5 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 transition-all text-gray-900 dark:text-white shadow-inner"
+                                class="w-full bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent rounded-[2rem] pl-16 pr-8 py-5 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 transition-all text-gray-900 dark:text-white shadow-inner placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                 placeholder="••••••••">
                         </div>
                     </div>
@@ -62,21 +62,21 @@
                     <div class="flex items-center justify-between px-2">
                         <label class="flex items-center gap-3 cursor-pointer group">
                             <input type="checkbox" name="remember" class="w-6 h-6 rounded-lg border-gray-200 dark:border-gray-700 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 transition-all cursor-pointer">
-                            <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-gray-600 transition-colors">Ingat Saya</span>
+                            <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest group-hover:text-gray-600 transition-colors">Remember Me</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="pt-4">
                     <button type="submit" class="w-full h-16 bg-gray-900 dark:bg-white dark:text-gray-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-2xl shadow-xl shadow-gray-900/10 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-4 group">
-                        <span>Masuk ke Platform</span>
+                        <span>Sign In to Platform</span>
                         <i data-feather="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </button>
                     
                     <div class="mt-8 text-center">
                         <p class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                            Belum punya akun? 
-                            <a href="{{ route('register') }}" class="text-primary-600 hover:underline font-bold ml-1">Daftar Sekarang</a>
+                            Don't have an account? 
+                            <a href="{{ route('register') }}" class="text-primary-600 hover:underline font-bold ml-1">Register Now</a>
                         </p>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                 </h2>
                 <div class="h-1 w-20 bg-primary-500 rounded-full mb-8"></div>
                 <p class="text-gray-400 font-semibold text-sm leading-relaxed">
-                    Akses ribuan penawaran dari vendor global dan kelola seluruh siklus procurement Anda dalam satu aplikasi terpusat.
+                    Access thousands of deals from global vendors and manage your entire procurement lifecycle in one centralized app.
                 </p>
             </div>
 
