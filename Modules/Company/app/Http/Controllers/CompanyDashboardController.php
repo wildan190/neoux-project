@@ -25,8 +25,9 @@ class CompanyDashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Company not found.');
         }
 
-        $isBuyer = $company->category === 'buyer';
-        $isVendor = in_array($company->category, ['vendor', 'supplier']);
+        $mode = session('procurement_mode', $company->category);
+        $isBuyer = $mode === 'buyer';
+        $isVendor = in_array($mode, ['vendor', 'supplier']);
 
         // Calculate stats based on company type
         $stats = $this->calculateStats($company, $isBuyer, $isVendor);

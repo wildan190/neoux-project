@@ -119,29 +119,29 @@
                 <div class="space-y-10 relative z-10 flex-1">
                     @if($isBuyer)
                         <div>
-                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Compliance rating</p>
+                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Savings Achievement</p>
                             <div class="flex items-center gap-4">
-                                <span class="text-4xl font-black text-white tabular-nums leading-none">{{ 100 - round(($stats['spend_analyst']['maverick_spend'] / ($stats['spend_analyst']['total_spend'] ?: 1)) * 100) }}%</span>
+                                <span class="text-4xl font-black text-emerald-500 tabular-nums leading-none">{{ $stats['spend_analyst']['total_spend'] > 0 ? round(($stats['cost_management']['cost_savings'] / $stats['spend_analyst']['total_spend']) * 100, 1) : 0 }}%</span>
                                 <div class="w-px h-8 bg-white/10"></div>
-                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Network benchmark: 88%</span>
+                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Vs Total Spend</span>
                             </div>
                         </div>
 
                         <div>
-                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Operational efficiency</p>
+                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Operational Velocity</p>
                             <div class="flex items-center gap-4">
                                 <span class="text-4xl font-black text-white tabular-nums leading-none">{{ $stats['operational_efficiency']['avg_cycle_time'] }}D</span>
                                 <div class="w-px h-8 bg-white/10"></div>
-                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Cycle Time (Avg)</span>
+                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Avg Cycle Time</span>
                             </div>
                         </div>
 
                         <div>
-                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Supply reliability</p>
+                            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 leading-none">Network Fulfillment</p>
                             <div class="flex items-center gap-4">
-                                <span class="text-4xl font-black text-emerald-500 tabular-nums leading-none">{{ $stats['supplier_performance']['fill_rate'] }}%</span>
+                                <span class="text-4xl font-black text-white tabular-nums leading-none">{{ $stats['supplier_performance']['fill_rate'] }}%</span>
                                 <div class="w-px h-8 bg-white/10"></div>
-                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Global Fill Rate</span>
+                                <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none">Delivery Rate</span>
                             </div>
                         </div>
                     @else
