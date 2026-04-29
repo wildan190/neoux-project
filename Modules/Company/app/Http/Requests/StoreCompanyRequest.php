@@ -41,6 +41,9 @@ class StoreCompanyRequest extends FormRequest
             'documents' => 'nullable|array',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'historical_po' => 'nullable|file|max:10240',
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:100',
+            'bank_account_holder' => 'nullable|string|max:255',
         ];
     }
 }

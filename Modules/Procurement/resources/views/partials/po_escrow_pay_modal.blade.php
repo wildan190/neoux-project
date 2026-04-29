@@ -27,23 +27,25 @@
                 </p>
             </div>
 
-            <form action="{{ route('procurement.po.escrow-pay', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
-                @csrf
-                <div class="space-y-6">
+            {{-- Error message --}}
+            <div id="snapErrorMsg" class="hidden mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-600 dark:text-red-400 font-bold"></div>
 
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('escrowPayModal').classList.add('hidden')" 
+                        class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-bold transition-all">
+                    Batal
+                </button>
+                <button type="button" id="snapPayBtn"
+                        onclick="initSnapPayment()"
+                        class="flex-2 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0 px-6">
+                    <i data-feather="credit-card" class="w-5 h-5"></i>
+                    Bayar Sekarang
+                </button>
+            </div>
 
-                    <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="document.getElementById('escrowPayModal').classList.add('hidden')" 
-                                class="flex-1 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-bold transition-all">
-                            Batal
-                        </button>
-                        <button type="submit" class="flex-2 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0">
-                            <i data-feather="check-circle" class="w-5 h-5"></i>
-                            Konfirmasi Bayar
-                        </button>
-                    </div>
-                </div>
-            </form>
+            <p class="text-center text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-4">
+                Powered by Midtrans Secure Payment
+            </p>
         </div>
     </div>
 </div>
