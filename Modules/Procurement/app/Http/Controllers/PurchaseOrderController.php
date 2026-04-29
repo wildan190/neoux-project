@@ -145,8 +145,8 @@ class PurchaseOrderController extends Controller
                 'escrow_reference' => 'ESC-' . strtoupper(Str::random(10)),
             ]);
 
-            // Automatically Generate Interim Invoice
-            $invoiceNumber = 'INT-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+            // Automatically Generate Proforma Invoice
+            $invoiceNumber = 'PRO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
             $invoice = \Modules\Procurement\Models\Invoice::create([
                 'invoice_number' => $invoiceNumber,
                 'purchase_order_id' => $purchaseOrder->id,
@@ -154,7 +154,7 @@ class PurchaseOrderController extends Controller
                 'invoice_date' => now(),
                 'due_date' => now()->addDays(7),
                 'total_amount' => $purchaseOrder->total_amount,
-                'status' => 'interim',
+                'status' => 'proforma',
             ]);
 
             // Create Invoice Items from PO Items

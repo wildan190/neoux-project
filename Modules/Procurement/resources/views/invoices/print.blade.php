@@ -22,9 +22,9 @@
         <div id="printable-content" class="bg-white shadow-lg rounded-lg overflow-hidden">
             <!-- Header Section -->
             <div class="bg-gradient-to-r from-primary-500 to-secondary-500 px-8 py-6 text-white relative overflow-hidden">
-                @if($invoice->status === 'interim')
+                @if($invoice->status === 'proforma')
                     <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none -rotate-12">
-                        <span class="text-8xl font-black border-8 border-white p-4">INTERIM</span>
+                        <span class="text-8xl font-black border-8 border-white p-4">PROFORMA</span>
                     </div>
                 @endif
                 <div class="flex justify-between items-start">
@@ -141,11 +141,12 @@
                     </ul>
                 </div>
 
+                @if($invoice->status !== 'proforma')
                 <div class="grid grid-cols-2 gap-8 mt-8">
                     {{-- Vendor Company Representative (Issuing Invoice) --}}
                     <div class="text-center">
                         <div class="h-24 flex items-center justify-center mb-2">
-                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|VENDOR|' . $invoice->created_at, 80) }}" class="w-20 h-20">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->invoice_number . '|VENDOR|' . $invoice->created_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Vendor Representative</p>
@@ -158,7 +159,7 @@
                     {{-- Buyer Company Representative --}}
                     <div class="text-center">
                         <div class="h-24 flex items-center justify-center mb-2">
-                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->purchaseOrder->invoice_number . '|BUYER|' . $invoice->created_at, 80) }}" class="w-20 h-20">
+                            <img src="{{ App\Support\QrCodeHelper::generateBase64Svg($invoice->invoice_number . '|BUYER|' . $invoice->created_at, 80) }}" class="w-20 h-20">
                         </div>
                         <div class="border-t-2 border-gray-400 pt-2">
                             <p class="text-sm font-bold text-gray-700">Buyer Representative</p>
@@ -168,6 +169,11 @@
                         </div>
                     </div>
                 </div>
+                @else
+                <div class="py-12 text-center">
+                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest italic">This proforma invoice is unsigned and for reference only</p>
+                </div>
+                @endif
             </div>
 
             <!-- Footer -->
@@ -217,9 +223,9 @@
             print-color-adjust: exact !important;
         }
         /* Watermark for Print */
-        @if($invoice->status === 'interim')
+        @if($invoice->status === 'proforma')
         #printable-content::after {
-            content: "INTERIM / PROFORMA";
+            content: "PROFORMA";
             position: fixed;
             top: 50%;
             left: 50%;
