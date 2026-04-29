@@ -321,7 +321,13 @@
     <div class="terms">
         <h3>TERMS & CONDITIONS</h3>
         <ul>
+            @if($invoice->purchaseOrder->offer)
+            <li>• <strong>Payment Scheme:</strong> {{ $invoice->purchaseOrder->offer->payment_scheme ?? 'Net 30 days from invoice date' }}</li>
+            <li>• <strong>Promised Delivery:</strong> {{ $invoice->purchaseOrder->offer->delivery_time ?? 'Standard' }} Days</li>
+            <li>• <strong>Warranty:</strong> {{ $invoice->purchaseOrder->offer->warranty ?? 'N/A' }} Months</li>
+            @else
             <li>• Payment terms: Net 30 days from invoice date</li>
+            @endif
             <li>• Delivery must be made to the address specified by the buyer</li>
             <li>• All items must match the specifications in this purchase order</li>
             <li>• Any discrepancies must be reported within 48 hours of delivery</li>

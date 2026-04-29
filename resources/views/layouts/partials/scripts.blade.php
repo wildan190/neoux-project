@@ -205,6 +205,35 @@
                         }
                     }
 
+                    // Update Sidebar Approvals Badges
+                    const buyerApprovalBadge = document.getElementById('badge-quick_approvals_buyer');
+                    if (buyerApprovalBadge) {
+                        const count = data.quick_approvals_buyer || 0;
+                        if (count > 0) {
+                            buyerApprovalBadge.innerText = count;
+                            buyerApprovalBadge.classList.remove('hidden');
+                            buyerApprovalBadge.style.display = '';
+                        } else {
+                            buyerApprovalBadge.classList.add('hidden');
+                            buyerApprovalBadge.innerText = '';
+                            buyerApprovalBadge.style.display = 'none';
+                        }
+                    }
+
+                    const vendorApprovalBadge = document.getElementById('badge-quick_approvals_vendor');
+                    if (vendorApprovalBadge) {
+                        const count = data.quick_approvals_vendor || 0;
+                        if (count > 0) {
+                            vendorApprovalBadge.innerText = count;
+                            vendorApprovalBadge.classList.remove('hidden');
+                            vendorApprovalBadge.style.display = '';
+                        } else {
+                            vendorApprovalBadge.classList.add('hidden');
+                            vendorApprovalBadge.innerText = '';
+                            vendorApprovalBadge.style.display = 'none';
+                        }
+                    }
+
                     if (lastUnreadCount !== -1 && data.notifications > lastUnreadCount && triggerToast) {
                         window.showToast('You have a new notification', 'success');
                         if (notifMenu && !notifMenu.classList.contains('hidden')) {
