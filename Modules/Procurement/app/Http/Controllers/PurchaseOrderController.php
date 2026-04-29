@@ -13,7 +13,7 @@ use Modules\Procurement\Imports\PurchaseOrderHistoryImport;
 use Modules\Procurement\Jobs\ProcessPurchaseOrderImport;
 use Modules\Procurement\Models\PurchaseOrder;
 use Modules\Procurement\Models\PurchaseRequisition;
-use Modules\Procurement\app\Services\PurchaseOrderService;
+use Modules\Procurement\Services\PurchaseOrderService;
 
 class PurchaseOrderController extends Controller
 {

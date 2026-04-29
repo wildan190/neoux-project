@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Procurement\app\Services;
+namespace Modules\Procurement\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
