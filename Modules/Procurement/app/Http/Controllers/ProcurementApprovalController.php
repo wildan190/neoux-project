@@ -102,10 +102,10 @@ class ProcurementApprovalController extends Controller
 
         // --- VENDOR SIDE APPROVALS ---
 
-        // 5. POs (Pending Vendor Acceptance & Issued waiting for confirmation)
+        // 5. POs (Pending Vendor Acceptance, Issued, or Confirmed — still awaiting payment/shipment)
         $pendingPOs = PurchaseOrder::with(['buyerCompany', 'purchaseRequisition'])
             ->where('vendor_company_id', $selectedCompanyId)
-            ->whereIn('status', ['pending_vendor_acceptance', 'issued'])
+            ->whereIn('status', ['pending_vendor_acceptance', 'issued', 'confirmed'])
             ->latest()
             ->get();
 

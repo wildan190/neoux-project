@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             '/dashboard/select/*',
-            '/logout'
+            '/logout',
+            '/api/midtrans/callback'
         ]);
 
         $middleware->web(append: [

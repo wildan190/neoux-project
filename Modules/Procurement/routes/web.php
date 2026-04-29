@@ -13,6 +13,9 @@ use Modules\Procurement\Http\Controllers\ProcurementApprovalController;
 use Modules\Procurement\Http\Controllers\ProcurementController;
 use Modules\Procurement\Http\Controllers\PurchaseOrderController;
 use Modules\Procurement\Http\Controllers\PurchaseRequisitionController;
+use Modules\Procurement\Http\Controllers\MidtransController;
+
+Route::get('/midtrans/finish', [MidtransController::class, 'finish'])->name('procurement.midtrans.finish');
 
 Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('procurement.')->group(function () {
 
@@ -60,6 +63,7 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     Route::post('/po/{purchaseOrder}/vendor-accept', [PurchaseOrderController::class, 'vendorAccept'])->name('po.vendor-accept');
     Route::post('/po/{purchaseOrder}/vendor-reject', [PurchaseOrderController::class, 'vendorReject'])->name('po.vendor-reject');
     Route::post('/po/{purchaseOrder}/escrow-pay', [PurchaseOrderController::class, 'escrowPay'])->name('po.escrow-pay');
+    Route::post('/po/{purchaseOrder}/escrow-verify', [PurchaseOrderController::class, 'verifyPayment'])->name('po.escrow-verify');
     Route::post('/po/{purchaseOrder}/escrow-release', [PurchaseOrderController::class, 'escrowRelease'])->name('po.escrow-release');
     Route::post('/po/import-history', [PurchaseOrderController::class, 'importHistory'])->name('po.import-history');
     Route::post('/po/confirm-import', [PurchaseOrderController::class, 'confirmImport'])->name('po.confirm-import');

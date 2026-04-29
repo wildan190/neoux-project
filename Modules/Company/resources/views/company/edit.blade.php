@@ -201,6 +201,36 @@
                             <input type="text" name="address" value="{{ old('address', $company->address) }}" placeholder="HEADQUARTERS PHYSICAL LOCATION"
                                 class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white uppercase tracking-widest">
                         </div>
+
+                        <div class="pt-8 mt-8 border-t border-gray-100 dark:border-gray-800">
+                            <h4 class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-[0.2em] mb-6">Financial Routing (Bank Account)</h4>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Bank Name (Midtrans IRIS Compatible)</label>
+                                    <select name="bank_name" class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white">
+                                        <option value="">-- Select Bank --</option>
+                                        @foreach(['bca' => 'BCA', 'mandiri' => 'Mandiri', 'bni' => 'BNI', 'bri' => 'BRI', 'cimb' => 'CIMB Niaga', 'danamon' => 'Danamon', 'permata' => 'Permata', 'bsm' => 'Bank Syariah Indonesia (BSI)'] as $code => $name)
+                                            <option value="{{ $code }}" {{ old('bank_name', $company->bank_name) == $code ? 'selected' : '' }}>{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="mt-2 text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-1">Used for automatic payouts and disbursements</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Account Number</label>
+                                        <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $company->bank_account_number) }}" placeholder="e.g. 1234567890"
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white tabular-nums tracking-widest">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Account Holder Name</label>
+                                        <input type="text" name="bank_account_holder" value="{{ old('bank_account_holder', $company->bank_account_holder) }}" placeholder="e.g. PT. PERUSAHAAN JAYA"
+                                            class="w-full bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-gray-900 dark:text-white uppercase">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

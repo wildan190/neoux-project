@@ -371,13 +371,22 @@ class GoodsReceiptController extends Controller
                     }
                 }
 
-                // Auto-trigger escrow 3-way matching if escrow is paid (Take out / Send to Finance)
+                // Auto-trigger escrow 3-way matching if escrow is paid
                 if ($purchaseOrder->escrow_status === 'paid') {
                     $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
-                    $matchingService->matchEscrow($purchaseOrder);
-                    
-                    // Transaction is now essentially "Sent to Finance" (Completed)
-                    $purchaseOrder->update(['status' => 'completed']);
+                    $matchResult = $matchingService->matchEscrow($purchaseOrder);
+
+                    // If all 3 legs matched → trigger IRIS disbursement automatically
+                    if (($matchResult['status'] ?? null) === 'matched') {
+                        // Dispatch Background Job for Disbursement
+                        \Modules\Procurement\Jobs\ProcessDisbursementJob::dispatch($purchaseOrder);
+                    } else {
+                        // Matching not complete (partial), keep full_delivery status
+                        $purchaseOrder->update(['status' => 'full_delivery']);
+                    }
+                } else {
+                    // Escrow not yet paid — just mark as full_delivery, wait for payment
+                    $purchaseOrder->update(['status' => 'full_delivery']);
                 }
             } elseif ($totalReceived > 0) {
                 $purchaseOrder->update(['status' => 'partial_delivery']);

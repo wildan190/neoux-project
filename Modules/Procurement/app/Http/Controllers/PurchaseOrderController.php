@@ -6,23 +6,24 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Company\Models\Company;
-use Modules\Procurement\Emails\PurchaseOrderSent;
 use Modules\Procurement\Exports\PurchaseOrderTemplateExport;
 use Modules\Procurement\Imports\PurchaseOrderHistoryImport;
 use Modules\Procurement\Jobs\ProcessPurchaseOrderImport;
 use Modules\Procurement\Models\PurchaseOrder;
-use Modules\Procurement\Models\PurchaseOrderItem;
 use Modules\Procurement\Models\PurchaseRequisition;
-use Modules\Procurement\Models\PurchaseRequisitionOffer;
-use Modules\Procurement\Notifications\PurchaseOrderConfirmed;
-use Modules\Procurement\Notifications\PurchaseOrderReceived;
+use Modules\Procurement\app\Services\PurchaseOrderService;
 
 class PurchaseOrderController extends Controller
 {
+    protected $service;
+
+    public function __construct(PurchaseOrderService $service)
+    {
+        $this->service = $service;
+    }
+
     public function index()
     {
         $selectedCompanyId = session('selected_company_id');
@@ -137,49 +138,10 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Purchase Order is already ' . $purchaseOrder->status);
         }
 
-        DB::beginTransaction();
         try {
-            $purchaseOrder->update([
-                'status' => 'confirmed',
-                'confirmed_at' => now(),
-                'escrow_reference' => 'ESC-' . strtoupper(Str::random(10)),
-            ]);
-
-            // Automatically Generate Proforma Invoice
-            $invoiceNumber = 'PRO-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
-            $invoice = \Modules\Procurement\Models\Invoice::create([
-                'invoice_number' => $invoiceNumber,
-                'purchase_order_id' => $purchaseOrder->id,
-                'vendor_company_id' => $purchaseOrder->vendor_company_id,
-                'invoice_date' => now(),
-                'due_date' => now()->addDays(7),
-                'total_amount' => $purchaseOrder->total_amount,
-                'status' => 'proforma',
-            ]);
-
-            // Create Invoice Items from PO Items
-            foreach ($purchaseOrder->items as $poItem) {
-                \Modules\Procurement\Models\InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'purchase_order_item_id' => $poItem->id,
-                    'quantity_invoiced' => $poItem->quantity_ordered,
-                    'unit_price' => $poItem->unit_price,
-                    'subtotal' => $poItem->subtotal,
-                ]);
-            }
-
-            DB::commit();
-
-            // Notify Buyer (the user who created the PO)
-            if ($purchaseOrder->createdBy) {
-                $purchaseOrder->createdBy->notify(new PurchaseOrderConfirmed($purchaseOrder));
-                \Illuminate\Support\Facades\Log::info('PO Confirmation notification sent to: ' . $purchaseOrder->createdBy->email);
-            }
-
+            $this->service->confirmPurchaseOrder($purchaseOrder);
             return redirect()->back()->with('success', 'Purchase Order confirmed successfully!');
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->with('error', 'Failed to confirm Purchase Order: ' . $e->getMessage());
         }
     }
@@ -222,102 +184,12 @@ class PurchaseOrderController extends Controller
 
     public function generate(PurchaseRequisition $purchaseRequisition)
     {
-        $selectedCompanyId = session('selected_company_id');
-
-        // Only PR owner can generate PO
-        if ($purchaseRequisition->company_id != $selectedCompanyId) {
-            abort(403, 'Unauthorized to generate PO for this requisition.');
-        }
-
-        if (!$purchaseRequisition->winning_offer_id) {
-            return back()->with('error', 'No winning offer selected for this requisition.');
-        }
-
-        $offer = PurchaseRequisitionOffer::with('items')->findOrFail($purchaseRequisition->winning_offer_id);
-
-        if ($offer->status !== 'accepted') {
-            return back()->with('error', 'The selected winner has not been approved by the Purchasing Manager/Head yet.');
-        }
-
-        if ($purchaseRequisition->purchaseOrder) {
-            return back()->with('error', 'Purchase Order already exists for this requisition.');
-        }
-
-        DB::beginTransaction();
         try {
-            // Generate PO Number (PO-YYYY-RANDOM)
-            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
-
-            $purchaseOrder = PurchaseOrder::create([
-                'po_number' => $poNumber,
-                'company_id' => $purchaseRequisition->company_id,
-                'purchase_requisition_id' => $purchaseRequisition->id,
-                'offer_id' => $offer->id,
-                'vendor_company_id' => $offer->company_id,
-                'created_by_user_id' => Auth::id(),
-                'approved_by_user_id' => Auth::id(),
-                'total_amount' => $offer->total_price,
-                'status' => 'pending_vendor_acceptance',
-                'purchase_type' => 'tender',
-                'month' => date('F'),
-                'currency' => 'IDR',
-            ]);
-
-            // Calculate negotiation ratio if total price differs from sum of items
-            $originalTotal = $offer->items()->sum('subtotal');
-            $negotiatedTotal = $offer->total_price;
-            $ratio = ($originalTotal > 0) ? ($negotiatedTotal / $originalTotal) : 1;
-
-            foreach ($offer->items as $offerItem) {
-                // Adjust unit price and subtotal based on negotiation
-                $adjustedUnitPrice = $offerItem->unit_price * $ratio;
-                $adjustedSubtotal = $offerItem->subtotal * $ratio;
-
-                PurchaseOrderItem::create([
-                    'purchase_order_id' => $purchaseOrder->id,
-                    'purchase_requisition_item_id' => $offerItem->purchase_requisition_item_id,
-                    'quantity_ordered' => $offerItem->quantity_offered,
-                    'quantity_received' => 0,
-                    'unit_price' => $adjustedUnitPrice,
-                    'subtotal' => $adjustedSubtotal,
-                    'tax_amount' => 0,
-                    'tax_rate' => 0,
-                    'total_inc_tax' => $adjustedSubtotal,
-                    'price_idr' => $adjustedUnitPrice,
-                    'price_original' => $adjustedUnitPrice,
-                ]);
-            }
-
-            $purchaseRequisition->update([
-                'po_generated_at' => now(),
-                'status' => 'ordered', // PO has been generated
-            ]);
-
-            DB::commit();
-
-            try {
-                // Find contact person to email: The user who created the winning offer
-                $vendorUser = $offer->user;
-                if ($vendorUser) {
-                    // 1. Send Email Notification
-                    \Illuminate\Support\Facades\Mail::to($vendorUser->email)
-                        ->send(new PurchaseOrderSent($purchaseOrder));
-
-                    // 2. Send System Notification
-                    $vendorUser->notify(new PurchaseOrderReceived($purchaseOrder));
-                }
-            } catch (\Exception $e) {
-                // Don't rollback if email fails, just log it
-                \Illuminate\Support\Facades\Log::error('Failed to send PO email to vendor: ' . $e->getMessage());
-            }
-
+            $purchaseOrder = $this->service->generateFromRequisition($purchaseRequisition, Auth::id());
             return redirect()->route('procurement.po.show', $purchaseOrder)
                 ->with('success', 'Purchase Order generated successfully! Notification has been sent to the vendor.');
-
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return back()->with('error', 'Failed to generate Purchase Order: ' . $e->getMessage());
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -326,30 +198,12 @@ class PurchaseOrderController extends Controller
      */
     public function vendorAccept(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
-            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
-        }
-
-        $purchaseOrder->update([
-            'status' => 'issued', // Official issuance after vendor acceptance
-            'vendor_accepted_at' => now(),
-            'vendor_notes' => $request->notes,
-        ]);
-
-        // Notify the Buyer (PO Creator)
         try {
-            if ($purchaseOrder->createdBy) {
-                // 1. Send Email Notification (if you have a Mailable for confirmed PO, otherwise skip or create one)
-                // \Mail::to($purchaseOrder->createdBy->email)->send(new \Modules\Procurement\Emails\PurchaseOrderConfirmed($purchaseOrder));
-
-                // 2. Send System Notification
-                $purchaseOrder->createdBy->notify(new PurchaseOrderConfirmed($purchaseOrder));
-            }
+            $this->service->updateVendorAcceptance($purchaseOrder, 'issued', $request->notes);
+            return back()->with('success', 'You have accepted the Purchase Order. You can now prepare the delivery.');
         } catch (\Exception $e) {
-            \Log::error('Failed to send PO confirmation notification: ' . $e->getMessage());
+            return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('success', 'You have accepted the Purchase Order. You can now prepare the delivery.');
     }
 
     /**
@@ -357,17 +211,12 @@ class PurchaseOrderController extends Controller
      */
     public function vendorReject(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->status !== 'pending_vendor_acceptance') {
-            return back()->withErrors(['error' => 'This PO is not pending acceptance.']);
+        try {
+            $this->service->updateVendorAcceptance($purchaseOrder, 'rejected_by_vendor', $request->notes);
+            return back()->with('success', 'Purchase Order has been rejected.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $purchaseOrder->update([
-            'status' => 'rejected_by_vendor',
-            'vendor_rejected_at' => now(),
-            'vendor_notes' => $request->notes,
-        ]);
-
-        return back()->with('success', 'Purchase Order has been rejected.');
     }
 
     /**
@@ -392,35 +241,92 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Escrow has already been paid or processed.');
         }
 
-        $purchaseOrder->update([
-            'escrow_status' => 'paid',
-            'escrow_paid_at' => now(),
-            'escrow_reference' => $request->escrow_reference ?? ('TRX-' . strtoupper(\Illuminate\Support\Str::random(10))),
-        ]);
+        // Setup Midtrans
+        \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
+        \Midtrans\Config::$isSanitized = config('services.midtrans.is_sanitized');
+        \Midtrans\Config::$is3ds = config('services.midtrans.is_3ds');
 
-        // Notify Vendor (Company Owner and Offer Creator)
+        $orderId = 'PO-' . $purchaseOrder->po_number . '-' . time();
+        $grossAmount = $purchaseOrder->adjusted_total_amount;
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $grossAmount,
+            ],
+            'customer_details' => [
+                'first_name' => Auth::user()->name,
+                'email' => Auth::user()->email,
+            ],
+            'item_details' => [
+                [
+                    'id' => $purchaseOrder->po_number,
+                    'price' => $grossAmount,
+                    'quantity' => 1,
+                    'name' => 'Payment for PO ' . $purchaseOrder->po_number
+                ]
+            ],
+            'callbacks' => [
+                'finish' => route('procurement.midtrans.finish')
+            ]
+        ];
+
         try {
-            $recipients = collect();
-            
-            // 1. Company Owner
-            if ($purchaseOrder->vendorCompany && $purchaseOrder->vendorCompany->user) {
-                $recipients->push($purchaseOrder->vendorCompany->user);
+            $snapTransaction = \Midtrans\Snap::createTransaction($params);
+            $snapToken = $snapTransaction->token;
+            $snapUrl = $snapTransaction->redirect_url;
+
+            // Save reference in DB
+            $purchaseOrder->update([
+                'escrow_reference' => $orderId,
+            ]);
+
+            // If AJAX request (from JS fetch), return token for embedded Snap modal
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'snap_token' => $snapToken,
+                    'redirect_url' => $snapUrl,
+                ]);
             }
-            
-            // 2. Offer Creator (Sales Rep)
-            if ($purchaseOrder->offer && $purchaseOrder->offer->user) {
-                $recipients->push($purchaseOrder->offer->user);
-            }
-            
-            // Send unique notifications
-            $recipients->unique('id')->each(function ($user) use ($purchaseOrder) {
-                $user->notify(new \Modules\Procurement\Notifications\PaymentReceived($purchaseOrder));
-            });
+
+            // Fallback: redirect to Snap payment page
+            return redirect($snapUrl);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send payment notification: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Midtrans Snap Error: ' . $e->getMessage());
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+            return back()->with('error', 'Failed to generate payment link: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Verify payment status directly from Midtrans API and update escrow status.
+     * Called by the frontend after onSuccess to handle environments where webhooks can't reach localhost.
+     */
+    public function verifyPayment(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $orderId = $request->input('order_id') ?? $purchaseOrder->escrow_reference;
+
+        if (!$orderId) {
+            return response()->json(['error' => 'No order reference found.'], 400);
         }
 
-        return back()->with('success', 'Pembayaran escrow berhasil dicatat! Vendor telah dinotifikasi dan dapat mulai mengirimkan barang.');
+        try {
+            $result = $this->service->verifyPayment($purchaseOrder, $orderId);
+
+            return response()->json([
+                'status' => $result['status'],
+                'message' => $result['immediate_disbursement']
+                    ? 'Pembayaran dikonfirmasi. Barang sudah diterima sebelumnya, dana otomatis dicairkan ke vendor.'
+                    : 'Pembayaran dikonfirmasi. Vendor telah dinotifikasi.',
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Midtrans verify error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -440,15 +346,12 @@ class PurchaseOrderController extends Controller
             return back()->with('error', 'Escrow must be in "paid" status to release.');
         }
 
-        // Run 3-way matching first
-        $matchingService = new \Modules\Procurement\Services\ThreeWayMatchingService;
-        $result = $matchingService->matchEscrow($purchaseOrder);
-
-        if ($result['status'] === 'matched') {
-            return back()->with('success', 'Escrow berhasil dicairkan ke vendor! Transaksi selesai.');
+        try {
+            $this->service->releaseEscrow($purchaseOrder);
+            return back()->with('success', '3-Way Match sukses! Pencairan dana ke vendor sedang diproses otomatis oleh sistem.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('error', '3-Way Matching gagal: ' . implode(', ', $result['variances'] ?? ['Unknown error']));
     }
 
     public function exportTemplate()
@@ -528,82 +431,20 @@ class PurchaseOrderController extends Controller
     public function repeatOrder(PurchaseOrder $purchaseOrder)
     {
         $selectedCompanyId = session('selected_company_id');
-        
+
         // Authorization: Only Buyer can repeat
         $isBuyer = ($purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($purchaseOrder->company_id == $selectedCompanyId);
         if (!$isBuyer) {
             abort(403, 'Only the buyer can initiate a repeat order.');
         }
 
-        DB::beginTransaction();
         try {
-            // Generate PR Number
-            $prNumber = 'PR-RO-' . date('Y') . '-' . strtoupper(Str::random(6));
-
-            // Create a DIRECT Purchase Requisition
-            $requisition = PurchaseRequisition::create([
-                'pr_number' => $prNumber,
-                'company_id' => $selectedCompanyId,
-                'user_id' => Auth::id(),
-                'title' => 'Repeat Order: ' . $purchaseOrder->po_number,
-                'description' => 'Manual repeat order based on previous transaction ' . $purchaseOrder->po_number,
-                'status' => 'ordered',
-                'approval_status' => 'approved',
-                'tender_status' => 'draft',
-                'type' => 'direct',
-                'source_po_id' => $purchaseOrder->id, // Tracking
-            ]);
-
-            foreach ($purchaseOrder->items as $item) {
-                PurchaseRequisitionItem::create([
-                    'purchase_requisition_id' => $requisition->id,
-                    'catalogue_item_id' => $item->purchaseRequisitionItem->catalogue_item_id,
-                    'quantity' => $item->quantity_ordered,
-                    'price' => $item->unit_price, // Use negotiated price from previous PO
-                ]);
-            }
-
-            // IMMEDIATELY GENERATE PO
-            $poNumber = 'PO-' . date('Y') . '-' . strtoupper(Str::random(6));
-            
-            $newPo = PurchaseOrder::create([
-                'po_number' => $poNumber,
-                'company_id' => $selectedCompanyId,
-                'purchase_requisition_id' => $requisition->id,
-                'vendor_company_id' => $purchaseOrder->vendor_company_id,
-                'created_by_user_id' => Auth::id(),
-                'approved_by_user_id' => Auth::id(),
-                'total_amount' => $purchaseOrder->total_amount,
-                'status' => 'issued',
-                'vendor_accepted_at' => now(), // Manual repeat usually means pre-agreed
-                'purchase_type' => 'direct',
-                'month' => date('F'),
-                'currency' => 'IDR',
-            ]);
-
-            foreach ($requisition->items as $prItem) {
-                PurchaseOrderItem::create([
-                    'purchase_order_id' => $newPo->id,
-                    'purchase_requisition_item_id' => $prItem->id,
-                    'quantity_ordered' => $prItem->quantity,
-                    'quantity_received' => 0,
-                    'unit_price' => $prItem->price,
-                    'subtotal' => $prItem->quantity * $prItem->price,
-                    'tax_amount' => 0,
-                    'tax_rate' => 0,
-                    'total_inc_tax' => $prItem->quantity * $prItem->price,
-                    'price_idr' => $prItem->price,
-                    'price_original' => $prItem->price,
-                ]);
-            }
-
-            DB::commit();
+            $newPo = $this->service->createRepeatOrder($purchaseOrder, $selectedCompanyId, Auth::id());
 
             return redirect()->route('procurement.po.show', $newPo)
                 ->with('success', 'Repeat Order PO has been generated and issued based on the previous transaction.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->with('error', 'Failed to initialize repeat order: ' . $e->getMessage());
         }
     }

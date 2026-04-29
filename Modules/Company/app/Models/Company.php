@@ -44,6 +44,9 @@ class Company extends Model
         'declined_by',
         'declined_at',
         'authorized_modes',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_holder',
     ];
 
     protected $casts = [
