@@ -221,8 +221,8 @@
 @endphp
 
 <body>
-    @if($invoice->status === 'interim')
-        <div class="watermark">INTERIM / PROFORMA</div>
+    @if($invoice->status === 'proforma')
+        <div class="watermark">PROFORMA</div>
     @endif
     <div class="header">
         <div class="header-flex">
@@ -328,6 +328,7 @@
         </ul>
     </div>
 
+    @if($invoice->status !== 'proforma')
     <div class="signatures">
         <div class="signature-box">
             <div style="margin-bottom: 5px;">
@@ -350,6 +351,11 @@
             </div>
         </div>
     </div>
+    @else
+    <div style="padding: 40px 0; text-align: center; color: #999; font-style: italic; border-top: 1px solid #eee;">
+        This proforma invoice is unsigned and for reference only.
+    </div>
+    @endif
 
     <div class="footer">
         This is a computer-generated document. No signature is required.<br>
