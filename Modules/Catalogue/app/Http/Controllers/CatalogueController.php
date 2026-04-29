@@ -7,14 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Catalogue\Http\Requests\StoreCatalogueProductRequest; // Ensure this exists
-// Keep for backward compat if needed or alias
+use Modules\Catalogue\Http\Requests\StoreCatalogueProductRequest;
 use Modules\Catalogue\Http\Requests\StoreCatalogueSkuRequest;
 use Modules\Catalogue\Models\CatalogueCategory;
 use Modules\Catalogue\Models\CatalogueItem;
 use Modules\Catalogue\Models\CatalogueProduct;
 use Modules\Company\Models\Company;
-use Illuminate\Support\Facades\Artisan;
 
 class CatalogueController extends Controller
 {
@@ -235,24 +233,24 @@ class CatalogueController extends Controller
         }
 
         $request->validate([
-            'sku'               => 'required|string|max:255',
-            'price'             => 'required|numeric|min:0',
-            'stock'             => 'required|integer|min:0',
-            'unit'              => 'required|string|max:50',
-            'is_active'         => 'nullable|boolean',
-            'attributes'        => 'nullable|array',
-            'attributes.*.key'  => 'required_with:attributes.*.value|string',
-            'attributes.*.value'=> 'required_with:attributes.*.key|string',
-            'images.*'          => 'nullable|image|max:2048',
-            'delete_images'     => 'nullable|array',
-            'delete_images.*'   => 'integer',
+            'sku' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'unit' => 'required|string|max:50',
+            'is_active' => 'nullable|boolean',
+            'attributes' => 'nullable|array',
+            'attributes.*.key' => 'required_with:attributes.*.value|string',
+            'attributes.*.value' => 'required_with:attributes.*.key|string',
+            'images.*' => 'nullable|image|max:2048',
+            'delete_images' => 'nullable|array',
+            'delete_images.*' => 'integer',
         ]);
 
         $item->update([
-            'sku'       => $request->sku,
-            'price'     => $request->price,
-            'stock'     => $request->stock,
-            'unit'      => $request->unit,
+            'sku' => $request->sku,
+            'price' => $request->price,
+            'stock' => $request->stock,
+            'unit' => $request->unit,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -273,7 +271,7 @@ class CatalogueController extends Controller
             foreach ($request->input('attributes') as $attribute) {
                 if (!empty($attribute['key']) && !empty($attribute['value'])) {
                     $item->attributes()->create([
-                        'attribute_key'   => $attribute['key'],
+                        'attribute_key' => $attribute['key'],
                         'attribute_value' => $attribute['value'],
                     ]);
                 }
@@ -289,9 +287,10 @@ class CatalogueController extends Controller
                 $item->images()->create([
                     'image_path' => $path,
                     'is_primary' => !$hasPrimary && $index === 0,
-                    'order'      => $nextOrder + $index,
+                    'order' => $nextOrder + $index,
                 ]);
-                if (!$hasPrimary && $index === 0) $hasPrimary = true;
+                if (!$hasPrimary && $index === 0)
+                    $hasPrimary = true;
             }
         }
 
