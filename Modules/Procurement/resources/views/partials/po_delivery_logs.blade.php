@@ -12,13 +12,17 @@
                     <div class="flex justify-between items-start">
                         <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $do->do_number }}</p>
                         <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest
-                            @if($do->status === 'shipped') bg-blue-50 text-blue-600 @else bg-gray-50 text-gray-500 @endif">
+                            @if($do->status === 'shipped') bg-blue-50 text-blue-600 
+                            @elseif($do->status === 'delivered') bg-emerald-50 text-emerald-600
+                            @else bg-gray-50 text-gray-500 @endif">
                             {{ $do->status }}
                         </span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
                         @if($do->status === 'shipped')
                             Shipped {{ $do->shipped_at->diffForHumans() }}
+                        @elseif($do->status === 'delivered')
+                            Delivered {{ $do->delivered_at->diffForHumans() }}
                         @else
                             Created {{ $do->created_at->format('d M') }}
                         @endif
@@ -38,6 +42,15 @@
                         <form id="ship-form-{{ $do->id }}" action="{{ route('procurement.do.ship', $do) }}" method="POST" class="hidden">
                             @csrf
                             <input type="hidden" name="tracking_number" id="tracking-input-{{ $do->id }}">
+                        </form>
+                    @endif
+
+                    @if($do->status === 'shipped' && $isBuyer)
+                        <form action="{{ route('procurement.do.delivered', $do) }}" method="POST" onsubmit="return confirm('Confirm receipt and SIGN this delivery order?')">
+                            @csrf
+                            <button type="submit" class="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-500/20" title="Sign & Confirm Receipt">
+                                <i data-feather="edit-3" class="w-4 h-4"></i>
+                            </button>
                         </form>
                     @endif
                 </div>

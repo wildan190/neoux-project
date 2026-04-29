@@ -29,6 +29,11 @@ class DeliveryOrderController extends Controller
             return back()->with('error', 'You can only create a Delivery Order for issued, confirmed, or partially delivered Purchase Orders.');
         }
 
+        // Ensure payment has been made (escrow deposited)
+        if ($purchaseOrder->escrow_status !== 'paid' && $purchaseOrder->escrow_status !== 'released') {
+            return back()->with('error', 'Dana Escrow belum dideposit oleh Buyer. Pengiriman hanya dapat diatur setelah pembayaran masuk ke Escrow.');
+        }
+
         // Check if anything is left to ship
         $purchaseOrder->load('items.deliveryOrderItems.deliveryOrder');
         $hasRemaining = false;
@@ -56,6 +61,11 @@ class DeliveryOrderController extends Controller
 
         if ($purchaseOrder->vendor_company_id != $selectedCompanyId) {
             abort(403, 'Unauthorized.');
+        }
+
+        // Ensure payment has been made (escrow deposited)
+        if ($purchaseOrder->escrow_status !== 'paid' && $purchaseOrder->escrow_status !== 'released') {
+            return back()->with('error', 'Dana Escrow belum dideposit oleh Buyer. Pengiriman hanya dapat diatur setelah pembayaran masuk ke Escrow.');
         }
 
         $request->validate([
@@ -131,8 +141,42 @@ class DeliveryOrderController extends Controller
         // Update PO status to shipping per user flow
         $deliveryOrder->purchaseOrder->update(['status' => 'shipping']);
 
+        // Notify Buyer (PO Creator)
+        try {
+            if ($deliveryOrder->purchaseOrder->createdBy) {
+                $deliveryOrder->purchaseOrder->createdBy->notify(new \Modules\Procurement\Notifications\DeliveryOrderShipped($deliveryOrder));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send DO shipping notification: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Delivery Order marked as shipped with Tracking Number: '.$request->tracking_number);
     }
+    /**
+     * Mark DO as delivered (Signed by Buyer)
+     */
+    public function markAsDelivered(DeliveryOrder $deliveryOrder)
+    {
+        $selectedCompanyId = session('selected_company_id');
+
+        // Authorization: Only Buyer can sign
+        $isBuyer = ($deliveryOrder->purchaseOrder->purchaseRequisition?->company_id == $selectedCompanyId) || ($deliveryOrder->purchaseOrder->company_id == $selectedCompanyId);
+        if (!$isBuyer) {
+            abort(403, 'Unauthorized. Only the buyer can sign the delivery order.');
+        }
+
+        if ($deliveryOrder->status !== 'shipped') {
+            return back()->with('error', 'Delivery Order must be in shipped status to be signed.');
+        }
+
+        $deliveryOrder->update([
+            'status' => 'delivered',
+            'delivered_at' => now(),
+        ]);
+
+        return back()->with('success', 'Delivery Order ' . $deliveryOrder->do_number . ' has been signed and confirmed received.');
+    }
+
     /**
      * Print DO
      */

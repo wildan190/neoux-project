@@ -129,6 +129,27 @@
             </div>
         </div>
 
+        {{-- Negotiated Terms --}}
+        @if($purchaseOrder->offer)
+        <div class="mt-8 mb-8 p-6 bg-gray-50 dark:bg-gray-900/20 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Negotiated Terms</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Payment Scheme</p>
+                    <p class="text-[11px] font-bold text-gray-900 dark:text-white uppercase">{{ $purchaseOrder->offer->payment_scheme ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Promised Delivery</p>
+                    <p class="text-[11px] font-bold text-gray-900 dark:text-white uppercase">{{ $purchaseOrder->offer->delivery_time ?? 'N/A' }} Days</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Warranty</p>
+                    <p class="text-[11px] font-bold text-gray-900 dark:text-white uppercase">{{ $purchaseOrder->offer->warranty ?? 'N/A' }} Months</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Footer Notes --}}
         <div class="mt-16 pt-8 border-t border-gray-100 dark:border-gray-700 grid md:grid-cols-2 gap-8">
             <div>

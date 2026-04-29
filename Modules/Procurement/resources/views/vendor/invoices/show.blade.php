@@ -48,6 +48,26 @@
                         <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Purchase Order</p>
                         <p class="text-[11px] font-black text-gray-900 dark:text-white uppercase group-hover:text-emerald-600 transition-colors">{{ $invoice->purchaseOrder->po_number }}</p>
                     </a>
+
+                    @if($invoice->purchaseOrder->offer)
+                    <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                        <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Negotiated Terms</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Payment Scheme</p>
+                                <p class="text-[10px] font-bold text-gray-900 dark:text-white uppercase">{{ $invoice->purchaseOrder->offer->payment_scheme ?? 'N/A' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Promised Delivery</p>
+                                <p class="text-[10px] font-bold text-gray-900 dark:text-white uppercase">{{ $invoice->purchaseOrder->offer->delivery_time ?? 'N/A' }} Days</p>
+                            </div>
+                            <div>
+                                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Warranty</p>
+                                <p class="text-[10px] font-bold text-gray-900 dark:text-white uppercase">{{ $invoice->purchaseOrder->offer->warranty ?? 'N/A' }} Months</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
 

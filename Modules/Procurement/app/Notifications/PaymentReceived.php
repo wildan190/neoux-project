@@ -39,10 +39,13 @@ class PaymentReceived extends Notification implements ShouldQueue
     public function toArray($notifiable): array
     {
         return [
+            'type' => 'payment_received',
+            'title' => 'Pembayaran PO Diterima',
+            'message' => 'Buyer telah membayar PO ' . $this->purchaseOrder->po_number . '. Dana kini berada di Escrow, silakan atur pengiriman.',
+            'url' => route('procurement.po.show', $this->purchaseOrder),
+            'action_text' => 'Lihat PO',
             'purchase_order_id' => $this->purchaseOrder->id,
             'po_number' => $this->purchaseOrder->po_number,
-            'message' => 'Payment received for PO ' . $this->purchaseOrder->po_number . '. Please arrange shipping.',
-            'type' => 'payment_received',
         ];
     }
 }

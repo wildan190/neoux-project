@@ -29,7 +29,7 @@
                     <div class="pr-4">
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Queue</p>
                         <p class="text-xl font-black text-gray-900 dark:text-white leading-none">
-                            {{ $prApprovals->count() + $winnerApprovals->count() + $pendingPOs->count() + $pendingInvoices->count() + $vendorHeadInvoices->count() + $pendingDebitNotes->count() + $pendingGRRs->count() }}
+                            {{ $prApprovals->count() + $winnerApprovals->count() + $pendingPOs->count() + $pendingInvoices->count() + $vendorHeadInvoices->count() + $pendingDebitNotes->count() + $pendingGRRs->count() + $pendingDOSignatures->count() }}
                         </p>
                     </div>
                 </div>
@@ -106,13 +106,27 @@
                         <div class="absolute top-8 right-8 w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></div>
                     @endif
                 </button>
+
+                {{-- Delivery Orders --}}
+                <button @click="activeTab = 'dos'" 
+                    class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border transition-all duration-300 text-left hover:shadow-2xl hover:-translate-y-1"
+                    :class="activeTab === 'dos' ? 'border-sky-500 ring-4 ring-sky-500/10 shadow-xl shadow-sky-500/10' : 'border-transparent hover:border-sky-200 dark:hover:border-sky-800 shadow-sm'">
+                    <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center text-sky-600 dark:text-sky-400 mb-6 group-hover:scale-110 transition-transform">
+                        <i data-feather="truck" class="w-6 h-6"></i>
+                    </div>
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Deliveries</p>
+                    <p class="text-3xl font-black text-gray-900 dark:text-white tabular-nums leading-none">{{ $pendingDOSignatures->count() }}</p>
+                    @if($pendingDOSignatures->count() > 0)
+                        <div class="absolute top-8 right-8 w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
+                    @endif
+                </button>
             </div>
         </div>
 
         {{-- Main Task Board --}}
         <div>
             @php
-                $allItemsEmpty = $prApprovals->isEmpty() && $winnerApprovals->isEmpty() && $pendingPOs->isEmpty() && $pendingInvoices->isEmpty() && $vendorHeadInvoices->isEmpty() && $pendingDebitNotes->isEmpty() && $pendingGRRs->isEmpty();
+                $allItemsEmpty = $prApprovals->isEmpty() && $winnerApprovals->isEmpty() && $pendingPOs->isEmpty() && $pendingInvoices->isEmpty() && $vendorHeadInvoices->isEmpty() && $pendingDebitNotes->isEmpty() && $pendingGRRs->isEmpty() && $pendingDOSignatures->isEmpty();
             @endphp
             
             @if($allItemsEmpty)
@@ -124,6 +138,48 @@
                     <p class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] max-w-sm mx-auto leading-relaxed">All procurement queues are currently clear from pending approvals.</p>
                 </div>
             @else
+                {{-- Delivery Orders (Awaiting Signature) --}}
+                <div x-show="activeTab === 'all' || activeTab === 'dos'" class="mb-12" x-transition:enter="transition ease-out duration-300">
+                    @if($pendingDOSignatures->isNotEmpty())
+                        <div class="mb-6 flex items-center gap-4">
+                            <h3 class="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-[0.3em] whitespace-nowrap">Awaiting Signature (Proof of Delivery)</h3>
+                            <div class="h-px bg-sky-100 dark:bg-sky-900/30 w-full"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach($pendingDOSignatures as $do)
+                                <a href="{{ route('procurement.po.show', $do->purchaseOrder) }}" class="group bg-white dark:bg-gray-800 rounded-[2rem] p-8 border-2 border-sky-100 dark:border-sky-900/30 shadow-sm hover:shadow-2xl hover:border-sky-500 transition-all duration-500 relative">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="px-3 py-1 bg-sky-600 text-white text-[9px] font-black rounded-lg uppercase tracking-wider w-fit">AWAITING SIGNATURE</span>
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase">{{ $do->do_number }}</span>
+                                        </div>
+                                        <span class="text-[9px] font-black text-gray-400 uppercase">{{ $do->shipped_at->diffForHumans() }}</span>
+                                    </div>
+                                    <h4 class="text-xl font-black text-gray-900 dark:text-white mb-6 uppercase tracking-tight group-hover:text-sky-600 transition-colors">Shipment from {{ $do->purchaseOrder->vendorCompany->name }}</h4>
+                                    
+                                    <div class="bg-sky-50/50 dark:bg-sky-900/10 p-6 rounded-2xl border border-sky-100 dark:border-sky-800/50 mb-0">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div>
+                                                <p class="text-[8px] font-black text-sky-400 uppercase tracking-widest mb-1">PO Number</p>
+                                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase truncate">{{ $do->purchaseOrder->po_number }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-[8px] font-black text-sky-400 uppercase tracking-widest mb-1">Tracking Number</p>
+                                                <p class="text-sm font-black text-sky-600 dark:text-sky-400 font-mono">{{ $do->tracking_number ?? 'N/A' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                        <span class="text-[10px] font-black text-sky-600 uppercase tracking-widest">Inspect & Sign DO</span>
+                                        <i data-feather="edit-3" class="w-5 h-5 text-sky-400 group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
                 {{-- Winner Approvals --}}
                 <div x-show="activeTab === 'all' || activeTab === 'winners'" class="mb-12" x-transition:enter="transition ease-out duration-300">
                     @if($winnerApprovals->isNotEmpty())
@@ -163,6 +219,52 @@
                                     <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
                                         <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Verify & Confirm Winner</span>
                                         <i data-feather="arrow-right" class="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Purchase Orders --}}
+                <div x-show="activeTab === 'all' || activeTab === 'pos'" class="mb-12" x-transition:enter="transition ease-out duration-300">
+                    @if($pendingPOs->isNotEmpty())
+                        <div class="mb-6 flex items-center gap-4">
+                            <h3 class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.3em] whitespace-nowrap">Vendor Order Confirmations</h3>
+                            <div class="h-px bg-emerald-100 dark:bg-emerald-900/30 w-full"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach($pendingPOs as $po)
+                                <a href="{{ route('procurement.po.show', $po) }}" class="group bg-white dark:bg-gray-800 rounded-[2rem] p-8 border-2 border-emerald-100 dark:border-emerald-900/30 shadow-sm hover:shadow-2xl hover:border-emerald-500 transition-all duration-500 relative">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div class="flex flex-col gap-1">
+                                            @if($po->status === 'pending_vendor_acceptance')
+                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[9px] font-black rounded-lg uppercase tracking-wider w-fit">NEEDS ACCEPTANCE</span>
+                                            @elseif($po->status === 'issued')
+                                                <span class="px-3 py-1 bg-emerald-600 text-white text-[9px] font-black rounded-lg uppercase tracking-wider w-fit">NEEDS CONFIRMATION</span>
+                                            @endif
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase">{{ $po->po_number }}</span>
+                                        </div>
+                                        <span class="text-[9px] font-black text-gray-400 uppercase">{{ $po->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <h4 class="text-xl font-black text-gray-900 dark:text-white mb-6 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Order from {{ $po->buyerCompany->name }}</h4>
+                                    
+                                    <div class="bg-emerald-50/50 dark:bg-emerald-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 mb-0">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div>
+                                                <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Total Amount</p>
+                                                <p class="text-sm font-black text-gray-900 dark:text-white uppercase truncate">{{ $po->formatted_total_amount }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Items</p>
+                                                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">{{ $po->items->count() }} items</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Review Order</span>
+                                        <i data-feather="arrow-right" class="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform"></i>
                                     </div>
                                 </a>
                             @endforeach

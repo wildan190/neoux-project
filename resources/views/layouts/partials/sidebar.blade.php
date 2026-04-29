@@ -160,6 +160,15 @@
                     class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
                     <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
                     <span>Approvals</span>
+                    @php
+                        $buyerApprovalCount = ($sidebarCounts['quick_approvals_buyer'] ?? 0);
+                        $showBuyerBadge = $buyerApprovalCount > 0;
+                    @endphp
+                    <span id="badge-quick_approvals_buyer"
+                        class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-600 rounded-full shadow-lg {{ $showBuyerBadge ? '' : 'hidden' }}"
+                        {!! $showBuyerBadge ? '' : 'style="display: none"' !!}>
+                        {{ $showBuyerBadge ? $buyerApprovalCount : '' }}
+                    </span>
                 </a>
             </div>
         @endif
@@ -187,6 +196,15 @@
                     class="flex items-center px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 group {{ request()->routeIs('procurement.approvals.index') ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400' }}">
                     <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
                     <span>Approvals</span>
+                    @php
+                        $vendorApprovalCount = ($sidebarCounts['quick_approvals_vendor'] ?? 0);
+                        $showVendorBadge = $vendorApprovalCount > 0;
+                    @endphp
+                    <span id="badge-quick_approvals_vendor"
+                        class="ml-auto inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-600 rounded-full shadow-lg {{ $showVendorBadge ? '' : 'hidden' }}"
+                        {!! $showVendorBadge ? '' : 'style="display: none"' !!}>
+                        {{ $showVendorBadge ? $vendorApprovalCount : '' }}
+                    </span>
                 </a>
             </div>
 

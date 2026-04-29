@@ -117,6 +117,13 @@ class NotificationController extends Controller
                 ->whereNull('approved_by_vendor_at')
                 ->count();
 
+            // Buyer Delivery Orders - Awaiting Signature
+            $counts['pending_do_signatures'] = \Modules\Procurement\Models\DeliveryOrder::whereHas('purchaseOrder', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+                ->where('status', 'shipped')
+                ->count();
+
             // Vendor Section: All Requests (Tenders from other companies)
             // Note: This is still a bit heavy, but indexed status 'open' helps.
             $counts['all_requests'] = PurchaseRequisition::where('company_id', '!=', $selectedCompanyId)
@@ -156,7 +163,7 @@ class NotificationController extends Controller
                 ->count();
 
             // Unified Quick Approval Counts
-            $counts['quick_approvals_buyer'] = $counts['my_requisitions'] + $counts['invoices_buyer'] + $counts['return_requests_buyer'] + $counts['debit_notes_buyer'];
+            $counts['quick_approvals_buyer'] = $counts['my_requisitions'] + $counts['invoices_buyer'] + $counts['return_requests_buyer'] + $counts['debit_notes_buyer'] + $counts['pending_do_signatures'];
             $counts['quick_approvals_vendor'] = $counts['purchase_orders_vendor'] + $counts['invoices_vendor'];
         }
 

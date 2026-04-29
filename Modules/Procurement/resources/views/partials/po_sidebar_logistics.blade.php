@@ -49,3 +49,33 @@
         @endif
     </div>
 </div>
+
+{{-- Invoices Card --}}
+@if($purchaseOrder->invoices && $purchaseOrder->invoices->count() > 0)
+<div class="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm mt-8">
+    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Invoices & Billing</h3>
+    <div class="space-y-4">
+        @foreach($purchaseOrder->invoices as $invoice)
+            <div class="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-wider">{{ $invoice->invoice_number }}</p>
+                        <p class="text-[9px] font-bold text-gray-400 uppercase">{{ $invoice->created_at->format('M d, Y') }}</p>
+                    </div>
+                    @if($invoice->status === 'proforma')
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[8px] font-black rounded uppercase tracking-widest">Proforma</span>
+                    @else
+                        <span class="px-2 py-1 bg-gray-200 text-gray-700 text-[8px] font-black rounded uppercase tracking-widest">{{ $invoice->status }}</span>
+                    @endif
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <span class="text-sm font-black text-gray-900 dark:text-white">{{ $invoice->formatted_total_amount }}</span>
+                    <a href="{{ route('procurement.invoices.download-pdf', $invoice) }}" class="text-[9px] font-black uppercase text-primary-600 tracking-widest hover:underline flex items-center gap-1">
+                        <i data-feather="download" class="w-3 h-3"></i> Download
+                    </a>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif

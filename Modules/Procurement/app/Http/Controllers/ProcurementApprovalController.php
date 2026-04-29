@@ -10,6 +10,7 @@ use Modules\Procurement\Models\PurchaseOrder;
 use Modules\Procurement\Models\Invoice;
 use Modules\Procurement\Models\DebitNote;
 use Modules\Procurement\Models\GoodsReturnRequest;
+use Modules\Procurement\Models\DeliveryOrder;
 
 class ProcurementApprovalController extends Controller
 {
@@ -90,12 +91,21 @@ class ProcurementApprovalController extends Controller
                 ->get();
         }
 
+        // 5. Delivery Orders (Awaiting Buyer Signature)
+        $pendingDOSignatures = DeliveryOrder::with(['purchaseOrder.vendorCompany'])
+            ->whereHas('purchaseOrder.purchaseRequisition', function ($q) use ($selectedCompanyId) {
+                $q->where('company_id', $selectedCompanyId);
+            })
+            ->where('status', 'shipped')
+            ->latest()
+            ->get();
+
         // --- VENDOR SIDE APPROVALS ---
 
-        // 5. POs (Pending Vendor Acceptance)
+        // 5. POs (Pending Vendor Acceptance & Issued waiting for confirmation)
         $pendingPOs = PurchaseOrder::with(['buyerCompany', 'purchaseRequisition'])
             ->where('vendor_company_id', $selectedCompanyId)
-            ->where('status', 'pending_vendor_acceptance')
+            ->whereIn('status', ['pending_vendor_acceptance', 'issued'])
             ->latest()
             ->get();
 
@@ -116,7 +126,8 @@ class ProcurementApprovalController extends Controller
             'pendingDebitNotes',
             'pendingGRRs',
             'pendingPOs',
-            'vendorHeadInvoices'
+            'vendorHeadInvoices',
+            'pendingDOSignatures'
         ));
     }
 }

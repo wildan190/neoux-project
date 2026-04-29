@@ -8,6 +8,21 @@
 ])
 
 @section('content')
+    {{-- Premium Loading Screen --}}
+    <div id="page-loader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white dark:bg-gray-900 transition-opacity duration-700">
+        <div class="flex flex-col items-center">
+            <div class="relative w-24 h-24">
+                <div class="absolute inset-0 border-4 border-primary-100 dark:border-primary-900/30 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-primary-600 rounded-full border-t-transparent animate-spin"></div>
+                <div class="absolute inset-4 bg-gradient-to-tr from-primary-600 to-secondary-500 rounded-full opacity-20 animate-pulse"></div>
+            </div>
+            <div class="mt-8 text-center">
+                <h2 class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-[0.3em] animate-pulse">Analyzing Proposal</h2>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-2">Connecting to Secure Procurement Node</p>
+            </div>
+        </div>
+    </div>
+
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-3 mb-1">
@@ -368,6 +383,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
+            
+            // Handle page loader
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => loader.remove(), 700);
+                }, 500); // Small delay for visual impact
+            }
         });
 
         window.confirmAction = function(formId, title, text, icon, confirmText) {

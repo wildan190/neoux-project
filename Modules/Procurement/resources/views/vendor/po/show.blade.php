@@ -47,11 +47,20 @@
         @endif
 
         @if($purchaseOrder->status === 'issued')
-            <a href="{{ route('procurement.do.create', $purchaseOrder) }}" 
-                class="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition flex items-center gap-2">
-                <i data-feather="truck" class="w-3.5 h-3.5"></i>
-                Arrange Delivery
-            </a>
+            @if($purchaseOrder->escrow_status === 'paid' || $purchaseOrder->escrow_status === 'released')
+                <a href="{{ route('procurement.do.create', $purchaseOrder) }}" 
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition flex items-center gap-2">
+                    <i data-feather="truck" class="w-3.5 h-3.5"></i>
+                    Arrange Delivery
+                </a>
+            @else
+                <button type="button" disabled
+                    class="px-8 py-3 bg-gray-200 text-gray-400 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2 cursor-not-allowed"
+                    title="Dana Escrow belum dideposit">
+                    <i data-feather="truck" class="w-3.5 h-3.5"></i>
+                    Arrange Delivery (Waiting for Payment)
+                </button>
+            @endif
         @endif
     </div>
 

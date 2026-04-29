@@ -134,7 +134,13 @@
                 <div class="mb-6">
                     <h3 class="text-sm font-bold text-gray-700 uppercase mb-2">Terms & Conditions</h3>
                     <ul class="text-xs text-gray-600 space-y-1">
+                        @if($invoice->purchaseOrder->offer)
+                        <li>• <strong>Payment Scheme:</strong> {{ $invoice->purchaseOrder->offer->payment_scheme ?? 'Net 30 days from invoice date' }}</li>
+                        <li>• <strong>Promised Delivery:</strong> {{ $invoice->purchaseOrder->offer->delivery_time ?? 'Standard' }} Days</li>
+                        <li>• <strong>Warranty:</strong> {{ $invoice->purchaseOrder->offer->warranty ?? 'N/A' }} Months</li>
+                        @else
                         <li>• Payment terms: Net 30 days from invoice date</li>
+                        @endif
                         <li>• Delivery must be made to the address specified by the buyer</li>
                         <li>• All items must match the specifications in this purchase order</li>
                         <li>• Any discrepancies must be reported within 48 hours of delivery</li>

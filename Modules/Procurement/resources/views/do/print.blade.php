@@ -124,12 +124,25 @@
 
             <!-- Notes & Signatures -->
             <div class="px-8 py-6 bg-gray-50 border-t-2 border-gray-200">
-                @if($deliveryOrder->notes)
-                <div class="mb-6">
-                    <h3 class="text-sm font-bold text-gray-700 uppercase mb-2">Vendor Notes</h3>
-                    <p class="text-xs text-gray-600 italic">"{{ $deliveryOrder->notes }}"</p>
+                <div class="grid grid-cols-2 gap-8 mb-6">
+                    @if($purchaseOrder->offer)
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 uppercase mb-2">Negotiated Terms</h3>
+                        <ul class="text-xs text-gray-600 space-y-1">
+                            <li><strong>Payment Scheme:</strong> {{ $purchaseOrder->offer->payment_scheme ?? 'N/A' }}</li>
+                            <li><strong>Promised Delivery:</strong> {{ $purchaseOrder->offer->delivery_time ?? 'N/A' }} Days</li>
+                            <li><strong>Warranty:</strong> {{ $purchaseOrder->offer->warranty ?? 'N/A' }} Months</li>
+                        </ul>
+                    </div>
+                    @endif
+
+                    @if($deliveryOrder->notes)
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-700 uppercase mb-2">Vendor Notes</h3>
+                        <p class="text-xs text-gray-600 italic">"{{ $deliveryOrder->notes }}"</p>
+                    </div>
+                    @endif
                 </div>
-                @endif
 
                 <div class="grid grid-cols-2 gap-8 mt-12">
                     {{-- Vendor Signature --}}

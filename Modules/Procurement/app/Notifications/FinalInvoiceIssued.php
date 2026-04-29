@@ -39,11 +39,14 @@ class FinalInvoiceIssued extends Notification implements ShouldQueue
     public function toArray($notifiable): array
     {
         return [
+            'type' => 'final_invoice_issued',
+            'title' => 'Final Invoice Diterbitkan',
+            'message' => 'Final invoice ' . $this->invoice->invoice_number . ' has been issued for PO ' . $this->invoice->purchaseOrder->po_number,
+            'url' => route('procurement.invoices.show', $this->invoice),
+            'action_text' => 'Lihat Invoice',
             'invoice_id' => $this->invoice->id,
             'invoice_number' => $this->invoice->invoice_number,
             'po_number' => $this->invoice->purchaseOrder->po_number,
-            'message' => 'Final invoice ' . $this->invoice->invoice_number . ' has been issued for PO ' . $this->invoice->purchaseOrder->po_number,
-            'type' => 'final_invoice_issued',
         ];
     }
 }
