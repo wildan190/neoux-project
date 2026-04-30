@@ -40,6 +40,8 @@ class PurchaseOrder extends Model
         'vendor_accepted_at',
         'vendor_rejected_at',
         'vendor_notes',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
