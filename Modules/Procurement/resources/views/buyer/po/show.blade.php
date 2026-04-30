@@ -58,7 +58,7 @@
             </button>
         @endif
 
-        @if($purchaseOrder->status === 'full_delivery' && $purchaseOrder->escrow_status === 'paid')
+        @if(in_array($purchaseOrder->status, ['full_delivery', 'received', 'completed']) && $purchaseOrder->escrow_status === 'paid')
             <form action="{{ route('procurement.po.escrow-release', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)">
                 @csrf
                 <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-green-600/20 hover:bg-green-700 transition">

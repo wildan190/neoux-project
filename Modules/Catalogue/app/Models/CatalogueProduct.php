@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 use Modules\Company\Models\Company;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
 class CatalogueProduct extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory, Searchable, HasUuids;
 
     protected $fillable = [
+        'uuid',
         'company_id',
         'category_id',
         'name',
@@ -37,7 +40,7 @@ class CatalogueProduct extends Model
 
     public function getRouteKeyName()
     {
-        return 'slug';
+        return 'uuid';
     }
 
     public function items()

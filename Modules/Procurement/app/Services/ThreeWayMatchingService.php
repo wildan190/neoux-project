@@ -136,16 +136,10 @@ class ThreeWayMatchingService
             return $matchResults;
         }
 
-        // All 3 legs match → Auto-release escrow
+        // All 3 legs match
         if ($matchResults['status'] === 'matched') {
-            $purchaseOrder->update([
-                'escrow_status' => 'released',
-                'escrow_released_at' => now(),
-                'status' => 'completed',
-            ]);
-
-            // Automatically mark all related invoices as paid since escrow is released
-            $purchaseOrder->invoices()->where('status', '!=', 'rejected')->update(['status' => 'paid']);
+            // Automatically mark all related invoices as matched
+            $purchaseOrder->invoices()->where('status', '!=', 'rejected')->update(['status' => 'matched']);
         }
 
         return $matchResults;

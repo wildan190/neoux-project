@@ -42,7 +42,7 @@ class MidtransIrisService
                         'beneficiary_bank' => $bankCode,
                         'beneficiary_email' => $email,
                         'amount' => strval($amount),
-                        'notes' => 'Disbursement for ' . $referenceNo,
+                        'notes' => preg_replace('/[^A-Za-z0-9 ]/', '', 'Disbursement for ' . $referenceNo),
                     ]
                 ]
             ];

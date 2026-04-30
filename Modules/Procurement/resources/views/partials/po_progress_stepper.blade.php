@@ -6,10 +6,10 @@
         
         $steps = [
             ['label' => 'ISSUED', 'icon' => 'send', 'active' => true],
-            ['label' => 'ACCEPTED', 'icon' => 'check-circle', 'active' => in_array($status, ['issued', 'confirmed', 'partial_delivery', 'full_delivery', 'completed'])],
+            ['label' => 'ACCEPTED', 'icon' => 'check-circle', 'active' => in_array($status, ['issued', 'confirmed', 'partial_delivery', 'full_delivery', 'received', 'completed'])],
             ['label' => 'ESCROW', 'icon' => 'shield', 'active' => in_array($escrow, ['paid', 'released'])],
-            ['label' => 'SHIPPING', 'icon' => 'truck', 'active' => $purchaseOrder->deliveryOrders->where('status', 'shipped')->count() > 0],
-            ['label' => 'RECEIVED', 'icon' => 'package', 'active' => in_array($status, ['partial_delivery', 'full_delivery', 'completed'])],
+            ['label' => 'SHIPPING', 'icon' => 'truck', 'active' => $purchaseOrder->deliveryOrders->count() > 0 || in_array($status, ['partial_delivery', 'full_delivery', 'received', 'completed'])],
+            ['label' => 'RECEIVED', 'icon' => 'package', 'active' => in_array($status, ['partial_delivery', 'full_delivery', 'received', 'completed'])],
             ['label' => 'RELEASED', 'icon' => 'unlock', 'active' => $escrow === 'released'],
         ];
         
@@ -43,7 +43,7 @@
         elseif (in_array($status, ['issued', 'confirmed']) && $escrow === 'pending') $nextAction = 'Vendor accepted. Buyer needs to pay to Escrow account.';
         elseif (in_array($status, ['issued', 'confirmed']) && $escrow === 'paid') $nextAction = 'Escrow secured. Vendor is ready to ship the items.';
         elseif ($status === 'partial_delivery') $nextAction = 'Some items received. Awaiting remaining shipments.';
-        elseif ($status === 'full_delivery' && $escrow === 'paid') $nextAction = 'All items received. Escrow payout is ready for release.';
+        elseif (in_array($status, ['full_delivery', 'received']) && $escrow === 'paid') $nextAction = 'All items received. Escrow payout is ready for release.';
         elseif ($status === 'completed' || $escrow === 'released') $nextAction = 'Transaction completed successfully.';
     @endphp
 
