@@ -23,7 +23,8 @@ class OnboardingMiddleware
                 return $next($request);
             }
 
-            if ($request->is('onboarding*') || $request->is('logout') || $request->is('api/*')) {
+            if ($request->is('onboarding*') || $request->is('logout') || $request->is('api/*') || 
+                $request->is('*/export-template*') || $request->is('*/import/template*')) {
                 return $next($request);
             }
 

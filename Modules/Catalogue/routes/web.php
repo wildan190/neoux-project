@@ -5,11 +5,14 @@ use Modules\Catalogue\Http\Controllers\CatalogueController;
 use Modules\Catalogue\Http\Controllers\WarehouseController;
 use Modules\Catalogue\Http\Controllers\WarehouseReportController;
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/catalogue/import/template', [CatalogueController::class, 'downloadTemplate'])->name('catalogue.download-template');
+});
+
 Route::middleware(['auth', 'company.selected'])->group(function () {
 
     // Catalogue Routes
     Route::prefix('catalogue')->name('catalogue.')->group(function () {
-        Route::get('/import/template', [CatalogueController::class, 'downloadTemplate'])->name('download-template');
         Route::post('/import/preview', [CatalogueController::class, 'previewImport'])->name('import.preview');
         Route::post('/import', [CatalogueController::class, 'import'])->name('import');
         Route::get('/import/status/{id}', [CatalogueController::class, 'checkImportStatus'])->name('import.status');

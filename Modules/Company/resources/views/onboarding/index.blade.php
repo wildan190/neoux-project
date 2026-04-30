@@ -79,7 +79,14 @@
                         <div class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/10 flex items-center justify-center text-xs md:text-sm font-bold step-transition" id="step-circle-3">3</div>
                         <div class="hidden md:block">
                             <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Step 03</p>
-                            <p class="text-xs font-semibold text-white">Details</p>
+                            <p class="text-xs font-semibold text-white" id="step-label-3">Data Import</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 md:gap-4 group opacity-40 shrink-0" id="step-nav-4">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/10 flex items-center justify-center text-xs md:text-sm font-bold step-transition" id="step-circle-4">4</div>
+                        <div class="hidden md:block">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Step 04</p>
+                            <p class="text-xs font-semibold text-white">Finalize</p>
                         </div>
                     </div>
                 </div>
@@ -93,7 +100,7 @@
 
             {{-- Main Content --}}
             <div class="flex-1 p-6 md:p-10 lg:p-16 relative flex flex-col h-full overflow-y-auto max-h-[80vh] md:max-h-none">
-                <form id="onboardingForm" action="{{ route('onboarding.store') }}" method="POST" class="flex-1">
+                <form id="onboardingForm" action="{{ route('onboarding.store') }}" method="POST" enctype="multipart/form-data" class="flex-1">
                     @csrf
                     <input type="hidden" id="company_npwp_hidden" name="npwp" value="{{ old('npwp') }}">
                     
@@ -207,8 +214,64 @@
                         </div>
                     </div>
 
-                    {{-- Step 3: Address & Detail --}}
+                    {{-- Step 3: Mandatory Data Upload --}}
                     <div id="step-content-3" class="hidden step-transition">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-10">
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight" id="upload-title">Historical Records</h2>
+                                <p class="text-slate-400 text-sm md:text-base font-medium" id="upload-subtitle">Mandatory upload to initialize your account.</p>
+                            </div>
+                            <a href="#" id="template-download-link" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-brand-gold uppercase tracking-widest transition-all shrink-0 shadow-xl shadow-brand-gold/5">
+                                <i data-feather="download" class="w-3.5 h-3.5"></i>
+                                Download Template
+                            </a>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="p-8 md:p-12 border-2 border-dashed border-white/10 rounded-[2rem] bg-slate-900/30 text-center group hover:border-brand-gold/30 transition-all cursor-pointer relative" id="drop-zone">
+                                <input type="file" name="historical_data" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" accept=".xlsx,.xls,.csv" required>
+                                <div class="w-20 h-20 gradient-brand rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-brand-gold/20 group-hover:scale-110 transition-transform">
+                                    <i data-feather="upload-cloud" class="w-10 h-10 text-black"></i>
+                                </div>
+                                <p id="drop-text" class="text-lg font-bold text-white mb-2">Click or drag file here</p>
+                                <p class="text-xs text-slate-500 uppercase tracking-widest font-black mb-6">Supported: .XLSX, .XLS, .CSV (Max 10MB)</p>
+                                
+                                <div class="flex flex-col items-center gap-4">
+                                    <div id="file-info" class="hidden p-4 bg-white/5 rounded-2xl inline-flex items-center gap-3 border border-brand-gold/20">
+                                        <i data-feather="file" class="w-4 h-4 text-brand-gold"></i>
+                                        <span id="file-name" class="text-xs font-bold text-white truncate max-w-[200px]">filename.xlsx</span>
+                                        <button type="button" id="remove-file" class="p-1 hover:text-red-400 transition-colors">
+                                            <i data-feather="x" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-6 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+                                    <i data-feather="info" class="w-5 h-5 text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Onboarding Requirement</p>
+                                    <p class="text-xs text-slate-400 leading-relaxed" id="upload-instruction">
+                                        As a buyer, please upload your historical purchase order records. As a seller, please upload your product catalog. This ensures your dashboard is ready immediately.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 md:mt-12 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
+                            <button type="button" class="text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-white transition-colors btn-back" data-target="2">
+                                <i data-feather="arrow-left" class="inline w-3 h-3 mr-2"></i> Go Back
+                            </button>
+                            <button type="button" class="w-full md:w-auto px-10 py-4 gradient-brand text-black rounded-xl md:rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-gold/10 btn-next" data-target="4">
+                                Continue To Final Step <i data-feather="arrow-right" class="inline w-4 h-4 ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Step 4: Address & Detail --}}
+                    <div id="step-content-4" class="hidden step-transition">
                         <h2 class="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">Location Details</h2>
                         <p class="text-slate-400 mb-8 md:mb-10 text-sm md:text-base font-medium">Complete your primary operational address.</p>
 
@@ -241,7 +304,7 @@
                         </div>
 
                         <div class="mt-10 md:mt-12 flex flex-col-reverse md:flex-row justify-between items-center gap-6">
-                            <button type="button" class="text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-white transition-colors btn-back" data-target="2">
+                            <button type="button" class="text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-white transition-colors btn-back" data-target="3">
                                 <i data-feather="arrow-left" class="inline w-3 h-3 mr-2"></i> Go Back
                             </button>
                             <button type="submit" 
@@ -348,6 +411,15 @@
 
             btnToStep2.addEventListener('click', () => goToStep(2));
 
+            // Initialize Download Link based on default category (Buyer)
+            const initialCategory = document.querySelector('select[name="category"]').value;
+            const initialDownloadLink = document.getElementById('template-download-link');
+            if (initialCategory === 'buyer') {
+                initialDownloadLink.href = '{{ route("procurement.po.export-template") }}';
+            } else {
+                initialDownloadLink.href = '{{ route("catalogue.download-template") }}';
+            }
+
             // Stepper Navigation
             document.querySelectorAll('.btn-next').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -363,7 +435,36 @@
                 });
             });
 
+            const fileInput = document.getElementById('file-input');
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const removeFile = document.getElementById('remove-file');
+            const dropZone = document.getElementById('drop-zone');
+
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    fileName.textContent = this.files[0].name;
+                    fileInfo.classList.remove('hidden');
+                    document.getElementById('drop-text').textContent = 'File selected';
+                    dropZone.classList.add('border-emerald-500/30', 'bg-emerald-500/5');
+                }
+            });
+
+            removeFile.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.value = '';
+                fileInfo.classList.add('hidden');
+                document.getElementById('drop-text').textContent = 'Click or drag file here';
+                dropZone.classList.remove('border-emerald-500/30', 'bg-emerald-500/5');
+            });
+
             function validateCurrentStep() {
+                if (currentStep === 1) {
+                    if (!document.getElementById('company_npwp_hidden').value) {
+                        alert('Please validate your NPWP first.');
+                        return false;
+                    }
+                }
                 // Basic validation before going to next step
                 if (currentStep === 2) {
                     const name = document.getElementById('company_name_input').value;
@@ -375,11 +476,41 @@
                         return false;
                     }
                 }
+                if (currentStep === 3) {
+                    if (!fileInput.files || !fileInput.files[0]) {
+                        alert('The data upload is mandatory to proceed.');
+                        return false;
+                    }
+                }
                 return true;
             }
 
             function goToStep(step) {
                 step = parseInt(step);
+
+                // Update Upload Step Labels based on category
+                if (step === 3) {
+                    const category = document.querySelector('select[name="category"]').value;
+                    const label = document.getElementById('step-label-3');
+                    const title = document.getElementById('upload-title');
+                    const subtitle = document.getElementById('upload-subtitle');
+                    const instruction = document.getElementById('upload-instruction');
+                    const downloadLink = document.getElementById('template-download-link');
+
+                    if (category === 'buyer') {
+                        label.textContent = 'PO Records';
+                        title.textContent = 'Historical POs';
+                        subtitle.textContent = 'Upload your previous purchase order records.';
+                        instruction.textContent = 'As a buyer, uploading your historical POs allows us to pre-fill your procurement dashboard and suggest better vendor matches based on your volume.';
+                        downloadLink.href = '{{ route("procurement.po.export-template") }}';
+                    } else {
+                        label.textContent = 'Catalog Upload';
+                        title.textContent = 'Product Catalog';
+                        subtitle.textContent = 'Upload your current product inventory.';
+                        instruction.textContent = 'As a seller, your product catalog is essential. Once uploaded, buyers can find your products in the global marketplace immediately.';
+                        downloadLink.href = '{{ route("catalogue.download-template") }}';
+                    }
+                }
                 
                 // Hide current content
                 const currentEl = document.getElementById(`step-content-${currentStep}`);
@@ -392,23 +523,33 @@
                 }, 300);
                 
                 // Update UI Circle
-                const prevCircle = document.getElementById(`step-circle-${currentStep}`);
-                const nextCircle = document.getElementById(`step-circle-${step}`);
-                
-                if (step > currentStep) {
-                    prevCircle.classList.remove('step-active', 'border-brand-gold');
-                    prevCircle.classList.add('border-emerald-500/50', 'text-emerald-500');
-                    prevCircle.innerHTML = '<i data-feather="check" class="w-4 h-4 md:w-5 md:h-5"></i>';
-                    feather.replace();
-                }
-
-                nextCircle.classList.remove('border-white/10', 'border-emerald-500/50', 'text-emerald-500');
-                nextCircle.innerHTML = step;
-                nextCircle.classList.add('step-active', 'border-brand-gold');
+                const circles = document.querySelectorAll('[id^="step-circle-"]');
+                circles.forEach((circle, index) => {
+                    const circleStep = index + 1;
+                    if (circleStep < step) {
+                        circle.classList.remove('step-active', 'border-brand-gold', 'border-white/10');
+                        circle.classList.add('border-emerald-500/50', 'text-emerald-500');
+                        circle.innerHTML = '<i data-feather="check" class="w-4 h-4 md:w-5 md:h-5"></i>';
+                    } else if (circleStep === step) {
+                        circle.classList.remove('border-white/10', 'border-emerald-500/50', 'text-emerald-500');
+                        circle.classList.add('step-active', 'border-brand-gold');
+                        circle.innerHTML = circleStep;
+                    } else {
+                        circle.classList.remove('step-active', 'border-brand-gold', 'border-emerald-500/50', 'text-emerald-500');
+                        circle.classList.add('border-white/10');
+                        circle.innerHTML = circleStep;
+                    }
+                });
+                feather.replace();
 
                 // Update Nav Opacity
-                document.getElementById(`step-nav-${currentStep}`).classList.add('opacity-40');
-                document.getElementById(`step-nav-${step}`).classList.remove('opacity-40');
+                for (let i = 1; i <= 4; i++) {
+                    const nav = document.getElementById(`step-nav-${i}`);
+                    if (nav) {
+                        if (i === step) nav.classList.remove('opacity-40');
+                        else nav.classList.add('opacity-40');
+                    }
+                }
 
                 currentStep = step;
             }

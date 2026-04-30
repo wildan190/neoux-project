@@ -47,6 +47,7 @@ class Company extends Model
         'bank_name',
         'bank_account_number',
         'bank_account_holder',
+        'onboarding_file_path',
     ];
 
     protected $casts = [

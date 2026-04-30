@@ -21,6 +21,7 @@ class StoreOnboardingRequest extends FormRequest
             'npwp' => 'required|string|unique:companies,npwp',
             'description' => 'nullable|string',
             'website' => 'nullable|url|max:255',
+            'historical_data' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ];
     }
 
