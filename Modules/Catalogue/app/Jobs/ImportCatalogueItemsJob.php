@@ -48,7 +48,7 @@ class ImportCatalogueItemsJob implements ShouldQueue
         ]);
 
         try {
-            Excel::import(new CatalogueImport($this->companyId, $this->importJobId), $this->filePath, 'local');
+            Excel::import(new CatalogueImport($this->companyId, $this->importJobId), $this->filePath, 'public');
 
             $importJob->update([
                 'status' => 'completed',

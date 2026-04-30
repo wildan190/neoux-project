@@ -41,16 +41,16 @@ class ProcessPurchaseOrderImport implements ShouldQueue
     public function handle(): void
     {
         try {
-            if (!Storage::disk('local')->exists($this->filePath)) {
-                $absolutePath = Storage::disk('local')->path($this->filePath);
+            if (!Storage::disk('public')->exists($this->filePath)) {
+                $absolutePath = Storage::disk('public')->path($this->filePath);
                 Log::error("PO Import File Missing: Relative Path [{$this->filePath}], Absolute Path [{$absolutePath}]");
-                throw new \Exception("File not found on local disk: {$this->filePath}");
+                throw new \Exception("File not found on public disk: {$this->filePath}");
             }
 
-            Excel::import(new PurchaseOrderHistoryImport($this->userId, $this->companyId, $this->importRole), $this->filePath, 'local');
+            Excel::import(new PurchaseOrderHistoryImport($this->userId, $this->companyId, $this->importRole), $this->filePath, 'public');
 
             // Clean up temporary file
-            Storage::disk('local')->delete($this->filePath);
+            Storage::disk('public')->delete($this->filePath);
 
             Log::info("PO Import completed for user ID: {$this->userId}, Role: {$this->importRole}");
         } catch (\Exception $e) {

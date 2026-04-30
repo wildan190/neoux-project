@@ -70,5 +70,11 @@
         "address": "Wisma 77 Lt. 15, Slipi, Jakarta Barat",
         "status": "Active",
         "type": "Corporate Entity"
+    },
+    "901234567890043": {
+        "name": "MICRO PADMA NUSANTARA",
+        "address": "Jl. Profesor Dr. Insinyur Soetami",
+        "status": "In Active",
+        "type": "Corporate Entity"
     }
 }

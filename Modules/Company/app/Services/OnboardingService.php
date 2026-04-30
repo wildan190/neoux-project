@@ -73,7 +73,7 @@ class OnboardingService
         if (isset($data['historical_data'])) {
             $file = $data['historical_data'];
             $fileName = 'onboarding_' . $data['npwp'] . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('onboarding_imports', $fileName, 'local');
+            $path = $file->storeAs('onboarding_imports', $fileName, 'public');
             $data['onboarding_file_path'] = $path;
             unset($data['historical_data']);
         }
