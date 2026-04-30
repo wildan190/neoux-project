@@ -37,6 +37,15 @@
                         <p class="text-[10px] text-gray-400 mt-1">{{ $purchaseOrder->escrow_paid_at->format('d M Y, H:i') }}</p>
                     </div>
                 @endif
+
+                @if($isBuyer && in_array($purchaseOrder->status, ['full_delivery', 'received', 'completed']))
+                    <form action="{{ route('procurement.po.escrow-release', $purchaseOrder) }}" method="POST" onsubmit="return handlePrFormSubmit(this)" class="mt-4">
+                        @csrf
+                        <button type="submit" class="w-full py-3 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-600/20 hover:bg-green-700 transition">
+                            Release Payout Now
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     @elseif($purchaseOrder->escrow_status === 'released')

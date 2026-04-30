@@ -42,6 +42,7 @@ class ProcessDisbursementJob implements ShouldQueue
      */
     public function handle(MidtransIrisService $irisService)
     {
+        Log::info("Disbursement Job started for PO {$this->purchaseOrder->po_number}");
         $po = $this->purchaseOrder;
         $vendor = $po->vendorCompany;
 
@@ -74,6 +75,10 @@ class ProcessDisbursementJob implements ShouldQueue
                     'escrow_released_at' => now(),
                     'status' => 'completed',
                 ]);
+
+                // Automatically mark all related invoices as paid since escrow is released
+                $po->invoices()->where('status', '!=', 'rejected')->update(['status' => 'paid']);
+
                 Log::info("Disbursement Job success for PO {$po->po_number}. Reference: {$this->referenceNo}");
             } else {
                 throw new \Exception("IRIS API returned failure.");

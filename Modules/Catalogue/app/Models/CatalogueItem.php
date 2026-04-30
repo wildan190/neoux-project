@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Company\Models\Company;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
 class CatalogueItem extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
+        'uuid',
         'company_id',
         'catalogue_product_id',
         'category_id',
