@@ -17,7 +17,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/company-pending-approval', function () {
         return view('company::pending-approval');
-    })->name('company.pending-approval')->middleware('company.selected');
+    })->name('company.pending-approval')->middleware(['company.selected', 'company.active']);
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');

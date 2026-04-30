@@ -17,6 +17,11 @@ use Modules\Procurement\Http\Controllers\MidtransController;
 
 Route::get('/midtrans/finish', [MidtransController::class, 'finish'])->name('procurement.midtrans.finish');
 
+// Accessible without company selection (for onboarding)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/procurement/po/export-template', [PurchaseOrderController::class, 'exportTemplate'])->name('procurement.po.export-template');
+});
+
 Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('procurement.')->group(function () {
 
     // Approvals Dashboard
@@ -54,7 +59,6 @@ Route::middleware(['auth', 'company.selected'])->prefix('procurement')->name('pr
     });
 
     // Purchase Orders
-    Route::get('/po/export-template', [PurchaseOrderController::class, 'exportTemplate'])->name('po.export-template');
     Route::get('/po', [PurchaseOrderController::class, 'index'])->name('po.index');
     Route::get('/po/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('po.show');
     Route::get('/po/{purchaseOrder}/print', [PurchaseOrderController::class, 'print'])->name('po.print');

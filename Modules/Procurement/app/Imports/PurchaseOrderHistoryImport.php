@@ -91,6 +91,14 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow, WithCa
                     }
                 }
 
+                // ── Handle Duplicate PO Number ────────────────────────────────────────
+                $originalPoNumber = $poNumber;
+                $counter = 1;
+                while (PurchaseOrder::where('po_number', $poNumber)->exists()) {
+                    $poNumber = $originalPoNumber . '-' . $counter;
+                    $counter++;
+                }
+
                 // ── Create Purchase Order ──────────────────────────────────────────────
                 $data = [
                     'po_number'              => $poNumber,

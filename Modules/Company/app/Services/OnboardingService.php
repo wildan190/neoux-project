@@ -70,7 +70,41 @@ class OnboardingService
         $data['registered_date'] = now();
         $data['npwp'] = preg_replace('/[^0-9]/', '', $data['npwp']);
 
+        if (isset($data['historical_data'])) {
+            $file = $data['historical_data'];
+            $fileName = 'onboarding_' . $data['npwp'] . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('onboarding_imports', $fileName, 'local');
+            $data['onboarding_file_path'] = $path;
+            unset($data['historical_data']);
+        }
+
         $company = Company::create($data);
+
+        // Dispatch Import Job if file exists
+        if ($company->onboarding_file_path) {
+            if ($company->category === 'buyer') {
+                \Modules\Procurement\Jobs\ProcessPurchaseOrderImport::dispatch(
+                    $company->onboarding_file_path,
+                    Auth::id(),
+                    $company->id,
+                    'buyer'
+                );
+            } else {
+                $importJob = \Modules\Catalogue\Models\ImportJob::create([
+                    'user_id' => Auth::id(),
+                    'company_id' => $company->id,
+                    'type' => 'catalogue',
+                    'status' => 'pending',
+                    'file_name' => basename($company->onboarding_file_path),
+                ]);
+
+                \Modules\Catalogue\Jobs\ImportCatalogueItemsJob::dispatch(
+                    $company->onboarding_file_path,
+                    $company->id,
+                    $importJob->id
+                );
+            }
+        }
 
         // Attach user as owner in members table
         $company->members()->attach(Auth::id(), ['role' => 'owner']);
