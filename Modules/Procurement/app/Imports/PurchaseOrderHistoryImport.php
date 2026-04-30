@@ -80,11 +80,24 @@ class PurchaseOrderHistoryImport implements ToCollection, WithHeadingRow, WithCa
                 $createdAt = $now;
                 if ($month) {
                     try {
-                        // Handle numeric month (1-12) or string month (January-December)
+                        $currentMonth = (int) date('m');
+                        $targetYear = (int) date('Y');
+                        
                         if (is_numeric($month)) {
-                            $createdAt = \Illuminate\Support\Carbon::create(date('Y'), (int)$month, 1, 0, 0, 0);
+                            $m = (int)$month;
+                            // If month in Excel is greater than current month, it's likely from last year
+                            if ($m > $currentMonth) {
+                                $targetYear--;
+                            }
+                            $createdAt = \Illuminate\Support\Carbon::create($targetYear, $m, 1, 0, 0, 0);
                         } else {
-                            $createdAt = \Illuminate\Support\Carbon::parse("1 {$month} " . date('Y'));
+                            // Handle string month (January, etc.)
+                            $parsedMonth = \Illuminate\Support\Carbon::parse("1 {$month}");
+                            $m = (int) $parsedMonth->format('m');
+                            if ($m > $currentMonth) {
+                                $targetYear--;
+                            }
+                            $createdAt = \Illuminate\Support\Carbon::create($targetYear, $m, 1, 0, 0, 0);
                         }
                     } catch (\Exception $e) {
                         $createdAt = $now;

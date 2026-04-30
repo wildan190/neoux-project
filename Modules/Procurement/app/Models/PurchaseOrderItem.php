@@ -28,6 +28,8 @@ class PurchaseOrderItem extends Model
         'price_idr',
         'price_original',
         'subtotal',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
